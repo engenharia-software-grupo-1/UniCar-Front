@@ -1,0 +1,756 @@
+#root {
+  width: 100%;
+  max-width: none;
+  min-height: 100svh;
+  margin: 0;
+  border: 0;
+  text-align: left;
+  display: block;
+}
+
+.unicar-page {
+  --navy: #17213f;
+  --navy-2: #26365f;
+  --orange: #f97316;
+  --orange-soft: rgba(249, 115, 22, 0.26);
+  --orange-dark: #c2410c;
+  --green: #1fa971;
+  --blue: #4e8cff;
+  --ink: #17213f;
+  --muted: #6a7283;
+  --line: #e8ebf0;
+  --surface: #ffffff;
+  --soft: #f6f8fb;
+  --shadow: 0 18px 45px rgba(23, 33, 63, 0.12);
+
+  min-height: 100svh;
+  color: var(--ink);
+  background: #ffffff;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.unicar-page * {
+  box-sizing: border-box;
+}
+
+.unicar-page a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.unicar-container {
+  width: min(1120px, calc(100% - 40px));
+  margin: 0 auto;
+}
+
+.unicar-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: rgba(255, 255, 255, 0.9);
+  border-bottom: 1px solid var(--line);
+  backdrop-filter: blur(14px);
+}
+
+.unicar-header__inner,
+.unicar-footer__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.unicar-header__inner {
+  min-height: 88px;
+}
+
+.unicar-brand {
+  display: inline-flex;
+  align-items: center;
+  color: var(--navy);
+}
+
+.unicar-brand img {
+  width: 176px;
+  height: 74px;
+  object-fit: contain;
+  object-position: center;
+}
+
+.unicar-nav {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  color: var(--muted);
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.unicar-nav a:hover,
+.unicar-link:hover {
+  color: var(--blue);
+}
+
+.unicar-header__actions,
+.unicar-actions,
+.unicar-stats,
+.unicar-route {
+  display: flex;
+  align-items: center;
+}
+
+.unicar-header__actions,
+.unicar-actions {
+  gap: 12px;
+}
+
+.unicar-link {
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: var(--navy);
+}
+
+.unicar-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 46px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--navy);
+  color: #ffffff;
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 850;
+  cursor: pointer;
+  transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
+}
+
+.unicar-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 24px rgba(23, 33, 63, 0.18);
+}
+
+.unicar-button--small {
+  min-height: 40px;
+  padding-inline: 16px;
+}
+
+.unicar-button--orange {
+  background: var(--orange);
+  color: #ffffff;
+}
+
+.unicar-button--orange:hover {
+  background: var(--orange-dark);
+}
+
+.unicar-button--ghost {
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.unicar-button--block {
+  width: 100%;
+}
+
+.unicar-hero {
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 80% 20%, var(--orange-soft), transparent 28rem),
+    linear-gradient(135deg, #17213f 0%, #26365f 100%);
+  color: #ffffff;
+}
+
+.unicar-hero__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(360px, 0.9fr);
+  align-items: center;
+  gap: 56px;
+  min-height: 650px;
+  padding: 82px 0;
+}
+
+.unicar-hero__copy {
+  max-width: 650px;
+}
+
+.unicar-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 24px;
+  padding: 8px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.unicar-hero h1,
+.unicar-section-header h2,
+.unicar-cta h2 {
+  margin: 0;
+  color: inherit;
+  font-family: inherit;
+  font-weight: 900;
+  letter-spacing: 0;
+  line-height: 1.04;
+}
+
+.unicar-hero h1 {
+  max-width: 780px;
+  font-size: clamp(2.8rem, 7vw, 5.6rem);
+}
+
+.unicar-hero h1 span {
+  color: var(--orange);
+}
+
+.unicar-hero__copy > p {
+  max-width: 560px;
+  margin: 22px 0 30px;
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 1.08rem;
+}
+
+.unicar-stats {
+  flex-wrap: wrap;
+  gap: 16px 28px;
+  margin-top: 34px;
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 0.92rem;
+}
+
+.unicar-stats strong {
+  display: block;
+  color: #ffffff;
+  font-size: 1.18rem;
+}
+
+.unicar-hero__visual {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 580px;
+}
+
+.unicar-orbit {
+  position: absolute;
+  border-radius: 50%;
+}
+
+.unicar-orbit--outer {
+  width: 500px;
+  height: 500px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.unicar-orbit--inner {
+  width: 390px;
+  height: 390px;
+  border: 1px dashed rgba(255, 255, 255, 0.2);
+}
+
+.unicar-logo-orb {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 310px;
+  height: 310px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.28);
+}
+
+.unicar-logo-orb::before {
+  content: "";
+  position: absolute;
+  inset: -80px;
+  z-index: -1;
+  border-radius: 50%;
+  background: var(--orange-soft);
+  filter: blur(36px);
+}
+
+.unicar-logo-orb img {
+  width: 270px;
+  height: 270px;
+  object-fit: contain;
+}
+
+.unicar-info-badge {
+  position: absolute;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: 245px;
+  padding: 14px;
+  border-radius: 14px;
+  background: #ffffff;
+  color: var(--navy);
+  box-shadow: var(--shadow);
+}
+
+.unicar-info-badge__mark {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--orange);
+  color: var(--navy);
+  font-size: 0.88rem;
+  font-weight: 950;
+}
+
+.unicar-info-badge span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.unicar-info-badge strong {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.82rem;
+  line-height: 1.25;
+}
+
+.unicar-badge--left {
+  top: 78px;
+  left: 4px;
+  transform: rotate(-5deg);
+}
+
+.unicar-badge--right {
+  right: -10px;
+  top: 220px;
+  transform: rotate(5deg);
+}
+
+.unicar-badge--bottom {
+  bottom: 70px;
+  left: 32px;
+}
+
+.unicar-section {
+  padding: 92px 0;
+}
+
+.unicar-section--soft {
+  background: var(--soft);
+}
+
+.unicar-section-header {
+  max-width: 690px;
+  margin-bottom: 44px;
+}
+
+.unicar-section-header h2,
+.unicar-cta h2 {
+  color: var(--navy);
+  font-size: clamp(2rem, 4vw, 3.25rem);
+}
+
+.unicar-section-header p {
+  margin-top: 14px;
+  color: var(--muted);
+  font-size: 1.05rem;
+}
+
+.unicar-feature-grid,
+.unicar-steps,
+.unicar-promo-grid {
+  display: grid;
+  gap: 20px;
+}
+
+.unicar-feature-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.unicar-card,
+.unicar-step,
+.unicar-form,
+.unicar-ride,
+.unicar-promo {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: 0 10px 28px rgba(23, 33, 63, 0.06);
+}
+
+.unicar-card,
+.unicar-step {
+  padding: 26px;
+}
+
+.unicar-card__icon {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  margin-bottom: 18px;
+  border-radius: 8px;
+  background: var(--navy);
+  color: #ffffff;
+}
+
+.unicar-card h3,
+.unicar-step h3,
+.unicar-ride h3 {
+  margin: 0 0 8px;
+  color: var(--navy);
+  font-size: 1.02rem;
+  line-height: 1.22;
+}
+
+.unicar-card p,
+.unicar-step p,
+.unicar-ride p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.93rem;
+}
+
+.unicar-search-grid {
+  display: grid;
+  grid-template-columns: minmax(300px, 0.82fr) minmax(0, 1.18fr);
+  gap: 48px;
+  align-items: start;
+}
+
+.unicar-form {
+  display: grid;
+  gap: 16px;
+  padding: 24px;
+}
+
+.unicar-form__row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.unicar-field {
+  display: grid;
+  gap: 8px;
+}
+
+.unicar-field > span {
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.unicar-field > div {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 48px;
+  padding: 0 13px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.unicar-field input {
+  width: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--navy);
+  font: inherit;
+  font-size: 0.94rem;
+}
+
+.unicar-rides {
+  display: grid;
+  gap: 14px;
+}
+
+.unicar-ride {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 18px;
+}
+
+.unicar-avatar {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--navy);
+  color: #ffffff;
+  font-weight: 900;
+}
+
+.unicar-ride__main {
+  min-width: 0;
+  flex: 1;
+}
+
+.unicar-route {
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+  color: var(--navy);
+  font-size: 0.92rem;
+}
+
+.unicar-ride__meta {
+  display: grid;
+  justify-items: end;
+  gap: 2px;
+  color: var(--muted);
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+
+.unicar-ride__meta strong {
+  color: var(--navy);
+  font-size: 0.95rem;
+}
+
+.unicar-ride__meta b {
+  color: var(--green);
+  font-size: 0.96rem;
+}
+
+.unicar-steps {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.unicar-step > span {
+  display: block;
+  margin-bottom: 18px;
+  color: var(--orange);
+  font-size: 3rem;
+  line-height: 1;
+  font-weight: 950;
+}
+
+.unicar-promo-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.unicar-promo {
+  overflow: hidden;
+  margin: 0;
+  padding: 22px;
+}
+
+.unicar-promo:nth-child(1) {
+  background: #eef3ff;
+}
+
+.unicar-promo:nth-child(2) {
+  background: #fff4e7;
+}
+
+.unicar-promo:nth-child(3) {
+  background: #ecf9f2;
+}
+
+.unicar-promo__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.unicar-promo__top span {
+  padding: 7px 10px;
+  border-radius: 8px;
+  background: var(--navy);
+  color: #ffffff;
+  font-size: 0.68rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.unicar-promo__top b {
+  color: rgba(23, 33, 63, 0.16);
+  font-size: 2.8rem;
+  line-height: 1;
+}
+
+.unicar-promo img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.unicar-promo figcaption {
+  margin-top: 20px;
+}
+
+.unicar-promo figcaption p {
+  margin: 0 0 14px;
+  color: var(--navy);
+  font-size: 1.04rem;
+  font-weight: 850;
+  line-height: 1.35;
+}
+
+.unicar-promo figcaption strong,
+.unicar-promo figcaption span {
+  display: block;
+}
+
+.unicar-promo figcaption strong {
+  color: var(--navy);
+  font-size: 0.95rem;
+}
+
+.unicar-promo figcaption span {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.unicar-cta {
+  display: grid;
+  justify-items: center;
+  gap: 18px;
+  padding: 64px 32px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #17213f 0%, #26365f 100%);
+  color: #ffffff;
+  text-align: center;
+}
+
+.unicar-cta h2 {
+  color: #ffffff;
+}
+
+.unicar-cta p {
+  max-width: 590px;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.unicar-footer {
+  border-top: 1px solid var(--line);
+  padding: 30px 0;
+}
+
+.unicar-footer p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.unicar-icon {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+}
+
+.unicar-icon--small {
+  width: 18px;
+  height: 18px;
+}
+
+.unicar-icon--large {
+  width: 46px;
+  height: 46px;
+  color: var(--orange);
+}
+
+@media (max-width: 980px) {
+  .unicar-nav,
+  .unicar-hero__visual {
+    display: none;
+  }
+
+  .unicar-hero__grid,
+  .unicar-search-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .unicar-hero__grid {
+    min-height: auto;
+    padding: 72px 0;
+  }
+
+  .unicar-feature-grid,
+  .unicar-promo-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .unicar-steps {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .unicar-container {
+    width: min(100% - 28px, 1120px);
+  }
+
+  .unicar-header__inner {
+    min-height: auto;
+    padding: 14px 0;
+    align-items: flex-start;
+  }
+
+  .unicar-brand img {
+    width: 142px;
+    height: 60px;
+  }
+
+  .unicar-header__actions {
+    gap: 8px;
+  }
+
+  .unicar-link {
+    display: none;
+  }
+
+  .unicar-button {
+    min-height: 42px;
+    padding-inline: 14px;
+    font-size: 0.88rem;
+  }
+
+  .unicar-actions,
+  .unicar-stats,
+  .unicar-ride,
+  .unicar-footer__inner {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .unicar-section {
+    padding: 66px 0;
+  }
+
+  .unicar-feature-grid,
+  .unicar-promo-grid,
+  .unicar-form__row {
+    grid-template-columns: 1fr;
+  }
+
+  .unicar-ride__meta {
+    justify-items: start;
+  }
+}

@@ -1,5 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Lock, User, Loader2 } from 'lucide-react';
+import { hasAcceptedTerms } from '../../services/termsService.js';
+import logoAsset from '../../assets/unicar-logo-transparent.png';
 import './style.css';
 
 function Login() {
@@ -41,7 +44,11 @@ function Login() {
 
       localStorage.setItem('unicar.session', '1');
 
-      navigate('/home');
+      if (hasAcceptedTerms()) {
+        navigate('/home');
+      } else {
+        navigate('/termos-de-uso');
+      }
     }, 900);
   }
 
@@ -49,34 +56,33 @@ function Login() {
     <main className="login-page">
       <section className="login-container">
         <div className="login-logo">
-          <h1>UniCar</h1>
-          <p>Carona universitária segura</p>
+          <img src={logoAsset} alt="UniCar" />
         </div>
 
         <div className="login-card">
-          <h2>Entrar com credenciais UFCG</h2>
+          <h1>Entrar com SIGAA</h1>
 
           <p className="login-subtitle">
-            Use suas credenciais institucionais para acessar o sistema.
+            Use suas credenciais institucionais da UFCG
           </p>
 
           <form onSubmit={submit} className="login-form">
             <Field
-              icon="👤"
+              icon={User}
               label="Matrícula"
               value={matricula}
               onChange={setMatricula}
-              placeholder="Digite sua matrícula"
+              placeholder="121110000"
               disabled={loading}
             />
 
             <Field
-              icon="🔒"
+              icon={Lock}
               label="Senha"
               type="password"
               value={senha}
               onChange={setSenha}
-              placeholder="Digite sua senha"
+              placeholder="••••••••"
               disabled={loading}
             />
 
@@ -86,8 +92,8 @@ function Login() {
               </div>
             )}
 
-            <button type="submit" disabled={loading}>
-              {loading && <span className="spinner" />}
+            <button type="submit" disabled={loading} className="login-submit">
+              {loading && <Loader2 className="login-spinner" />}
               {loading ? 'Autenticando...' : 'Entrar'}
             </button>
 
@@ -98,7 +104,7 @@ function Login() {
         </div>
 
         <p className="login-footer">
-          🔒 Apenas usuários com vínculo ativo na UFCG
+          🔒 Apenas estudantes com vínculo ativo na UFCG
         </p>
       </section>
     </main>
@@ -106,7 +112,7 @@ function Login() {
 }
 
 function Field({
-  icon,
+  icon: Icon,
   label,
   value,
   onChange,
@@ -119,7 +125,7 @@ function Field({
       <label>{label}</label>
 
       <div className="field-input">
-        <span>{icon}</span>
+        <Icon className="field-icon" />
 
         <input
           type={type}

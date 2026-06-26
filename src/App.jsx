@@ -4,6 +4,7 @@ import './App.css';
 import Home from './routes/index.jsx';
 import Login from './pages/Login/index.jsx';
 import Perfil from './pages/Perfil/index.jsx';
+import MeusVeiculos from './pages/MeusVeiculos/index.jsx';
 import TermosUso from './pages/TermosUso/index.jsx';
 import { hasAcceptedTerms } from './services/termsService.js';
 
@@ -79,6 +80,16 @@ function App() {
             </RequireAuthAndTerms>
           }
         />
+
+        <Route
+          path="/meus-veiculos"
+          element={
+            <RequireAuthAndTerms>
+              <MeusVeiculos />
+            </RequireAuthAndTerms>
+          }
+        />
+
       </Routes>
     </BrowserRouter>
   );

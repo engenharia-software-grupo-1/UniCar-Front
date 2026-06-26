@@ -1,0 +1,219 @@
+.veiculos-page {
+  min-height: 100vh;
+  background-color: #f4f7fb;
+  padding: 40px 20px;
+  display: flex;
+  justify-content: center;
+}
+
+.veiculos-card {
+  width: 100%;
+  max-width: 760px;
+  background-color: #ffffff;
+  border-radius: 20px;
+  padding: 32px;
+  box-shadow: 0 12px 35px rgba(15, 61, 94, 0.12);
+}
+
+.veiculos-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 20px;
+  margin-bottom: 24px;
+}
+
+.veiculos-header h1 {
+  margin: 0;
+  color: #0f3d5e;
+  font-size: 28px;
+}
+
+.veiculos-header p {
+  margin: 8px 0 0;
+  color: #64748b;
+}
+
+.veiculos-loading {
+  color: #64748b;
+  text-align: center;
+  padding: 20px 0;
+}
+
+.veiculos-error {
+  background-color: #fee2e2;
+  color: #991b1b;
+  padding: 12px;
+  border-radius: 10px;
+  text-align: center;
+  font-weight: 600;
+  margin: 16px 0;
+}
+
+.veiculos-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 20px;
+}
+
+.veiculos-empty {
+  color: #64748b;
+  text-align: center;
+  padding: 28px 0;
+}
+
+.veiculos-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.veiculos-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background-color: #f8fafc;
+}
+
+.veiculos-item__info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.veiculos-item__info strong {
+  color: #1e293b;
+  font-size: 17px;
+}
+
+.veiculos-item__info span {
+  color: #64748b;
+  font-size: 14px;
+}
+
+.veiculos-item__actions {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.veiculos-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.veiculos-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.veiculos-field span {
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.veiculos-field input {
+  height: 50px;
+  border: 1px solid #d6dee8;
+  border-radius: 12px;
+  background-color: #f8fbff;
+  padding: 0 16px;
+  color: #0f172a;
+  font-size: 16px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.veiculos-field input:focus {
+  border-color: #94a3b8;
+  box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.06);
+}
+
+.veiculos-field input:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.veiculos-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.veiculos-card button {
+  border: none;
+  border-radius: 10px;
+  padding: 12px 18px;
+  background-color: #0f3d5e;
+  color: #ffffff;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s, opacity 0.2s;
+}
+
+.veiculos-card button:hover {
+  background-color: #0b2f49;
+}
+
+.veiculos-card button:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.veiculos-card button.secondary {
+  background-color: #e2e8f0;
+  color: #1e293b;
+}
+
+.veiculos-card button.secondary:hover {
+  background-color: #cbd5e1;
+}
+
+.veiculos-card button.danger {
+  background-color: #dc2626;
+}
+
+.veiculos-card button.danger:hover {
+  background-color: #b91c1c;
+}
+
+@media (max-width: 700px) {
+  .veiculos-card {
+    padding: 24px;
+  }
+
+  .veiculos-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .veiculos-item__actions {
+    width: 100%;
+  }
+
+  .veiculos-item__actions button {
+    flex: 1;
+  }
+
+  .veiculos-actions {
+    flex-direction: column-reverse;
+  }
+
+  .veiculos-actions button {
+    width: 100%;
+  }
+}

@@ -1,16 +1,17 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
 import './App.css';
+
 import Home from './routes/index.jsx';
 import Login from './pages/Login/index.jsx';
 import Perfil from './pages/Perfil/index.jsx';
 import TermosUso from './pages/TermosUso/index.jsx';
+
+import { isAuthenticated } from './services/authService.js';
 import { hasAcceptedTerms } from './services/termsService.js';
 
 function InitialRoute() {
-  const session = localStorage.getItem('unicar.session');
-
-  if (!session) {
+  if (!isAuthenticated()) {
     return <Navigate to="/login" replace />;
   }
 
@@ -22,9 +23,7 @@ function InitialRoute() {
 }
 
 function RequireAuth({ children }) {
-  const session = localStorage.getItem('unicar.session');
-
-  if (!session) {
+  if (!isAuthenticated()) {
     return <Navigate to="/login" replace />;
   }
 
@@ -32,9 +31,7 @@ function RequireAuth({ children }) {
 }
 
 function RequireAuthAndTerms({ children }) {
-  const session = localStorage.getItem('unicar.session');
-
-  if (!session) {
+  if (!isAuthenticated()) {
     return <Navigate to="/login" replace />;
   }
 

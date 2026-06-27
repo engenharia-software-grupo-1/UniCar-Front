@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Lock, User, Loader2 } from 'lucide-react';
 import { login } from '../../services/authService.js';
@@ -9,7 +9,7 @@ import './style.css';
 function Login() {
   const navigate = useNavigate();
 
-  const [matricula, setMatricula] = useState('');
+  const [usuario, setUsuario] = useState('');
   const [senha, setSenha] = useState('');
   const [loading, setLoading] = useState(false);
   const [erro, setErro] = useState('');
@@ -19,13 +19,15 @@ function Login() {
 
     setErro('');
 
-    if (!matricula && !senha) {
-      setErro('Informe matrícula e senha institucional.');
+    const usuarioNormalizado = usuario.trim();
+
+    if (!usuarioNormalizado && !senha) {
+      setErro('Informe usuário e senha institucional.');
       return;
     }
 
-    if (!matricula) {
-      setErro('Informe a matrícula institucional.');
+    if (!usuarioNormalizado) {
+      setErro('Informe o usuário institucional.');
       return;
     }
 
@@ -38,14 +40,14 @@ function Login() {
       setLoading(true);
 
       await login({
-        matricula,
+        usuario: usuarioNormalizado,
         senha,
       });
 
       if (hasAcceptedTerms()) {
-        navigate('/home');
+        navigate('/home', { replace: true });
       } else {
-        navigate('/termos-de-uso');
+        navigate('/termos-de-uso', { replace: true });
       }
     } catch (error) {
       setErro(error.message || 'Não foi possível realizar o login.');
@@ -71,25 +73,29 @@ function Login() {
           <form onSubmit={submit} className="login-form">
             <Field
               icon={User}
-              label="Matrícula"
-              value={matricula}
-              onChange={setMatricula}
-              placeholder="121110000"
+              id="usuario"
+              label="Usuário"
+              value={usuario}
+              onChange={setUsuario}
+              placeholder="seu usuário institucional"
+              autoComplete="username"
               disabled={loading}
             />
 
             <Field
               icon={Lock}
+              id="senha"
               label="Senha"
               type="password"
               value={senha}
               onChange={setSenha}
               placeholder="••••••••"
+              autoComplete="current-password"
               disabled={loading}
             />
 
             {erro && (
-              <div className="login-error">
+              <div className="login-error" role="alert">
                 {erro}
               </div>
             )}
@@ -105,9 +111,9 @@ function Login() {
               rel="noopener noreferrer"
               className="forgot-button"
               aria-label="Abrir recuperação de senha institucional em nova aba"
-          >
-            Esqueci minha senha
-          </a>
+            >
+              Esqueci minha senha
+            </a>
           </form>
         </div>
 
@@ -121,24 +127,33 @@ function Login() {
 
 function Field({
   icon: Icon,
+  id,
   label,
   value,
   onChange,
   type = 'text',
   placeholder,
+  autoComplete,
+  inputMode,
   disabled = false,
 }) {
+  const generatedId = useId();
+  const inputId = id || generatedId;
+
   return (
     <div className="field-group">
-      <label>{label}</label>
+      <label htmlFor={inputId}>{label}</label>
 
       <div className="field-input">
         <Icon className="field-icon" />
 
         <input
+          id={inputId}
           type={type}
           value={value}
           placeholder={placeholder}
+          autoComplete={autoComplete}
+          inputMode={inputMode}
           disabled={disabled}
           onChange={(event) => onChange(event.target.value)}
         />

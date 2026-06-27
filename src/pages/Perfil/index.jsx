@@ -88,7 +88,11 @@ function Perfil() {
   }
 
   useEffect(() => {
-    carregarPerfil();
+    async function carregarPerfilInicial() {
+      await carregarPerfil();
+    }
+
+    carregarPerfilInicial();
   }, []);
 
   if (loading) {

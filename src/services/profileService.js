@@ -1,60 +1,53 @@
-import { getSession } from './authService.js';
-
-function delay(ms = 900) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
+import { getSession, normalizeUsuario } from './authService.js';
+import { apiRequest } from './api.js';
 
 function salvarSessaoAtualizada(session) {
   localStorage.setItem('unicar.session', JSON.stringify(session));
 }
 
 export async function getPerfilUsuarioAutenticado() {
-  await delay();
-
   const session = getSession();
 
   if (!session) {
     throw new Error('Usuário não autenticado.');
   }
 
-  const simularErro = localStorage.getItem('unicar.profile.error');
+  const usuario = normalizeUsuario(await apiRequest('/usuarios/me'));
 
-  if (simularErro === '1') {
-    throw new Error('Não foi possível carregar os dados do perfil.');
-  }
+  salvarSessaoAtualizada({
+    ...session,
+    usuario,
+  });
 
+  return toPerfil(usuario);
+}
+
+function toPerfil(usuario) {
   return {
-    nomeCompleto: session.usuario?.nomeCompleto || 'Usuário UniCar',
-    matricula: session.usuario?.matricula || '121110000',
-    cpf: session.usuario?.cpf || '000.000.000-00',
-    emailInstitucional:
-      session.usuario?.emailInstitucional || 'usuario@academico.ufcg.edu.br',
-    curso: session.usuario?.curso || 'Ciência da Computação',
-    genero: session.usuario?.genero || 'Não informado',
-    recebeEmails: session.usuario?.recebeEmails ?? true,
+    nomeCompleto: usuario.nomeCompleto || 'Usuário UniCar',
+    matricula: usuario.matricula || 'Não informado',
+    cpf: usuario.cpf || 'Não informado',
+    emailInstitucional: usuario.emailInstitucional || 'Não informado',
+    curso: usuario.curso || 'Não informado',
+    genero: toGeneroLabel(usuario.genero),
+    recebeEmails: usuario.recebeEmails ?? true,
   };
 }
 
 export async function atualizarPerfilUsuarioAutenticado(dadosAtualizados) {
-  await delay();
-
   const session = getSession();
 
   if (!session) {
     throw new Error('Usuário não autenticado.');
   }
 
-  const simularErro = localStorage.getItem('unicar.profile.update.error');
-
-  if (simularErro === '1') {
-    throw new Error('Não foi possível salvar as alterações do perfil.');
-  }
-
-  const usuarioAtualizado = {
-    ...session.usuario,
-    genero: dadosAtualizados.genero,
-    recebeEmails: dadosAtualizados.recebeEmails,
-  };
+  const usuarioAtualizado = normalizeUsuario(await apiRequest('/usuarios/me', {
+    method: 'PATCH',
+    body: JSON.stringify({
+      genero: toGeneroApiValue(dadosAtualizados.genero),
+      receberEmail: dadosAtualizados.recebeEmails,
+    }),
+  }));
 
   const novaSessao = {
     ...session,
@@ -63,35 +56,45 @@ export async function atualizarPerfilUsuarioAutenticado(dadosAtualizados) {
 
   salvarSessaoAtualizada(novaSessao);
 
-  return {
-    nomeCompleto: usuarioAtualizado.nomeCompleto || 'Usuário UniCar',
-    matricula: usuarioAtualizado.matricula || '121110000',
-    cpf: usuarioAtualizado.cpf || '000.000.000-00',
-    emailInstitucional:
-      usuarioAtualizado.emailInstitucional || 'usuario@academico.ufcg.edu.br',
-    curso: usuarioAtualizado.curso || 'Ciência da Computação',
-    genero: usuarioAtualizado.genero || 'Não informado',
-    recebeEmails: usuarioAtualizado.recebeEmails ?? true,
-  };
+  return toPerfil(usuarioAtualizado);
 }
 
 export async function excluirContaUsuarioAutenticado() {
-  await delay();
-
   const session = getSession();
 
   if (!session) {
     throw new Error('Usuário não autenticado.');
   }
 
-  const simularErro = localStorage.getItem('unicar.profile.delete.error');
-
-  if (simularErro === '1') {
-    throw new Error('Não foi possível excluir a conta.');
-  }
+  await apiRequest('/usuarios/me', {
+    method: 'DELETE',
+  });
 
   localStorage.removeItem('unicar.session');
   localStorage.removeItem('unicar.terms.acceptance');
 
   return true;
+}
+
+function toGeneroLabel(genero) {
+  const labels = {
+    FEMININO: 'Feminino',
+    MASCULINO: 'Masculino',
+    OUTRO: 'Outro',
+    NAO_INFORMADO: 'Não informado',
+  };
+
+  return labels[genero] || genero || 'Não informado';
+}
+
+function toGeneroApiValue(genero) {
+  const values = {
+    Feminino: 'FEMININO',
+    Masculino: 'MASCULINO',
+    Outro: 'OUTRO',
+    'Não informado': 'NAO_INFORMADO',
+    'Prefiro não informar': 'NAO_INFORMADO',
+  };
+
+  return values[genero] || 'NAO_INFORMADO';
 }

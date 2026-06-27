@@ -11,4 +11,10 @@ export default defineConfig({
     setupFiles: './src/test/setup.js',
     css: false,
   },
+  server: {
+    proxy: {
+      '/auth': 'http://localhost:8080',
+      '/usuarios': 'http://localhost:8080',
+    },
+  },
 })

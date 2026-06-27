@@ -1,5 +1,5 @@
 const TERMS_STORAGE_KEY = 'unicar.terms.acceptance';
-const TERMS_VERSION = '1.0';
+const TERMS_VERSION = '1.1';
 
 export function hasAcceptedTerms() {
   const acceptance = localStorage.getItem(TERMS_STORAGE_KEY);

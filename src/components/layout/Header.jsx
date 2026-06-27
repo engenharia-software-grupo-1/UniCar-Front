@@ -28,7 +28,7 @@ export default function Header() {
         <div className="unicar-header__actions">
           {estaLogado ? (
             <>
-              <Link to="/perfil" className="unicar-link">
+              <Link to="/perfil" className="unicar-button unicar-button--small unicar-button--orange">
                 Meu perfil
               </Link>
 

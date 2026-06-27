@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import Field from '../../components/common/Field.jsx';
 import {
   ArrowRight,
@@ -6,6 +7,7 @@ import {
   MapPin,
   Search,
   Shield,
+  Users,
 } from '../../components/common/Icon.jsx';
 import SectionHeader from '../../components/common/SectionHeader.jsx';
 import Footer from '../../components/layout/Footer.jsx';
@@ -18,6 +20,7 @@ import {
   rideExamples,
   testimonials,
 } from '../../data/homePage.js';
+import { isAuthenticated } from '../../services/authService.js';
 
 export default function Home() {
   return (
@@ -35,6 +38,8 @@ export default function Home() {
 }
 
 function Hero() {
+  const estaLogado = isAuthenticated();
+
   return (
     <section className="unicar-hero">
       <div className="unicar-container unicar-hero__grid">
@@ -51,13 +56,22 @@ function Hero() {
             menos trânsito e novas amizades a cada viagem.
           </p>
           <div className="unicar-actions">
-            <a href="/login" className="unicar-button unicar-button--orange">
-              Oferecer carona
-              <ArrowRight className="unicar-icon unicar-icon--small" />
-            </a>
-            <a href="/login" className="unicar-button unicar-button--ghost">
-              Encontrar carona
-            </a>
+            {estaLogado ? (
+              <Link to="/perfil" className="unicar-button unicar-button--orange">
+                <Users className="unicar-icon unicar-icon--small" />
+                Meu perfil
+              </Link>
+            ) : (
+              <>
+                <Link to="/login" className="unicar-button unicar-button--orange">
+                  Oferecer carona
+                  <ArrowRight className="unicar-icon unicar-icon--small" />
+                </Link>
+                <Link to="/login" className="unicar-button unicar-button--ghost">
+                  Encontrar carona
+                </Link>
+              </>
+            )}
           </div>
           <div className="unicar-stats">
             <span><strong>178</strong> estudantes pesquisados</span>
@@ -206,6 +220,8 @@ function Divulgacao() {
 }
 
 function CTA() {
+  const estaLogado = isAuthenticated();
+
   return (
     <section className="unicar-section">
       <div className="unicar-container">
@@ -213,7 +229,9 @@ function CTA() {
           <Car className="unicar-icon unicar-icon--large" />
           <h2>Pronto para sua próxima carona?</h2>
           <p>Junte-se a milhares de estudantes que já economizam tempo e dinheiro com o UniCar.</p>
-          <a href="/login" className="unicar-button unicar-button--orange">Criar minha conta grátis</a>
+          <Link to={estaLogado ? '/perfil' : '/login'} className="unicar-button unicar-button--orange">
+            {estaLogado ? 'Ir para meu perfil' : 'Criar minha conta grátis'}
+          </Link>
         </div>
       </div>
     </section>

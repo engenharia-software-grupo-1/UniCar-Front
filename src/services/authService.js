@@ -1,44 +1,38 @@
+import { apiRequest } from './api.js';
+
 const SESSION_KEY = 'unicar.session';
 
-function delay(ms = 900) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
 export async function login({ matricula, usuario, senha }) {
-  await delay();
-
-  const identificacao = matricula || usuario;
+  const identificacao = (matricula || usuario || '').trim();
 
   if (!identificacao || !senha) {
     throw new Error('Informe matrícula e senha institucional.');
   }
 
-  if (identificacao.toLowerCase() === 'erro') {
-    throw new Error('Usuário ou senha inválidos.');
+  const session = await apiRequest('/auth/login', {
+    method: 'POST',
+    body: JSON.stringify({
+      usuario: identificacao,
+      senha,
+    }),
+  });
+
+  if (!session?.token) {
+    throw new Error('Resposta de autenticação inválida.');
   }
 
-  const session = {
-    token: 'token-simulado',
-    usuario: {
-      id: 1,
-      nomeCompleto: 'Usuário UniCar',
-      matricula: identificacao,
-      cpf: '000.000.000-00',
-      emailInstitucional: 'usuario@academico.ufcg.edu.br',
-      curso: 'Ciência da Computação',
-      genero: 'Não informado',
-      recebeEmails: true,
-    },
+  const normalizedSession = {
+    ...session,
+    usuario: normalizeUsuario(session.usuario, identificacao),
+    authenticatedAt: new Date().toISOString(),
   };
 
-  localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+  localStorage.setItem(SESSION_KEY, JSON.stringify(normalizedSession));
 
-  return session;
+  return normalizedSession;
 }
 
 export async function logout() {
-  await delay(300);
-
   localStorage.removeItem(SESSION_KEY);
   sessionStorage.removeItem(SESSION_KEY);
 }
@@ -51,7 +45,16 @@ export function getSession() {
   }
 
   try {
-    return JSON.parse(session);
+    const parsedSession = JSON.parse(session);
+
+    if (!parsedSession?.token) {
+      return null;
+    }
+
+    return {
+      ...parsedSession,
+      usuario: normalizeUsuario(parsedSession.usuario),
+    };
   } catch {
     return null;
   }
@@ -61,4 +64,30 @@ export function isAuthenticated() {
   const session = getSession();
 
   return Boolean(session?.token);
+}
+
+export function normalizeUsuario(usuario = {}, identificacao = '') {
+  return {
+    ...usuario,
+    nomeCompleto: usuario.nomeCompleto || usuario.nome || 'Usuário UniCar',
+    matricula: usuario.matricula || usuario.usuario || identificacao,
+    emailInstitucional:
+      usuario.emailInstitucional || usuario.email || 'usuario@academico.ufcg.edu.br',
+    curso: getCurso(usuario),
+    recebeEmails: usuario.recebeEmails ?? usuario.receberEmail ?? true,
+  };
+}
+
+function getCurso(usuario) {
+  return (
+    usuario.curso ||
+    usuario.nomeCurso ||
+    usuario.nomeDoCurso ||
+    usuario.programa ||
+    usuario.attributes?.curso ||
+    usuario.attributes?.nomeCurso ||
+    usuario.attributes?.nomeDoCurso ||
+    usuario.attributes?.programa ||
+    ''
+  );
 }

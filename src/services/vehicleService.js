@@ -1,8 +1,15 @@
 const API_BASE_URL = import.meta.env?.VITE_API_URL ?? 'http://localhost:8080';
 const VEICULOS_ENDPOINT = `${API_BASE_URL}/veiculos`;
+const TOKENMOCKED = "123456"
 
 function obterToken() {
-  const sessionJSON = localStorage.getItem('unicar.session');
+  let sessionJSON = undefined;
+
+  if (import.meta.env.VITE_ENABLE_MOCKS === 'true') {
+    sessionJSON = JSON.stringify({ token: TOKENMOCKED });
+  } else {
+    sessionJSON = localStorage.getItem('unicar.session');
+  }
 
   if (!sessionJSON) {
     throw new Error('Usuário não autenticado.');

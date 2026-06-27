@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Lock, User, Loader2 } from 'lucide-react';
+import { login } from '../../services/authService.js';
 import { hasAcceptedTerms } from '../../services/termsService.js';
 import logoAsset from '../../assets/unicar-logo-transparent.png';
 import './style.css';
@@ -13,7 +14,7 @@ function Login() {
   const [loading, setLoading] = useState(false);
   const [erro, setErro] = useState('');
 
-  function submit(event) {
+  async function submit(event) {
     event.preventDefault();
 
     setErro('');
@@ -33,23 +34,24 @@ function Login() {
       return;
     }
 
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    setTimeout(() => {
-      if (matricula.toLowerCase() === 'erro') {
-        setErro('Usuário ou senha inválidos.');
-        setLoading(false);
-        return;
-      }
-
-      localStorage.setItem('unicar.session', '1');
+      await login({
+        matricula,
+        senha,
+      });
 
       if (hasAcceptedTerms()) {
         navigate('/home');
       } else {
         navigate('/termos-de-uso');
       }
-    }, 900);
+    } catch (error) {
+      setErro(error.message || 'Não foi possível realizar o login.');
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -97,9 +99,15 @@ function Login() {
               {loading ? 'Autenticando...' : 'Entrar'}
             </button>
 
-            <button type="button" className="forgot-button">
-              Esqueci minha senha
-            </button>
+            <a
+              href="https://sigadmin.ufcg.edu.br/admin/public/recuperar_senha.jsf"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="forgot-button"
+              aria-label="Abrir recuperação de senha institucional em nova aba"
+          >
+            Esqueci minha senha
+          </a>
           </form>
         </div>
 

@@ -1,106 +1,132 @@
-const VEHICLES_STORAGE_KEY = 'unicar.vehicles';
+const API_BASE_URL = import.meta.env?.VITE_API_URL ?? 'http://localhost:8080';
+const VEICULOS_ENDPOINT = `${API_BASE_URL}/veiculos`;
 
-function lerVeiculos() {
-  const veiculosJSON = localStorage.getItem(VEHICLES_STORAGE_KEY);
+function obterToken() {
+  const sessionJSON = localStorage.getItem('unicar.session');
 
-  if (!veiculosJSON) {
-    return [];
+  if (!sessionJSON) {
+    throw new Error('Usuário não autenticado.');
   }
 
   try {
-    const veiculos = JSON.parse(veiculosJSON);
+    const session = JSON.parse(sessionJSON);
 
-    return Array.isArray(veiculos) ? veiculos : [];
+    if (!session?.token) {
+      throw new Error('Usuário não autenticado.');
+    }
+
+    return session.token;
   } catch {
-    return [];
-  }
-}
-
-function salvarVeiculos(veiculos) {
-  localStorage.setItem(VEHICLES_STORAGE_KEY, JSON.stringify(veiculos));
-}
-
-function exigirSessao() {
-  const session = localStorage.getItem('unicar.session');
-
-  if (!session) {
     throw new Error('Usuário não autenticado.');
   }
 }
 
-function gerarId() {
-  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
-    return crypto.randomUUID();
+function montarHeaders(token, comCorpo = false) {
+  const headers = {
+    Authorization: `Bearer ${token}`,
+  };
+
+  if (comCorpo) {
+    headers['Content-Type'] = 'application/json';
   }
 
-  return `veiculo-${Date.now()}`;
+  return headers;
+}
+
+async function extrairMensagemErro(response, mensagemPadrao) {
+  try {
+    const corpo = await response.json();
+
+    if (corpo?.message) {
+      return corpo.message;
+    }
+  } catch {
+    // Resposta sem corpo JSON; usa a mensagem padrão.
+  }
+
+  return mensagemPadrao;
+}
+
+async function requisitar(url, opcoes, mensagemErroPadrao) {
+  let response;
+
+  try {
+    response = await fetch(url, opcoes);
+  } catch {
+    throw new Error('Não foi possível conectar ao servidor. Tente novamente.');
+  }
+
+  if (!response.ok) {
+    const mensagem = await extrairMensagemErro(response, mensagemErroPadrao);
+
+    throw new Error(mensagem);
+  }
+
+  return response;
 }
 
 export async function listarVeiculos() {
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  const token = obterToken();
 
-  exigirSessao();
+  const response = await requisitar(
+    VEICULOS_ENDPOINT,
+    { method: 'GET', headers: montarHeaders(token) },
+    'Não foi possível carregar os veículos.',
+  );
 
-  return lerVeiculos();
+  return response.json();
+}
+
+export async function obterVeiculo(id) {
+  const token = obterToken();
+
+  const response = await requisitar(
+    `${VEICULOS_ENDPOINT}/${id}`,
+    { method: 'GET', headers: montarHeaders(token) },
+    'Não foi possível carregar o veículo.',
+  );
+
+  return response.json();
 }
 
 export async function criarVeiculo({ modelo, placa, cor }) {
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  const token = obterToken();
 
-  exigirSessao();
+  const response = await requisitar(
+    VEICULOS_ENDPOINT,
+    {
+      method: 'POST',
+      headers: montarHeaders(token, true),
+      body: JSON.stringify({ modelo, placa, cor }),
+    },
+    'Não foi possível cadastrar o veículo.',
+  );
 
-  const veiculos = lerVeiculos();
-
-  const novoVeiculo = {
-    id: gerarId(),
-    modelo,
-    placa,
-    cor,
-    criadoEm: new Date().toISOString(),
-  };
-
-  veiculos.push(novoVeiculo);
-  salvarVeiculos(veiculos);
-
-  return novoVeiculo;
+  return response.json();
 }
 
 export async function atualizarVeiculo(id, { modelo, placa, cor }) {
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  const token = obterToken();
 
-  exigirSessao();
+  const response = await requisitar(
+    `${VEICULOS_ENDPOINT}/${id}`,
+    {
+      method: 'PUT',
+      headers: montarHeaders(token, true),
+      body: JSON.stringify({ modelo, placa, cor }),
+    },
+    'Não foi possível atualizar o veículo.',
+  );
 
-  const veiculos = lerVeiculos();
-  const index = veiculos.findIndex((veiculo) => veiculo.id === id);
-
-  if (index === -1) {
-    throw new Error('Veículo não encontrado.');
-  }
-
-  veiculos[index] = {
-    ...veiculos[index],
-    modelo,
-    placa,
-    cor,
-    atualizadoEm: new Date().toISOString(),
-  };
-
-  salvarVeiculos(veiculos);
-
-  return veiculos[index];
+  return response.json();
 }
 
 export async function deletarVeiculo(id) {
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  const token = obterToken();
 
-  exigirSessao();
-
-  const veiculos = lerVeiculos();
-  const filtrados = veiculos.filter((veiculo) => veiculo.id !== id);
-
-  if (filtrados.length === veiculos.length) {
-    throw new Error('Veículo não encontrado.');
-  }
-
-  salvarVeiculos(filtrados);
+  await requisitar(
+    `${VEICULOS_ENDPOINT}/${id}`,
+    { method: 'DELETE', headers: montarHeaders(token) },
+    'Não foi possível remover o veículo.',
+  );
 }

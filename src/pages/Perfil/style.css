@@ -37,7 +37,8 @@
 }
 
 .perfil-header button,
-.perfil-actions button {
+.perfil-actions button,
+.perfil-footer button {
   border: none;
   border-radius: 10px;
   padding: 11px 16px;
@@ -45,10 +46,12 @@
   color: #ffffff;
   font-weight: 700;
   cursor: pointer;
+  transition: background-color 0.2s;
 }
 
 .perfil-header button:hover,
-.perfil-actions button:hover {
+.perfil-actions button:hover,
+.perfil-footer button:hover {
   background-color: #0b2f49;
 }
 
@@ -102,6 +105,14 @@
   justify-content: center;
 }
 
+.perfil-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid #e2e8f0;
+}
+
 @media (max-width: 700px) {
   .perfil-header {
     flex-direction: column;
@@ -111,7 +122,8 @@
     grid-template-columns: 1fr;
   }
 
-  .perfil-header button {
+  .perfil-header button,
+  .perfil-footer button {
     width: 100%;
   }
 }

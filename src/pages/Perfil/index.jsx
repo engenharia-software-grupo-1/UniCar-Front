@@ -88,6 +88,9 @@ function Perfil() {
             label="Preferência de recebimento de e-mails"
             value={perfil.recebeEmails ? 'Aceita receber e-mails' : 'Não aceita receber e-mails'}
           />
+        </div>
+
+        <div className="perfil-footer">
           <button type="button" onClick={() => navigate('/meus-veiculos')}>
             Meus veículos
           </button>

@@ -62,7 +62,8 @@
 }
 
 .perfil-header button,
-.perfil-actions button {
+.perfil-actions button,
+.perfil-footer button {
   border: none;
   border-radius: 12px;
   padding: 12px 18px;
@@ -195,6 +196,14 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+.perfil-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid #e2e8f0;
 }
 
 @media (max-width: 760px) {
@@ -448,6 +457,9 @@
   }
 
   .perfil-modal-actions button {
+    width: 100%;
+  }
+  .perfil-footer button {
     width: 100%;
   }
 }

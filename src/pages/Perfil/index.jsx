@@ -258,6 +258,12 @@ function Perfil() {
             Excluir Conta
           </button>
         </div>
+
+        <div className="perfil-footer">
+          <button type="button" onClick={() => navigate('/meus-veiculos')}>
+            Meus veículos
+          </button>
+        </div>
       </section>
 
       {modalExcluirAberto && (

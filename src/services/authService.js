@@ -1,6 +1,14 @@
 import { apiRequest } from './api.js';
 
 const SESSION_KEY = 'unicar.session';
+const MOCK_TOKEN = 'mocked-unicar-token';
+
+function usarAutenticacaoMockada() {
+  return (
+    import.meta.env.VITE_ENABLE_MOCKS === 'true' ||
+    !import.meta.env.VITE_API_BASE_URL
+  );
+}
 
 export async function login({ matricula, usuario, senha }) {
   const identificacao = (matricula || usuario || '').trim();
@@ -9,13 +17,15 @@ export async function login({ matricula, usuario, senha }) {
     throw new Error('Informe matrícula e senha institucional.');
   }
 
-  const session = await apiRequest('/auth/login', {
-    method: 'POST',
-    body: JSON.stringify({
-      usuario: identificacao,
-      senha,
-    }),
-  });
+  const session = usarAutenticacaoMockada()
+    ? criarSessaoMockada(identificacao)
+    : await apiRequest('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({
+          usuario: identificacao,
+          senha,
+        }),
+      });
 
   if (!session?.token) {
     throw new Error('Resposta de autenticação inválida.');
@@ -30,6 +40,20 @@ export async function login({ matricula, usuario, senha }) {
   localStorage.setItem(SESSION_KEY, JSON.stringify(normalizedSession));
 
   return normalizedSession;
+}
+
+function criarSessaoMockada(identificacao) {
+  return {
+    token: MOCK_TOKEN,
+    usuario: {
+      id: 1,
+      nomeCompleto: 'Estudante UniCar',
+      matricula: identificacao,
+      emailInstitucional: `${identificacao}@academico.ufcg.edu.br`,
+      curso: 'Ciência da Computação',
+      recebeEmails: true,
+    },
+  };
 }
 
 export async function logout() {

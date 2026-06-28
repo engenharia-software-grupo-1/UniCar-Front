@@ -13,6 +13,8 @@ import SectionHeader from '../../components/common/SectionHeader.jsx';
 import Footer from '../../components/layout/Footer.jsx';
 import Header from '../../components/layout/Header.jsx';
 import promoImg from '../../assets/promo-1.webp';
+import promoImgTwo from '../../assets/promo-3.webp';
+import promoImgThree from '../../assets/promo-4.webp';
 import logoAsset from '../../assets/unicar-logo-transparent.png';
 import {
   featureItems,
@@ -49,7 +51,11 @@ function Hero() {
             Exclusivo para universitários
           </div>
           <h1>
-            Caronas entre <span>colegas</span> da sua universidade
+            Caronas entre{' '}
+            <span className="unicar-nowrap">
+              <span className="unicar-highlight">colegas</span> da sua
+            </span>{' '}
+            universidade
           </h1>
           <p>
             UniCar conecta estudantes que fazem o mesmo caminho. Mais economia,
@@ -194,6 +200,8 @@ function HowItWorks() {
 }
 
 function Divulgacao() {
+  const promoImages = [promoImg, promoImgTwo, promoImgThree];
+
   return (
     <section className="unicar-section">
       <div className="unicar-container">
@@ -205,7 +213,7 @@ function Divulgacao() {
                 <span>{item.tag}</span>
                 <b>{String(index + 1).padStart(2, '0')}</b>
               </div>
-              <img src={promoImg} alt="" />
+              <img src={promoImages[index]} alt="" />
               <figcaption>
                 <p>"{item.quote}"</p>
                 <strong>{item.author}</strong>

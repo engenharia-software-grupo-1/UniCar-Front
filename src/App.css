@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap");
+
 #root {
   width: 100%;
   max-width: none;
@@ -9,24 +11,27 @@
 }
 
 .unicar-page {
-  --navy: #17213f;
-  --navy-2: #26365f;
-  --orange: #f97316;
-  --orange-soft: rgba(249, 115, 22, 0.26);
-  --orange-dark: #c2410c;
-  --green: #1fa971;
-  --blue: #4e8cff;
-  --ink: #17213f;
-  --muted: #6a7283;
-  --line: #e8ebf0;
-  --surface: #ffffff;
-  --soft: #f6f8fb;
-  --shadow: 0 18px 45px rgba(23, 33, 63, 0.12);
+  --navy: oklch(0.25 0.13 265);
+  --navy-soft: oklch(0.35 0.15 265);
+  --navy-deep: oklch(0.18 0.1 265);
+  --navy-ink: oklch(0.12 0.06 265);
+  --gold: oklch(0.7 0.16 50);
+  --gold-soft: oklch(0.7 0.16 50 / 30%);
+  --gold-dark: oklch(0.58 0.16 50);
+  --green: oklch(0.6 0.15 155);
+  --blue: oklch(0.57 0.18 260);
+  --ink: oklch(0.18 0.06 265);
+  --muted: oklch(0.5 0.02 260);
+  --line: oklch(0.929 0.013 255.508);
+  --surface: oklch(1 0 0);
+  --soft: oklch(0.95 0.02 250);
+  --page-bg: oklch(0.985 0.005 250);
+  --shadow: 0 18px 45px oklch(0.18 0.06 265 / 12%);
 
   min-height: 100svh;
   color: var(--ink);
-  background: #ffffff;
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: var(--page-bg);
+  font-family: "Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 .unicar-page * {
@@ -39,7 +44,7 @@
 }
 
 .unicar-container {
-  width: min(1120px, calc(100% - 40px));
+  width: min(1180px, calc(100% - 56px));
   margin: 0 auto;
 }
 
@@ -47,9 +52,10 @@
   position: sticky;
   top: 0;
   z-index: 20;
-  background: rgba(255, 255, 255, 0.9);
+  background: oklch(0.985 0.005 250 / 82%);
   border-bottom: 1px solid var(--line);
-  backdrop-filter: blur(14px);
+  backdrop-filter: blur(16px);
+  box-shadow: none;
 }
 
 .unicar-header__inner,
@@ -61,7 +67,7 @@
 }
 
 .unicar-header__inner {
-  min-height: 88px;
+  min-height: 64px;
 }
 
 .unicar-brand {
@@ -71,8 +77,8 @@
 }
 
 .unicar-brand img {
-  width: 176px;
-  height: 74px;
+  width: 130px;
+  height: 40px;
   object-fit: contain;
   object-position: center;
 }
@@ -82,8 +88,8 @@
   align-items: center;
   gap: 28px;
   color: var(--muted);
-  font-size: 0.92rem;
-  font-weight: 700;
+  font-size: 0.875rem;
+  font-weight: 600;
 }
 
 .unicar-nav a:hover,
@@ -106,7 +112,7 @@
 
 .unicar-link {
   font-size: 0.92rem;
-  font-weight: 800;
+  font-weight: 600;
   color: var(--navy);
 }
 
@@ -116,21 +122,21 @@
   justify-content: center;
   gap: 9px;
   min-height: 46px;
-  padding: 0 20px;
+  padding: 0 24px;
   border: 0;
   border-radius: 8px;
   background: var(--navy);
-  color: #ffffff;
+  color: oklch(0.985 0.005 250);
   font: inherit;
   font-size: 0.95rem;
-  font-weight: 850;
+  font-weight: 700;
   cursor: pointer;
-  transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
+  transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease, border-color 160ms ease;
 }
 
 .unicar-button:hover {
   transform: translateY(-1px);
-  box-shadow: 0 12px 24px rgba(23, 33, 63, 0.18);
+  box-shadow: 0 12px 24px oklch(0.18 0.06 265 / 18%);
 }
 
 .unicar-button--small {
@@ -139,17 +145,18 @@
 }
 
 .unicar-button--orange {
-  background: var(--orange);
-  color: #ffffff;
+  background: var(--gold);
+  color: var(--navy);
 }
 
 .unicar-button--orange:hover {
-  background: var(--orange-dark);
+  background: var(--gold-dark);
 }
 
 .unicar-button--ghost {
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid oklch(1 0 0 / 20%);
+  background: oklch(1 0 0 / 10%);
+  color: oklch(1 0 0);
 }
 
 .unicar-button--block {
@@ -159,36 +166,37 @@
 .unicar-hero {
   overflow: hidden;
   background:
-    radial-gradient(circle at 80% 20%, var(--orange-soft), transparent 28rem),
-    linear-gradient(135deg, #17213f 0%, #26365f 100%);
-  color: #ffffff;
+    radial-gradient(circle at 16% 10%, oklch(0.35 0.15 265 / 75%), transparent 24rem),
+    radial-gradient(circle at 75% 42%, oklch(0.7 0.16 50 / 8%), transparent 20rem),
+    linear-gradient(115deg, oklch(0.25 0.13 265) 0%, oklch(0.18 0.1 265) 46%, oklch(0.12 0.06 265) 100%);
+  color: oklch(0.985 0.005 250);
 }
 
 .unicar-hero__grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(360px, 0.9fr);
+  grid-template-columns: minmax(500px, 0.9fr) minmax(550px, 1.1fr);
   align-items: center;
-  gap: 56px;
-  min-height: 650px;
-  padding: 82px 0;
+  gap: 48px;
+  min-height: 810px;
+  padding: 86px 0 106px;
 }
 
 .unicar-hero__copy {
-  max-width: 650px;
+  max-width: 560px;
 }
 
 .unicar-eyebrow {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 24px;
-  padding: 8px 12px;
+  margin-bottom: 28px;
+  padding: 6px 13px;
   border: 1px solid rgba(255, 255, 255, 0.22);
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.1);
   color: rgba(255, 255, 255, 0.86);
-  font-size: 0.82rem;
-  font-weight: 800;
+  font-size: 0.76rem;
+  font-weight: 600;
 }
 
 .unicar-hero h1,
@@ -196,47 +204,87 @@
 .unicar-cta h2 {
   margin: 0;
   color: inherit;
-  font-family: inherit;
-  font-weight: 900;
+  font-family: "Poppins", ui-sans-serif, system-ui, sans-serif;
+  font-weight: 800;
   letter-spacing: 0;
   line-height: 1.04;
 }
 
 .unicar-hero h1 {
-  max-width: 780px;
-  font-size: clamp(2.8rem, 7vw, 5.6rem);
+  max-width: 560px;
+  font-size: clamp(3.25rem, 4.35vw, 3.75rem);
+  line-height: 1.06;
 }
 
-.unicar-hero h1 span {
-  color: var(--orange);
+.unicar-hero h1 .unicar-highlight {
+  color: var(--gold);
+}
+
+.unicar-nowrap {
+  white-space: nowrap;
 }
 
 .unicar-hero__copy > p {
   max-width: 560px;
-  margin: 22px 0 30px;
-  color: rgba(255, 255, 255, 0.76);
-  font-size: 1.08rem;
+  margin: 26px 0 34px;
+  color: oklch(1 0 0 / 72%);
+  font-size: 1.14rem;
+  line-height: 1.55;
+  letter-spacing: 0.01em;
+}
+
+.unicar-actions {
+  gap: 12px;
+}
+
+.unicar-actions .unicar-button {
+  min-height: 50px;
+  padding-inline: 24px;
+  border-radius: 12px;
 }
 
 .unicar-stats {
   flex-wrap: wrap;
-  gap: 16px 28px;
-  margin-top: 34px;
-  color: rgba(255, 255, 255, 0.68);
-  font-size: 0.92rem;
+  gap: 18px 24px;
+  max-width: 470px;
+  margin-top: 40px;
+  color: oklch(1 0 0 / 60%);
+  font-size: 0.88rem;
+}
+
+.unicar-stats span {
+  flex: 0 0 auto;
 }
 
 .unicar-stats strong {
-  display: block;
-  color: #ffffff;
-  font-size: 1.18rem;
+  display: inline;
+  margin-right: 4px;
+  color: oklch(1 0 0);
+  font-size: 1.25rem;
+  font-weight: 800;
 }
 
 .unicar-hero__visual {
   position: relative;
   display: grid;
   place-items: center;
-  min-height: 580px;
+  min-height: 620px;
+  isolation: isolate;
+  transform: translateX(18px);
+}
+
+.unicar-hero__visual::before {
+  content: "";
+  position: absolute;
+  width: 548px;
+  height: 548px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, oklch(1 0 0 / 2%) 0 52%, transparent 53%),
+    radial-gradient(circle, oklch(1 0 0 / 12%) 0 1px, transparent 1px);
+  background-size: auto, 28px 28px;
+  opacity: 0.18;
+  z-index: -1;
 }
 
 .unicar-orbit {
@@ -245,15 +293,16 @@
 }
 
 .unicar-orbit--outer {
-  width: 500px;
-  height: 500px;
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  width: 548px;
+  height: 548px;
+  border: 1px solid oklch(1 0 0 / 7%);
 }
 
 .unicar-orbit--inner {
-  width: 390px;
-  height: 390px;
-  border: 1px dashed rgba(255, 255, 255, 0.2);
+  width: 448px;
+  height: 448px;
+  border: 1px dashed oklch(1 0 0 / 10%);
+  animation: unicar-spin 60s linear infinite;
 }
 
 .unicar-logo-orb {
@@ -261,27 +310,38 @@
   z-index: 1;
   display: grid;
   place-items: center;
-  width: 310px;
-  height: 310px;
+  width: 506px;
+  height: 506px;
+  border: 0;
   border-radius: 50%;
-  background: #ffffff;
-  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.28);
+  background: oklch(1 0 0);
+  box-shadow:
+    0 34px 94px oklch(0 0 0 / 32%),
+    0 0 0 1px oklch(1 0 0 / 18%);
+  transform: none;
 }
 
 .unicar-logo-orb::before {
   content: "";
   position: absolute;
-  inset: -80px;
+  inset: -52px;
   z-index: -1;
   border-radius: 50%;
-  background: var(--orange-soft);
-  filter: blur(36px);
+  background: radial-gradient(circle, oklch(0.7 0.16 50 / 18%), transparent 64%);
+  filter: blur(28px);
+}
+
+.unicar-logo-orb::after {
+  content: none;
 }
 
 .unicar-logo-orb img {
-  width: 270px;
-  height: 270px;
+  position: relative;
+  z-index: 1;
+  width: 304px;
+  height: auto;
   object-fit: contain;
+  filter: drop-shadow(0 14px 24px oklch(0.18 0.06 265 / 16%));
 }
 
 .unicar-info-badge {
@@ -290,12 +350,14 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  max-width: 245px;
-  padding: 14px;
-  border-radius: 14px;
-  background: #ffffff;
+  width: 200px;
+  min-height: 68px;
+  padding: 12px 16px;
+  border: 0;
+  border-radius: 16px;
+  background: oklch(1 0 0);
   color: var(--navy);
-  box-shadow: var(--shadow);
+  box-shadow: 0 20px 42px oklch(0 0 0 / 20%);
 }
 
 .unicar-info-badge__mark {
@@ -305,50 +367,109 @@
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  background: var(--orange);
+  background: var(--gold);
   color: var(--navy);
   font-size: 0.88rem;
-  font-weight: 950;
+  font-weight: 800;
 }
 
 .unicar-info-badge span {
   display: block;
   color: var(--muted);
-  font-size: 0.68rem;
-  font-weight: 850;
+  font-size: 0.63rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
 }
 
 .unicar-info-badge strong {
   display: block;
   margin-top: 2px;
-  font-size: 0.82rem;
+  font-size: 0.78rem;
+  font-weight: 800;
   line-height: 1.25;
 }
 
 .unicar-badge--left {
-  top: 78px;
-  left: 4px;
-  transform: rotate(-5deg);
+  top: 110px;
+  left: 10px;
+  width: 202px;
+  transform: rotate(-8deg);
 }
 
 .unicar-badge--right {
-  right: -10px;
-  top: 220px;
+  top: 300px;
+  right: 0;
+  width: 146px;
+  min-height: 84px;
+  gap: 4px;
+  padding: 11px 14px 10px;
   transform: rotate(5deg);
 }
 
+.unicar-badge--right .unicar-info-badge__mark {
+  display: block;
+  width: auto;
+  height: auto;
+  background: transparent;
+  color: var(--navy);
+  font-size: 1.5rem;
+  line-height: 1;
+  font-weight: 800;
+}
+
+.unicar-badge--right span {
+  margin-top: 5px;
+  font-size: 0.56rem;
+  line-height: 1.1;
+}
+
+.unicar-badge--right strong {
+  margin-top: 2px;
+  font-size: 0.66rem;
+  line-height: 1.1;
+}
+
 .unicar-badge--bottom {
-  bottom: 70px;
-  left: 32px;
+  bottom: 54px;
+  left: 34px;
+  width: 238px;
+  min-height: 68px;
+  align-items: center;
+  padding: 12px 16px 12px 18px;
+  border-radius: 18px;
+  transform: rotate(-3deg);
+}
+
+.unicar-badge--bottom .unicar-info-badge__mark {
+  background: var(--navy);
+  color: var(--gold);
+}
+
+.unicar-badge--bottom > div:last-child {
+  display: grid;
+  gap: 3px;
+}
+
+.unicar-badge--bottom span {
+  max-width: none;
+  font-size: 0.57rem;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.unicar-badge--bottom strong {
+  max-width: none;
+  font-size: 0.7rem;
 }
 
 .unicar-section {
-  padding: 92px 0;
+  padding: 96px 0;
+  background: var(--page-bg);
 }
 
 .unicar-section--soft {
-  background: var(--soft);
+  background: linear-gradient(180deg, var(--page-bg) 0%, var(--soft) 100%);
 }
 
 .unicar-section-header {
@@ -359,13 +480,15 @@
 .unicar-section-header h2,
 .unicar-cta h2 {
   color: var(--navy);
-  font-size: clamp(2rem, 4vw, 3.25rem);
+  font-size: clamp(2rem, 4vw, 2.75rem);
+  letter-spacing: 0;
 }
 
 .unicar-section-header p {
   margin-top: 14px;
   color: var(--muted);
-  font-size: 1.05rem;
+  font-size: 1.125rem;
+  line-height: 1.55;
 }
 
 .unicar-feature-grid,
@@ -387,7 +510,7 @@
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--surface);
-  box-shadow: 0 10px 28px rgba(23, 33, 63, 0.06);
+  box-shadow: 0 10px 28px oklch(0.18 0.06 265 / 6%);
 }
 
 .unicar-card,
@@ -403,7 +526,19 @@
   margin-bottom: 18px;
   border-radius: 8px;
   background: var(--navy);
-  color: #ffffff;
+  color: oklch(0.985 0.005 250);
+}
+
+.unicar-card,
+.unicar-ride {
+  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+}
+
+.unicar-card:hover,
+.unicar-ride:hover {
+  transform: translateY(-4px);
+  border-color: rgba(78, 140, 255, 0.35);
+  box-shadow: 0 18px 42px oklch(0.18 0.06 265 / 12%);
 }
 
 .unicar-card h3,
@@ -462,7 +597,14 @@
   padding: 0 13px;
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: #ffffff;
+  background: oklch(0.985 0.005 250);
+  transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
+}
+
+.unicar-field > div:focus-within {
+  border-color: var(--navy);
+  background: oklch(1 0 0);
+  box-shadow: 0 0 0 4px oklch(0.25 0.13 265 / 10%);
 }
 
 .unicar-field input {
@@ -495,7 +637,7 @@
   height: 52px;
   border-radius: 50%;
   background: var(--navy);
-  color: #ffffff;
+  color: oklch(0.985 0.005 250);
   font-weight: 900;
 }
 
@@ -527,7 +669,7 @@
 }
 
 .unicar-ride__meta b {
-  color: var(--green);
+  color: var(--gold);
   font-size: 0.96rem;
 }
 
@@ -538,7 +680,7 @@
 .unicar-step > span {
   display: block;
   margin-bottom: 18px;
-  color: var(--orange);
+  color: var(--gold-dark);
   font-size: 3rem;
   line-height: 1;
   font-weight: 950;
@@ -578,14 +720,14 @@
   padding: 7px 10px;
   border-radius: 8px;
   background: var(--navy);
-  color: #ffffff;
+  color: oklch(0.985 0.005 250);
   font-size: 0.68rem;
   font-weight: 900;
   text-transform: uppercase;
 }
 
 .unicar-promo__top b {
-  color: rgba(23, 33, 63, 0.16);
+  color: oklch(0.18 0.06 265 / 16%);
   font-size: 2.8rem;
   line-height: 1;
 }
@@ -596,6 +738,7 @@
   aspect-ratio: 1;
   object-fit: cover;
   border-radius: 8px;
+  filter: saturate(1.04) contrast(1.02);
 }
 
 .unicar-promo figcaption {
@@ -634,18 +777,19 @@
   gap: 18px;
   padding: 64px 32px;
   border-radius: 8px;
-  background: linear-gradient(135deg, #17213f 0%, #26365f 100%);
-  color: #ffffff;
+  background:
+    radial-gradient(ellipse at top left, var(--navy-soft) 0%, var(--navy-deep) 60%, var(--navy-ink) 100%);
+  color: oklch(1 0 0);
   text-align: center;
 }
 
 .unicar-cta h2 {
-  color: #ffffff;
+  color: oklch(1 0 0);
 }
 
 .unicar-cta p {
   max-width: 590px;
-  color: rgba(255, 255, 255, 0.72);
+  color: oklch(1 0 0 / 72%);
 }
 
 .unicar-footer {
@@ -673,7 +817,13 @@
 .unicar-icon--large {
   width: 46px;
   height: 46px;
-  color: var(--orange);
+  color: var(--gold);
+}
+
+@keyframes unicar-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @media (max-width: 980px) {

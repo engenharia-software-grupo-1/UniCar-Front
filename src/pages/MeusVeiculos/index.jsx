@@ -46,7 +46,34 @@ function MeusVeiculos() {
   }
 
   useEffect(() => {
-    carregarVeiculos();
+    let ativo = true;
+
+    async function carregarInicial() {
+      try {
+        const dados = await listarVeiculos();
+
+        if (!ativo) {
+          return;
+        }
+
+        setVeiculos(dados);
+        setErro('');
+      } catch (error) {
+        if (ativo) {
+          setErro(error.message);
+        }
+      } finally {
+        if (ativo) {
+          setLoading(false);
+        }
+      }
+    }
+
+    carregarInicial();
+
+    return () => {
+      ativo = false;
+    };
   }, []);
 
   function abrirCadastro() {

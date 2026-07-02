@@ -260,6 +260,18 @@ function Perfil() {
         </div>
 
         <div className="perfil-footer">
+          <button type="button" onClick={() => navigate('/politica-de-privacidade')}>
+            Política de Privacidade
+          </button>
+
+          <button type="button" onClick={() => navigate('/central-ajuda')}>
+            Central de Ajuda
+          </button>
+
+          <button type="button" onClick={() => navigate('/avaliacoes-recebidas')}>
+            Avaliações recebidas
+          </button>
+
           <button type="button" onClick={() => navigate('/meus-veiculos')}>
             Meus veículos
           </button>

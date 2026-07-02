@@ -2,7 +2,6 @@ import { useId, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Lock, User, Loader2 } from 'lucide-react';
 import { login } from '../../services/authService.js';
-import { hasAcceptedTerms } from '../../services/termsService.js';
 import logoAsset from '../../assets/unicar-logo-transparent.png';
 import './style.css';
 
@@ -44,11 +43,7 @@ function Login() {
         senha,
       });
 
-      if (hasAcceptedTerms()) {
-        navigate('/home', { replace: true });
-      } else {
-        navigate('/termos-de-uso', { replace: true });
-      }
+      navigate('/termos-de-uso', { replace: true });
     } catch (error) {
       setErro(error.message || 'Não foi possível realizar o login.');
     } finally {

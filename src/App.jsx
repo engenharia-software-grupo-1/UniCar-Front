@@ -6,6 +6,9 @@ import Home from './routes/index.jsx';
 import Login from './pages/Login/index.jsx';
 import Perfil from './pages/Perfil/index.jsx';
 import MeusVeiculos from './pages/MeusVeiculos/index.jsx';
+import AvaliacoesRecebidas from './pages/AvaliacoesRecebidas/index.jsx';
+import CentralAjuda from './pages/CentralAjuda/index.jsx';
+import PoliticaPrivacidade from './pages/PoliticaPrivacidade/index.jsx';
 import TermosUso from './pages/TermosUso/index.jsx';
 
 import { isAuthenticated } from './services/authService.js';
@@ -61,6 +64,15 @@ function App() {
         />
 
         <Route
+          path="/politica-de-privacidade"
+          element={
+            <RequireAuth>
+              <PoliticaPrivacidade />
+            </RequireAuth>
+          }
+        />
+
+        <Route
           path="/home"
           element={
             <RequireAuthAndTerms>
@@ -83,6 +95,24 @@ function App() {
           element={
             <RequireAuthAndTerms>
               <MeusVeiculos />
+            </RequireAuthAndTerms>
+          }
+        />
+
+        <Route
+          path="/avaliacoes-recebidas"
+          element={
+            <RequireAuthAndTerms>
+              <AvaliacoesRecebidas />
+            </RequireAuthAndTerms>
+          }
+        />
+
+        <Route
+          path="/central-ajuda"
+          element={
+            <RequireAuthAndTerms>
+              <CentralAjuda />
             </RequireAuthAndTerms>
           }
         />

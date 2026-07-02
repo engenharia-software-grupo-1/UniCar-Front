@@ -12,13 +12,37 @@ const estadoInicial = () => [
 let veiculos = estadoInicial();
 let proximoId = 3;
 
+const avaliacoesIniciais = () => [
+  {
+    id: 1,
+    from: 'Mariana',
+    nota: 5,
+    comentario: 'Pontual, educada e deixou a viagem tranquila.',
+    dataAvaliacao: '2026-06-15',
+  },
+  {
+    id: 2,
+    from: 'Carlos',
+    nota: 4,
+    comentario: 'Boa comunicação antes da carona.',
+    dataAvaliacao: '2026-06-02',
+  },
+];
+
+let avaliacoesRecebidas = avaliacoesIniciais();
+
 export function resetStore() {
   veiculos = estadoInicial();
   proximoId = 3;
+  avaliacoesRecebidas = avaliacoesIniciais();
 }
 
 export function semVeiculos() {
   veiculos = [];
+}
+
+export function semAvaliacoesRecebidas() {
+  avaliacoesRecebidas = [];
 }
 
 function exigirAutorizacao(request) {
@@ -32,6 +56,14 @@ function exigirAutorizacao(request) {
 }
 
 export const handlers = [
+  // GET /avaliacoes/recebidas — lista avaliações recebidas pelo usuário.
+  http.get(`${API_BASE_URL}/avaliacoes/recebidas`, ({ request }) => {
+    const negado = exigirAutorizacao(request);
+    if (negado) return negado;
+
+    return HttpResponse.json(avaliacoesRecebidas, { status: 200 });
+  }),
+
   // GET /veiculos — lista os veículos do usuário autenticado.
   http.get(`${API_BASE_URL}/veiculos`, ({ request }) => {
     const negado = exigirAutorizacao(request);

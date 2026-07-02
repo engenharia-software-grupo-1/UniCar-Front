@@ -52,9 +52,8 @@
   position: sticky;
   top: 0;
   z-index: 20;
-  background: oklch(0.985 0.005 250 / 82%);
+  background: oklch(0.985 0.005 250);
   border-bottom: 1px solid var(--line);
-  backdrop-filter: blur(16px);
   box-shadow: none;
 }
 
@@ -86,8 +85,8 @@
 .unicar-nav {
   display: flex;
   align-items: center;
-  gap: 28px;
-  color: var(--muted);
+  gap: 34px;
+  color: oklch(0.42 0.06 265);
   font-size: 0.875rem;
   font-weight: 600;
 }
@@ -112,8 +111,8 @@
 
 .unicar-link {
   font-size: 0.92rem;
-  font-weight: 600;
-  color: var(--navy);
+  font-weight: 700;
+  color: oklch(0.18 0.06 265);
 }
 
 .unicar-button {
@@ -124,8 +123,8 @@
   min-height: 46px;
   padding: 0 24px;
   border: 0;
-  border-radius: 8px;
-  background: var(--navy);
+  border-radius: 12px;
+  background: oklch(0.18 0.06 265);
   color: oklch(0.985 0.005 250);
   font: inherit;
   font-size: 0.95rem;
@@ -140,22 +139,23 @@
 }
 
 .unicar-button--small {
-  min-height: 40px;
-  padding-inline: 16px;
+  min-height: 38px;
+  padding-inline: 18px;
+  border-radius: 16px;
 }
 
 .unicar-button--orange {
-  background: var(--gold);
-  color: var(--navy);
+  background: #ea7a28;
+  color: #07132b;
 }
 
 .unicar-button--orange:hover {
-  background: var(--gold-dark);
+  background: #f08a3a;
 }
 
 .unicar-button--ghost {
   border: 1px solid oklch(1 0 0 / 20%);
-  background: oklch(1 0 0 / 10%);
+  background: oklch(1 0 0 / 11%);
   color: oklch(1 0 0);
 }
 
@@ -234,13 +234,35 @@
 }
 
 .unicar-actions {
-  gap: 12px;
+  gap: 13px;
 }
 
 .unicar-actions .unicar-button {
   min-height: 50px;
+  min-width: 184px;
   padding-inline: 24px;
-  border-radius: 12px;
+  border-radius: 13px;
+  font-weight: 800;
+}
+
+.unicar-actions .unicar-button--orange {
+  min-width: 197px;
+  box-shadow: none;
+}
+
+.unicar-actions .unicar-button--orange .unicar-icon {
+  margin-left: 2px;
+}
+
+.unicar-actions .unicar-button--ghost {
+  min-width: 184px;
+  background: rgba(255, 255, 255, 0.105);
+  border-color: rgba(255, 255, 255, 0.24);
+  color: rgba(255, 255, 255, 0.94);
+}
+
+.unicar-actions .unicar-button--ghost:hover {
+  background: rgba(255, 255, 255, 0.16);
 }
 
 .unicar-stats {
@@ -801,6 +823,24 @@
   margin: 0;
   color: var(--muted);
   font-size: 0.92rem;
+}
+
+.unicar-footer__links {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.unicar-footer__links a {
+  color: var(--navy);
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.unicar-footer__links a:hover {
+  color: var(--blue);
 }
 
 .unicar-icon {

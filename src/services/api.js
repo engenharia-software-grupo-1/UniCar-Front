@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+import { API_BASE_URL } from './apiConfig.js';
 
 function getSession() {
   const session = localStorage.getItem('unicar.session');
@@ -26,21 +26,41 @@ export async function apiRequest(endpoint, options = {}) {
     headers.Authorization = `Bearer ${session.token}`;
   }
 
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-    ...options,
-    headers,
-  });
+  let response;
+
+  try {
+    response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      ...options,
+      headers,
+    });
+  } catch (error) {
+    throw new Error('Não foi possível conectar ao servidor. Tente novamente.', {
+      cause: error,
+    });
+  }
 
   const contentType = response.headers.get('content-type');
-  const hasJson = contentType && contentType.includes('application/json');
+  const hasJson =
+    contentType &&
+    (contentType.includes('application/json') || contentType.includes('+json'));
 
-  const data = hasJson ? await response.json() : null;
+  let data = null;
+
+  if (hasJson) {
+    try {
+      data = await response.json();
+    } catch {
+      data = null;
+    }
+  }
 
   if (!response.ok) {
     throw new Error(
       data?.message ||
       data?.erro ||
       data?.error ||
+      data?.detail ||
+      data?.title ||
       'Erro ao comunicar com o servidor.'
     );
   }

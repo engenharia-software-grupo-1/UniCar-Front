@@ -1,14 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import {
-  listarVeiculos,
-  obterVeiculo,
-  criarVeiculo,
-  atualizarVeiculo,
-  deletarVeiculo,
-} from './vehicleService.js';
 
 const BASE_URL = 'http://localhost:8080';
 const TOKEN = 'token-simulado';
+let listarVeiculos;
+let obterVeiculo;
+let criarVeiculo;
+let atualizarVeiculo;
+let deletarVeiculo;
 
 function comSessao() {
   localStorage.setItem(
@@ -33,13 +31,24 @@ function respostaSemJson({ status = 500 } = {}) {
   };
 }
 
-beforeEach(() => {
+beforeEach(async () => {
   localStorage.clear();
+  vi.resetModules();
   vi.stubGlobal('fetch', vi.fn());
+  vi.stubEnv('VITE_API_URL', BASE_URL);
+
+  ({
+    listarVeiculos,
+    obterVeiculo,
+    criarVeiculo,
+    atualizarVeiculo,
+    deletarVeiculo,
+  } = await import('./vehicleService.js'));
 });
 
 afterEach(() => {
   vi.unstubAllGlobals();
+  vi.unstubAllEnvs();
   vi.restoreAllMocks();
 });
 

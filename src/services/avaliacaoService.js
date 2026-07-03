@@ -1,7 +1,7 @@
 import { getSession } from './authService.js';
+import { API_BASE_URL, shouldUseMocks } from './apiConfig.js';
 
-const API_BASE_URL = import.meta.env?.VITE_API_URL ?? 'http://localhost:8080';
-const AVALIACOES_RECEBIDAS_ENDPOINT = `${API_BASE_URL}/avaliacoes/recebidas`;
+const AVALIACOES_RECEBIDAS_ENDPOINT = `${API_BASE_URL}/usuarios/me/avaliacoes`;
 const MOCK_AVALIACOES_RECEBIDAS = [
   {
     id: 1,
@@ -28,8 +28,7 @@ const MOCK_AVALIACOES_RECEBIDAS = [
 
 function usarAvaliacoesMockadas() {
   return (
-    import.meta.env.VITE_ENABLE_MOCKS === 'true' ||
-    !import.meta.env.VITE_API_URL
+    shouldUseMocks()
   );
 }
 

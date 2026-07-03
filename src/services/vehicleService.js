@@ -1,4 +1,5 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8080';
+import { API_BASE_URL, shouldUseMocks } from './apiConfig.js';
+
 const VEICULOS_ENDPOINT = `${API_BASE_URL}/veiculos`;
 const TOKEN_MOCKADO = '123456';
 
@@ -13,8 +14,7 @@ function usarVeiculosMockados() {
   }
 
   return (
-    import.meta.env.VITE_ENABLE_MOCKS === 'true' ||
-    !import.meta.env.VITE_API_URL
+    shouldUseMocks()
   );
 }
 

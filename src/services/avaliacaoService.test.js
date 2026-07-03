@@ -40,7 +40,7 @@ describe('listarAvaliacoesRecebidas', () => {
     expect(fetch).not.toHaveBeenCalled();
   });
 
-  it('faz GET /avaliacoes/recebidas com Authorization e normaliza o retorno', async () => {
+  it('faz GET /usuarios/me/avaliacoes com Authorization e normaliza o retorno', async () => {
     comSessao();
     fetch.mockResolvedValue(
       respostaJson([
@@ -58,7 +58,7 @@ describe('listarAvaliacoesRecebidas', () => {
     const resultado = await listarAvaliacoesRecebidas();
 
     const [url, options] = fetch.mock.calls[0];
-    expect(url).toBe(`${BASE_URL}/avaliacoes/recebidas`);
+    expect(url).toBe(`${BASE_URL}/usuarios/me/avaliacoes`);
     expect(options.method).toBe('GET');
     expect(options.headers.Authorization).toBe(`Bearer ${TOKEN}`);
     expect(resultado).toEqual([

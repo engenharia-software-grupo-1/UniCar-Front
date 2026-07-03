@@ -1,4 +1,4 @@
-import { API_BASE_URL, shouldUseMocks } from './apiConfig.js';
+import { API_BASE_URL, shouldUseLocalDataMocks } from './apiConfig.js';
 
 const VEICULOS_ENDPOINT = `${API_BASE_URL}/veiculos`;
 const TOKEN_MOCKADO = '123456';
@@ -13,9 +13,7 @@ function usarVeiculosMockados() {
     return import.meta.env.VITE_ENABLE_MOCKS === 'true';
   }
 
-  return (
-    shouldUseMocks()
-  );
+  return shouldUseLocalDataMocks();
 }
 
 function carregarVeiculosMockados() {

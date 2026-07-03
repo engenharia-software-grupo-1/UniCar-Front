@@ -27,6 +27,7 @@ import {
 } from '../../services/profileService.js';
 import { getSession, logout } from '../../services/authService.js';
 import { listarVeiculos } from '../../services/vehicleService.js';
+import { listarAvaliacoesRecebidas } from '../../services/avaliacaoService.js';
 import Logo from '../../components/common/Logo.jsx';
 import './style.css';
 
@@ -46,15 +47,20 @@ function Perfil() {
   const [modalExcluirAberto, setModalExcluirAberto] = useState(false);
   const [excluindoConta, setExcluindoConta] = useState(false);
   const [totalVeiculos, setTotalVeiculos] = useState(null);
+  const [resumoAvaliacoes, setResumoAvaliacoes] = useState(() => ({
+    media: Number(perfil.avaliacao) || 0,
+    total: 0,
+  }));
 
   useEffect(() => {
     let ativo = true;
 
     async function carregarPerfil() {
       try {
-        const [dados, veiculos] = await Promise.all([
+        const [dados, veiculos, avaliacoes] = await Promise.all([
           getPerfilUsuarioAutenticado(),
           listarVeiculos().catch(() => null),
+          listarAvaliacoesRecebidas().catch(() => []),
         ]);
 
         if (!ativo) {
@@ -67,6 +73,7 @@ function Perfil() {
         setTelefone(dados.telefone);
         setCurso(dados.curso);
         setTotalVeiculos(Array.isArray(veiculos) ? veiculos.length : null);
+        setResumoAvaliacoes(calcularResumoAvaliacoes(avaliacoes, dados.avaliacao));
         setErro('');
       } catch (error) {
         if (ativo) {
@@ -169,10 +176,10 @@ function Perfil() {
             <div className="perfil-rating">
               <span>
                 <Star size={16} fill="currentColor" />
-                {perfil.avaliacao || 0}
+                {formatarMediaAvaliacoes(resumoAvaliacoes.media)}
               </span>
               <b />
-              <span>{perfil.totalCaronas || 0} caronas</span>
+              <span>{formatarTotalAvaliacoes(resumoAvaliacoes.total)}</span>
             </div>
           </div>
 
@@ -212,7 +219,11 @@ function Perfil() {
         <section className="perfil-menu" aria-label="Opções do perfil">
           <ProfileRow icon={History} label="Histórico de caronas" />
           <ProfileRow icon={RefreshCw} label="Caronas recorrentes" />
-          <ProfileRow icon={StarIcon} label="Minhas avaliações" />
+          <ProfileRow
+            icon={StarIcon}
+            label="Minhas avaliações"
+            onClick={() => navigate('/avaliacoes-recebidas')}
+          />
           <ProfileRow
             icon={Car}
             label="Meus veículos"
@@ -220,7 +231,11 @@ function Perfil() {
             onClick={() => navigate('/meus-veiculos')}
           />
           <ProfileRow icon={Bell} label="Notificações" />
-          <ProfileRow icon={CircleHelp} label="Central de ajuda" />
+          <ProfileRow
+            icon={CircleHelp}
+            label="Central de ajuda"
+            onClick={() => navigate('/central-ajuda')}
+          />
           <ProfileRow icon={Shield} label="Preferências de notificação" />
         </section>
 
@@ -434,6 +449,52 @@ function formatarNome(nome = '') {
     .filter(Boolean)
     .map((parte) => parte[0].toUpperCase() + parte.slice(1))
     .join(' ');
+}
+
+function calcularResumoAvaliacoes(avaliacoes, avaliacaoFallback = 0) {
+  if (!Array.isArray(avaliacoes) || avaliacoes.length === 0) {
+    return {
+      media: Number(avaliacaoFallback) || 0,
+      total: 0,
+    };
+  }
+
+  const notas = avaliacoes
+    .map((avaliacao) => Number(avaliacao.nota))
+    .filter((nota) => Number.isFinite(nota) && nota > 0);
+
+  if (notas.length === 0) {
+    return {
+      media: Number(avaliacaoFallback) || 0,
+      total: avaliacoes.length,
+    };
+  }
+
+  const soma = notas.reduce((total, nota) => total + nota, 0);
+
+  return {
+    media: soma / notas.length,
+    total: avaliacoes.length,
+  };
+}
+
+function formatarMediaAvaliacoes(media = 0) {
+  const numero = Number(media);
+
+  if (!Number.isFinite(numero) || numero <= 0) {
+    return '0';
+  }
+
+  return numero.toLocaleString('pt-BR', {
+    minimumFractionDigits: Number.isInteger(numero) ? 0 : 1,
+    maximumFractionDigits: 1,
+  });
+}
+
+function formatarTotalAvaliacoes(total = 0) {
+  const totalNumerico = Number(total) || 0;
+
+  return `${totalNumerico} ${totalNumerico === 1 ? 'avaliação' : 'avaliações'}`;
 }
 
 function isErroDeAutenticacao(error) {

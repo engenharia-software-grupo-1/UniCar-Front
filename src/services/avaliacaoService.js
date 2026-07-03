@@ -1,5 +1,5 @@
 import { getSession } from './authService.js';
-import { API_BASE_URL, shouldUseMocks } from './apiConfig.js';
+import { API_BASE_URL, shouldUseLocalDataMocks } from './apiConfig.js';
 
 const AVALIACOES_RECEBIDAS_ENDPOINT = `${API_BASE_URL}/usuarios/me/avaliacoes`;
 const MOCK_AVALIACOES_RECEBIDAS = [
@@ -27,9 +27,7 @@ const MOCK_AVALIACOES_RECEBIDAS = [
 ];
 
 function usarAvaliacoesMockadas() {
-  return (
-    shouldUseMocks()
-  );
+  return shouldUseLocalDataMocks();
 }
 
 function obterToken() {

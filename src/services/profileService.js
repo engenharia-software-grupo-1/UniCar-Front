@@ -24,13 +24,18 @@ export async function getPerfilUsuarioAutenticado() {
 
 function toPerfil(usuario) {
   return {
-    nomeCompleto: usuario.nomeCompleto || 'Usuário UniCar',
+    nomeCompleto: usuario.nomeCompleto || '',
     matricula: usuario.matricula || 'Não informado',
     cpf: usuario.cpf || 'Não informado',
     emailInstitucional: usuario.emailInstitucional || 'Não informado',
-    curso: usuario.curso || 'Não informado',
+    telefone: usuario.telefone || usuario.celular || '',
+    curso: usuario.curso || '',
     genero: toGeneroLabel(usuario.genero),
     recebeEmails: usuario.recebeEmails ?? true,
+    matriculaValidada: usuario.matriculaValidada ?? usuario.validado ?? usuario.verified ?? false,
+    motoristaVerificado: usuario.motoristaVerificado ?? usuario.driverVerified ?? false,
+    avaliacao: usuario.avaliacao ?? usuario.rating ?? '',
+    totalCaronas: usuario.totalCaronas ?? usuario.ridesCount ?? usuario.quantidadeCaronas ?? '',
   };
 }
 
@@ -46,6 +51,7 @@ export async function atualizarPerfilUsuarioAutenticado(dadosAtualizados) {
     body: JSON.stringify({
       genero: toGeneroApiValue(dadosAtualizados.genero),
       receberEmail: dadosAtualizados.recebeEmails,
+      curso: dadosAtualizados.curso,
     }),
   }));
 

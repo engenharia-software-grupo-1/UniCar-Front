@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import './App.css';
 
 import Home from './routes/index.jsx';
+import Inicio from './pages/Inicio/index.jsx';
 import Login from './pages/Login/index.jsx';
 import Perfil from './pages/Perfil/index.jsx';
 import MeusVeiculos from './pages/MeusVeiculos/index.jsx';
@@ -10,21 +11,10 @@ import AvaliacoesRecebidas from './pages/AvaliacoesRecebidas/index.jsx';
 import CentralAjuda from './pages/CentralAjuda/index.jsx';
 import PoliticaPrivacidade from './pages/PoliticaPrivacidade/index.jsx';
 import TermosUso from './pages/TermosUso/index.jsx';
+import NaoEncontrada from './pages/NaoEncontrada/index.jsx';
 
 import { isAuthenticated } from './services/authService.js';
 import { hasAcceptedTerms } from './services/termsService.js';
-
-function InitialRoute() {
-  if (!isAuthenticated()) {
-    return <Navigate to="/login" replace />;
-  }
-
-  if (!hasAcceptedTerms()) {
-    return <Navigate to="/termos-de-uso" replace />;
-  }
-
-  return <Navigate to="/home" replace />;
-}
 
 function RequireAuth({ children }) {
   if (!isAuthenticated()) {
@@ -50,9 +40,10 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<InitialRoute />} />
+        <Route path="/" element={<Home />} />
 
         <Route path="/login" element={<Login />} />
+        <Route path="/cadastro" element={<Login mode="cadastro" />} />
 
         <Route
           path="/termos-de-uso"
@@ -72,11 +63,13 @@ function App() {
           }
         />
 
+        <Route path="/home" element={<Home />} />
+
         <Route
-          path="/home"
+          path="/inicio"
           element={
             <RequireAuthAndTerms>
-              <Home />
+              <Inicio />
             </RequireAuthAndTerms>
           }
         />
@@ -117,6 +110,7 @@ function App() {
           }
         />
 
+        <Route path="*" element={<NaoEncontrada />} />
       </Routes>
     </BrowserRouter>
   );

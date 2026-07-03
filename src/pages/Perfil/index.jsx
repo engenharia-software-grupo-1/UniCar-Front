@@ -1,44 +1,92 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
+import {
+  Bell,
+  Car,
+  ChevronRight,
+  CircleHelp,
+  Edit3,
+  History,
+  Home,
+  LogOut,
+  PlusCircle,
+  RefreshCw,
+  Search,
+  Shield,
+  ShieldCheck,
+  Star,
+  StarIcon,
+  Trash2,
+  User,
+} from 'lucide-react';
+import Confirmacao from '../../components/common/Confirmacao.jsx';
 import {
   atualizarPerfilUsuarioAutenticado,
   excluirContaUsuarioAutenticado,
   getPerfilUsuarioAutenticado,
 } from '../../services/profileService.js';
+import { getSession, logout } from '../../services/authService.js';
+import { listarVeiculos } from '../../services/vehicleService.js';
+import Logo from '../../components/common/Logo.jsx';
 import './style.css';
 
 function Perfil() {
   const navigate = useNavigate();
 
-  const [perfil, setPerfil] = useState(null);
-  const [genero, setGenero] = useState('');
-  const [recebeEmails, setRecebeEmails] = useState(false);
-
-  const [loading, setLoading] = useState(true);
+  const [perfil, setPerfil] = useState(() => toPerfilFromSession());
+  const [genero, setGenero] = useState(perfil.genero);
+  const [recebeEmails, setRecebeEmails] = useState(perfil.recebeEmails);
+  const [editando, setEditando] = useState(false);
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState('');
   const [mensagemSucesso, setMensagemSucesso] = useState('');
-
+  const [telefone, setTelefone] = useState(perfil.telefone);
+  const [curso, setCurso] = useState(perfil.curso);
+  const [modalSairAberto, setModalSairAberto] = useState(false);
   const [modalExcluirAberto, setModalExcluirAberto] = useState(false);
   const [excluindoConta, setExcluindoConta] = useState(false);
+  const [totalVeiculos, setTotalVeiculos] = useState(null);
 
-  async function carregarPerfil() {
-    try {
-      setLoading(true);
-      setErro('');
-      setMensagemSucesso('');
+  useEffect(() => {
+    let ativo = true;
 
-      const dados = await getPerfilUsuarioAutenticado();
+    async function carregarPerfil() {
+      try {
+        const [dados, veiculos] = await Promise.all([
+          getPerfilUsuarioAutenticado(),
+          listarVeiculos().catch(() => null),
+        ]);
 
-      setPerfil(dados);
-      setGenero(dados.genero);
-      setRecebeEmails(dados.recebeEmails);
-    } catch (error) {
-      setErro(error.message || 'Não foi possível carregar os dados do perfil.');
-    } finally {
-      setLoading(false);
+        if (!ativo) {
+          return;
+        }
+
+        setPerfil(dados);
+        setGenero(dados.genero);
+        setRecebeEmails(dados.recebeEmails);
+        setTelefone(dados.telefone);
+        setCurso(dados.curso);
+        setTotalVeiculos(Array.isArray(veiculos) ? veiculos.length : null);
+        setErro('');
+      } catch (error) {
+        if (ativo) {
+          if (isErroDeAutenticacao(error)) {
+            await logout();
+            navigate('/login', { replace: true });
+            return;
+          }
+
+          setErro(error.message || 'Não foi possível atualizar os dados do perfil.');
+        }
+      }
     }
-  }
+
+    carregarPerfil();
+
+    return () => {
+      ativo = false;
+    };
+  }, [navigate]);
 
   async function salvarAlteracoes(event) {
     event.preventDefault();
@@ -51,10 +99,12 @@ function Perfil() {
       const perfilAtualizado = await atualizarPerfilUsuarioAutenticado({
         genero,
         recebeEmails,
+        curso,
       });
 
-      setPerfil(perfilAtualizado);
+      setPerfil((perfilAtual) => ({ ...perfilAtual, ...perfilAtualizado, telefone, curso }));
       setMensagemSucesso('Perfil atualizado com sucesso.');
+      setEditando(false);
     } catch (error) {
       setErro(error.message || 'Não foi possível salvar as alterações.');
     } finally {
@@ -62,14 +112,15 @@ function Perfil() {
     }
   }
 
+  async function sairDaConta() {
+    await logout();
+    navigate('/login', { replace: true });
+  }
+
   async function confirmarExclusaoConta() {
     try {
       setExcluindoConta(true);
-      setErro('');
-      setMensagemSucesso('');
-
       await excluirContaUsuarioAutenticado();
-
       navigate('/login', { replace: true });
     } catch (error) {
       setErro(error.message || 'Não foi possível excluir a conta.');
@@ -79,268 +130,324 @@ function Perfil() {
     }
   }
 
-  function cancelarExclusaoConta() {
-    if (excluindoConta) {
-      return;
-    }
-
-    setModalExcluirAberto(false);
-  }
-
-  useEffect(() => {
-    async function carregarPerfilInicial() {
-      await carregarPerfil();
-    }
-
-    carregarPerfilInicial();
-  }, []);
-
-  if (loading) {
-    return (
-      <main className="perfil-page">
-        <section className="perfil-card perfil-card--center">
-          <div className="perfil-loading-spinner" />
-          <p className="perfil-loading-text">Carregando perfil...</p>
-        </section>
-      </main>
-    );
-  }
-
-  if (!perfil && erro) {
-    return (
-      <main className="perfil-page">
-        <section className="perfil-card">
-          <div className="perfil-header">
-            <div>
-              <h1>Perfil do Usuário</h1>
-              <p>Não foi possível consultar as informações cadastrais.</p>
-            </div>
-          </div>
-
-          <div className="perfil-error">
-            {erro}
-          </div>
-
-          <div className="perfil-actions">
-            <button type="button" onClick={carregarPerfil}>
-              Tentar novamente
-            </button>
-
-            <button
-              type="button"
-              className="perfil-secondary-button"
-              onClick={() => navigate('/home')}
-            >
-              Voltar para Home
-            </button>
-          </div>
-        </section>
-      </main>
-    );
-  }
-
   return (
     <main className="perfil-page">
-      <section className="perfil-card">
-        <div className="perfil-header">
-          <div>
-            <span className="perfil-tag">Perfil do usuário</span>
-            <h1>Editar Perfil</h1>
-            <p>
-              Atualize apenas as informações permitidas pelo sistema.
-            </p>
-          </div>
+      <header className="perfil-topbar">
+        <Link to="/inicio" className="perfil-logo" aria-label="UniCar">
+          <Logo />
+        </Link>
 
-          <button type="button" onClick={() => navigate('/home')}>
-            Voltar para Home
-          </button>
-        </div>
+        <button type="button" className="perfil-notification" aria-label="Notificações">
+          <Bell size={24} />
+          <span />
+        </button>
+      </header>
 
-        <div className="perfil-summary">
-          <div className="perfil-avatar">
-            {getInitials(perfil.nomeCompleto)}
-          </div>
+      <section className="perfil-shell">
+        <section className="perfil-hero">
+          <div className="perfil-avatar">{getInitials(perfil.nomeCompleto)}</div>
 
-          <div>
-            <h2>{perfil.nomeCompleto}</h2>
-            <p>{perfil.emailInstitucional}</p>
-          </div>
-        </div>
+          <div className="perfil-hero-main">
+            <h1>
+              {formatarNome(perfil.nomeCompleto) || 'Usuário'}
+              <ShieldCheck size={18} />
+            </h1>
+            <p>{perfil.curso ? `${perfil.curso} • UFCG` : 'UFCG'}</p>
 
-        <form onSubmit={salvarAlteracoes} className="perfil-form">
-          <div className="perfil-section">
-            <h3>Informações não editáveis</h3>
-            <p>
-              Estes dados são recuperados do vínculo institucional e não podem ser alterados nesta tela.
-            </p>
-
-            <div className="perfil-grid">
-              <ReadOnlyField label="Nome completo" value={perfil.nomeCompleto} />
-              <ReadOnlyField label="Matrícula" value={perfil.matricula} />
-              <ReadOnlyField label="CPF" value={perfil.cpf} />
-              <ReadOnlyField label="E-mail institucional" value={perfil.emailInstitucional} />
-              <ReadOnlyField label="Curso" value={perfil.curso} />
-            </div>
-          </div>
-
-          <div className="perfil-section">
-            <h3>Informações editáveis</h3>
-            <p>
-              Apenas os campos abaixo podem ser modificados pelo usuário.
-            </p>
-
-            <div className="perfil-edit-grid">
-              <div className="perfil-form-group">
-                <label htmlFor="genero">Gênero</label>
-
-                <select
-                  id="genero"
-                  value={genero}
-                  disabled={salvando}
-                  onChange={(event) => setGenero(event.target.value)}
-                >
-                  <option value="Não informado">Não informado</option>
-                  <option value="Feminino">Feminino</option>
-                  <option value="Masculino">Masculino</option>
-                  <option value="Outro">Outro</option>
-                  <option value="Prefiro não informar">Prefiro não informar</option>
-                </select>
-              </div>
-
-              <label className="perfil-checkbox">
-                <input
-                  type="checkbox"
-                  checked={recebeEmails}
-                  disabled={salvando}
-                  onChange={(event) => setRecebeEmails(event.target.checked)}
-                />
-
-                <span>
-                  Desejo receber e-mails informativos do UniCar.
+            <div className="perfil-badges">
+              <span className="perfil-badge perfil-badge--blue">
+                <ShieldCheck size={14} />
+                Matrícula validada
+              </span>
+              {perfil.motoristaVerificado && (
+                <span className="perfil-badge perfil-badge--orange">
+                  Motorista verificado
                 </span>
-              </label>
+              )}
             </div>
-          </div>
 
-          {mensagemSucesso && (
-            <div className="perfil-success">
-              {mensagemSucesso}
+            <div className="perfil-rating">
+              <span>
+                <Star size={16} fill="currentColor" />
+                {perfil.avaliacao || 0}
+              </span>
+              <b />
+              <span>{perfil.totalCaronas || 0} caronas</span>
             </div>
-          )}
-
-          {erro && (
-            <div className="perfil-error">
-              {erro}
-            </div>
-          )}
-
-          <div className="perfil-actions perfil-actions--right">
-            <button type="submit" disabled={salvando}>
-              {salvando ? 'Salvando...' : 'Salvar alterações'}
-            </button>
-          </div>
-        </form>
-
-        <div className="perfil-section perfil-danger-zone">
-          <div>
-            <h3>Excluir Conta</h3>
-            <p>
-              Esta ação remove seu cadastro local do UniCar e encerra sua sessão no aplicativo.
-              Para utilizar novamente, será necessário realizar um novo login.
-            </p>
           </div>
 
           <button
             type="button"
-            className="perfil-danger-button"
+            className="perfil-edit-button"
+            aria-label="Editar perfil"
+            onClick={() => setEditando((estadoAtual) => !estadoAtual)}
+          >
+            <Edit3 size={25} />
+          </button>
+        </section>
+
+        {(erro || mensagemSucesso) && (
+          <div className={erro ? 'perfil-message perfil-message--error' : 'perfil-message perfil-message--success'}>
+            {erro || mensagemSucesso}
+          </div>
+        )}
+
+        <section className="perfil-dados" aria-labelledby="perfil-dados-titulo">
+          <h2 id="perfil-dados-titulo">Dados cadastrais</h2>
+
+          <div className="perfil-dados-grid">
+            <PerfilDado label="Nome completo" value={perfil.nomeCompleto} />
+            <PerfilDado label="Matrícula" value={perfil.matricula} />
+            <PerfilDado label="CPF" value={perfil.cpf} />
+            <PerfilDado label="E-mail institucional" value={perfil.emailInstitucional} />
+            <PerfilDado label="Curso" value={perfil.curso} />
+            <PerfilDado label="Gênero" value={perfil.genero} />
+            <PerfilDado
+              label="Recebimento de e-mails"
+              value={perfil.recebeEmails ? 'Sim' : 'Não'}
+            />
+          </div>
+        </section>
+
+        <section className="perfil-menu" aria-label="Opções do perfil">
+          <ProfileRow icon={History} label="Histórico de caronas" />
+          <ProfileRow icon={RefreshCw} label="Caronas recorrentes" />
+          <ProfileRow icon={StarIcon} label="Minhas avaliações" />
+          <ProfileRow
+            icon={Car}
+            label="Meus veículos"
+            meta={formatarTotalVeiculos(totalVeiculos)}
+            onClick={() => navigate('/meus-veiculos')}
+          />
+          <ProfileRow icon={Bell} label="Notificações" />
+          <ProfileRow icon={CircleHelp} label="Central de ajuda" />
+          <ProfileRow icon={Shield} label="Preferências de notificação" />
+        </section>
+
+        <section className="perfil-account-menu" aria-label="Conta">
+          <button type="button" onClick={() => setModalSairAberto(true)}>
+            <LogOut size={21} />
+            Sair da conta
+          </button>
+
+          <button
+            type="button"
+            className="perfil-delete-action"
             onClick={() => setModalExcluirAberto(true)}
           >
-            Excluir Conta
+            <Trash2 size={21} />
+            Excluir conta
           </button>
-        </div>
-
-        <div className="perfil-footer">
-          <button type="button" onClick={() => navigate('/politica-de-privacidade')}>
-            Política de Privacidade
-          </button>
-
-          <button type="button" onClick={() => navigate('/central-ajuda')}>
-            Central de Ajuda
-          </button>
-
-          <button type="button" onClick={() => navigate('/avaliacoes-recebidas')}>
-            Avaliações recebidas
-          </button>
-
-          <button type="button" onClick={() => navigate('/meus-veiculos')}>
-            Meus veículos
-          </button>
-        </div>
+        </section>
       </section>
 
-      {modalExcluirAberto && (
-        <div className="perfil-modal-overlay">
-          <div className="perfil-modal">
-            <h2>Confirmar exclusão</h2>
+      <nav className="perfil-bottom-nav" aria-label="Navegação principal">
+        <NavLink to="/inicio">
+          <Home size={24} />
+          Início
+        </NavLink>
 
-            <p>
-              Tem certeza de que deseja excluir sua conta do UniCar?
-              Esta ação removerá seu cadastro local e você será desconectado imediatamente.
-            </p>
+        <NavLink to="/inicio" className={() => ''}>
+          <Search size={24} />
+          Buscar
+        </NavLink>
+
+        <NavLink to="/meus-veiculos" className={() => 'perfil-offer-link'}>
+          <span>
+            <PlusCircle size={30} />
+          </span>
+          Ofertar
+        </NavLink>
+
+        <NavLink to="/meus-veiculos">
+          <Car size={24} />
+          Minhas
+        </NavLink>
+
+        <NavLink to="/perfil">
+          <User size={24} />
+          Perfil
+        </NavLink>
+      </nav>
+
+      <Confirmacao
+        open={modalSairAberto}
+        title="Sair da conta?"
+        message="Você será desconectado do UniCar e precisará entrar novamente para acessar sua conta."
+        confirmLabel="Confirmar"
+        onConfirm={sairDaConta}
+        onCancel={() => setModalSairAberto(false)}
+      />
+
+      <Confirmacao
+        open={modalExcluirAberto}
+        danger
+        title="Excluir conta?"
+        message="Esta ação remove seu cadastro local do UniCar e encerra sua sessão no aplicativo."
+        confirmLabel="Confirmar"
+        loadingLabel="Excluindo..."
+        loading={excluindoConta}
+        onConfirm={confirmarExclusaoConta}
+        onCancel={() => setModalExcluirAberto(false)}
+      />
+
+      {editando && (
+        <div className="perfil-modal-overlay" onClick={() => setEditando(false)}>
+          <form className="perfil-modal" onSubmit={salvarAlteracoes} onClick={(event) => event.stopPropagation()}>
+            <h2>Editar perfil</h2>
+
+            <label className="perfil-modal-field">
+              <span>Nome</span>
+              <input value={perfil.nomeCompleto || ''} disabled />
+            </label>
+
+            <label className="perfil-modal-field">
+              <span>E-mail</span>
+              <input value={perfil.emailInstitucional || ''} disabled />
+            </label>
+
+            <label className="perfil-modal-field">
+              <span>Curso</span>
+              <input
+                value={curso || ''}
+                disabled={salvando}
+                placeholder="Ex: Ciência da Computação"
+                onChange={(event) => setCurso(event.target.value)}
+              />
+            </label>
+
+            <label className="perfil-modal-field">
+              <span>Gênero</span>
+              <div className="perfil-opcoes-genero" role="radiogroup" aria-label="Gênero">
+                {['Não informado', 'Feminino', 'Masculino', 'Outro'].map((opcao) => (
+                  <button
+                    key={opcao}
+                    type="button"
+                    className={genero === opcao ? 'perfil-opcao-genero ativa' : 'perfil-opcao-genero'}
+                    disabled={salvando}
+                    role="radio"
+                    aria-checked={genero === opcao}
+                    onClick={() => setGenero(opcao)}
+                  >
+                    {opcao}
+                  </button>
+                ))}
+              </div>
+            </label>
+
+            <label className="perfil-modal-field">
+              <span>Telefone</span>
+              <input
+                value={telefone || ''}
+                disabled={salvando}
+                placeholder="(00) 00000-0000"
+                onChange={(event) => setTelefone(event.target.value)}
+              />
+            </label>
+
+            <label className="perfil-modal-checkbox">
+              <input
+                type="checkbox"
+                checked={recebeEmails}
+                disabled={salvando}
+                onChange={(event) => setRecebeEmails(event.target.checked)}
+              />
+              <span>Quero receber e-mails do UniCar</span>
+            </label>
 
             <div className="perfil-modal-actions">
-              <button
-                type="button"
-                className="perfil-secondary-button"
-                onClick={cancelarExclusaoConta}
-                disabled={excluindoConta}
-              >
+              <button type="button" onClick={() => setEditando(false)} disabled={salvando}>
                 Cancelar
               </button>
-
-              <button
-                type="button"
-                className="perfil-danger-button"
-                onClick={confirmarExclusaoConta}
-                disabled={excluindoConta}
-              >
-                {excluindoConta ? 'Excluindo...' : 'Confirmar'}
+              <button type="submit" disabled={salvando}>
+                {salvando ? 'Salvando...' : 'Salvar'}
               </button>
             </div>
-          </div>
+          </form>
         </div>
       )}
     </main>
   );
 }
 
-function ReadOnlyField({ label, value }) {
+function ProfileRow({ icon: Icon, label, meta, onClick }) {
   return (
-    <div className="perfil-form-group">
-      <label>{label}</label>
+    <button type="button" className="perfil-row" onClick={onClick}>
+      <span className="perfil-row-icon">
+        <Icon size={21} />
+      </span>
+      <strong>{label}</strong>
+      {meta && <em>{meta}</em>}
+      <ChevronRight className="perfil-row-arrow" size={22} />
+    </button>
+  );
+}
 
-      <input
-        type="text"
-        value={value}
-        disabled
-        readOnly
-      />
+function PerfilDado({ label, value }) {
+  const valorFormatado = label === 'Nome completo'
+    ? formatarNome(value)
+    : formatarValorPerfil(value);
+
+  return (
+    <div className="perfil-dado">
+      <span>{label}</span>
+      <strong>{valorFormatado}</strong>
     </div>
   );
 }
 
+function toPerfilFromSession() {
+  const usuario = getSession()?.usuario || {};
+
+  return {
+    nomeCompleto: usuario.nomeCompleto || usuario.nome || '',
+    matricula: usuario.matricula || 'Não informado',
+    cpf: usuario.cpf || 'Não informado',
+    emailInstitucional: usuario.emailInstitucional || 'Não informado',
+    telefone: usuario.telefone || '',
+    curso: usuario.curso || '',
+    genero: usuario.genero || 'Não informado',
+    recebeEmails: usuario.recebeEmails ?? true,
+    matriculaValidada: usuario.matriculaValidada ?? usuario.validado ?? usuario.verified ?? false,
+    motoristaVerificado: usuario.motoristaVerificado ?? usuario.driverVerified ?? false,
+    avaliacao: usuario.avaliacao ?? usuario.rating ?? '',
+    totalCaronas: usuario.totalCaronas ?? usuario.ridesCount ?? usuario.quantidadeCaronas ?? '',
+  };
+}
+
+function formatarValorPerfil(value) {
+  return value || 'Não informado';
+}
+
 function getInitials(nome) {
   if (!nome || nome === 'Não informado') {
-    return 'UC';
+    return 'U';
   }
 
-  const partes = nome.trim().split(' ');
+  return nome.trim()[0]?.toUpperCase() || 'U';
+}
 
-  if (partes.length === 1) {
-    return partes[0].slice(0, 2).toUpperCase();
+function formatarNome(nome = '') {
+  return nome
+    .toLowerCase()
+    .split(' ')
+    .filter(Boolean)
+    .map((parte) => parte[0].toUpperCase() + parte.slice(1))
+    .join(' ');
+}
+
+function isErroDeAutenticacao(error) {
+  return /não autenticado|nao autenticado|unauthorized|forbidden|acesso negado/i.test(
+    error?.message || '',
+  );
+}
+
+function formatarTotalVeiculos(total) {
+  if (total === null) {
+    return '';
   }
 
-  return `${partes[0][0]}${partes[partes.length - 1][0]}`.toUpperCase();
+  return total === 1 ? '1 cadastrado' : `${total} cadastrados`;
 }
 
 export default Perfil;

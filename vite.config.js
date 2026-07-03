@@ -15,6 +15,8 @@ export default defineConfig({
     proxy: {
       '/auth': 'http://localhost:8080',
       '/usuarios': 'http://localhost:8080',
+      '/caronas': 'http://localhost:8080',
+      '/veiculos': 'http://localhost:8080',
     },
   },
 })

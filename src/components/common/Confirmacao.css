@@ -1,4 +1,4 @@
-.unicar-modal-overlay {
+.confirmacaoFundo {
   position: fixed;
   inset: 0;
   z-index: 50;
@@ -9,7 +9,7 @@
   padding: 20px;
 }
 
-.unicar-modal-card {
+.confirmacaoCaixa {
   width: 100%;
   max-width: 440px;
   background-color: #ffffff;
@@ -18,25 +18,25 @@
   box-shadow: 0 18px 45px rgba(15, 61, 94, 0.25);
 }
 
-.unicar-modal-card h2 {
+.confirmacaoCaixa h2 {
   margin: 0 0 10px;
   color: #0f3d5e;
   font-size: 22px;
 }
 
-.unicar-modal-card p {
+.confirmacaoCaixa p {
   margin: 0 0 24px;
   color: #475569;
   line-height: 1.5;
 }
 
-.unicar-modal-actions {
+.confirmacaoBotoes {
   display: flex;
   gap: 12px;
   justify-content: flex-end;
 }
 
-.unicar-modal-actions button {
+.confirmacaoBotoes button {
   border: none;
   border-radius: 10px;
   padding: 12px 18px;
@@ -47,38 +47,38 @@
   transition: background-color 0.2s, opacity 0.2s;
 }
 
-.unicar-modal-actions button:hover {
+.confirmacaoBotoes button:hover {
   background-color: #0b2f49;
 }
 
-.unicar-modal-actions button:disabled {
+.confirmacaoBotoes button:disabled {
   opacity: 0.65;
   cursor: not-allowed;
 }
 
-.unicar-modal-actions .secondary {
+.confirmacaoBotoes .botaoSecundario {
   background-color: #e2e8f0;
   color: #1e293b;
 }
 
-.unicar-modal-actions .secondary:hover {
+.confirmacaoBotoes .botaoSecundario:hover {
   background-color: #cbd5e1;
 }
 
-.unicar-modal-actions .danger {
+.confirmacaoBotoes .botaoPerigo {
   background-color: #dc2626;
 }
 
-.unicar-modal-actions .danger:hover {
+.confirmacaoBotoes .botaoPerigo:hover {
   background-color: #b91c1c;
 }
 
 @media (max-width: 700px) {
-  .unicar-modal-actions {
+  .confirmacaoBotoes {
     flex-direction: column-reverse;
   }
 
-  .unicar-modal-actions button {
+  .confirmacaoBotoes button {
     width: 100%;
   }
 }

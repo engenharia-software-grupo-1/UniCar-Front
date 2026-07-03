@@ -19,7 +19,7 @@ function TermosUso() {
 
     acceptTerms();
 
-    navigate('/home');
+    navigate('/inicio');
   }
 
   function handleLogout() {

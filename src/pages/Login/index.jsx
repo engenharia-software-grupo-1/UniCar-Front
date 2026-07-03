@@ -1,8 +1,10 @@
 import { useId, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Lock, User, Loader2 } from 'lucide-react';
 import { login } from '../../services/authService.js';
 import logoAsset from '../../assets/unicar-logo-transparent.png';
+import { hasAcceptedTerms } from '../../services/termsService.js';
+import Logo from '../../components/common/Logo.jsx';
 import './style.css';
 
 function Login() {
@@ -43,7 +45,11 @@ function Login() {
         senha,
       });
 
-      navigate('/termos-de-uso', { replace: true });
+      if (hasAcceptedTerms()) {
+        navigate('/inicio', { replace: true });
+      } else {
+        navigate('/termos-de-uso', { replace: true });
+      }
     } catch (error) {
       setErro(error.message || 'Não foi possível realizar o login.');
     } finally {
@@ -53,9 +59,13 @@ function Login() {
 
   return (
     <main className="login-page">
+      <Link to="/home" className="login-back">
+        &larr; Voltar
+      </Link>
+
       <section className="login-container">
         <div className="login-logo">
-          <img src={logoAsset} alt="UniCar" />
+          <Logo />
         </div>
 
         <div className="login-card">
@@ -72,8 +82,9 @@ function Login() {
               label="Usuário"
               value={usuario}
               onChange={setUsuario}
-              placeholder="seu usuário institucional"
+              placeholder="121110000"
               autoComplete="username"
+              inputMode="numeric"
               disabled={loading}
             />
 

@@ -1,26 +1,26 @@
-import { Clock, MapPin, Shield, Users } from '../components/common/Icon.jsx';
+import { Clock, MapPin, Shield, Users } from '../components/common/Icone.jsx';
 
-export const featureItems = [
-  { icon: Shield, title: 'Verificado por e-mail .edu', desc: 'Apenas estudantes com matrícula ativa podem entrar.' },
-  { icon: MapPin, title: 'Rotas do campus', desc: 'Encontre caronas com origem e destino no seu campus.' },
-  { icon: Clock, title: 'Horários flexíveis', desc: 'Combine horários compatíveis com sua grade.' },
-  { icon: Users, title: 'Comunidade', desc: 'Avaliações entre colegas garantem confiança.' },
+export const itensDeRecursos = [
+  { icone: Shield, titulo: 'Verificado por e-mail .edu', descricao: 'Apenas estudantes com matrícula ativa podem entrar.' },
+  { icone: MapPin, titulo: 'Rotas do campus', descricao: 'Encontre caronas com origem e destino no seu campus.' },
+  { icone: Clock, titulo: 'Horários flexíveis', descricao: 'Combine horários compatíveis com sua grade.' },
+  { icone: Users, titulo: 'Comunidade', descricao: 'Avaliações entre colegas garantem confiança.' },
 ];
 
-export const rideExamples = [
-  { driver: 'Marina S.', course: 'Engenharia - UFRJ', from: 'Tijuca', to: 'Fundão', time: '07:20', seats: 3, price: 'R$ 8' },
-  { driver: 'Lucas P.', course: 'Direito - PUC-Rio', from: 'Botafogo', to: 'Gávea', time: '08:00', seats: 2, price: 'R$ 6' },
-  { driver: 'Ana C.', course: 'Medicina - UERJ', from: 'Méier', to: 'Vila Isabel', time: '06:45', seats: 1, price: 'R$ 7' },
+export const exemplosDeCaronas = [
+  { motorista: 'Marina S.', curso: 'Engenharia - UFRJ', origem: 'Tijuca', destino: 'Fundão', horario: '07:20', vagas: 3, preco: 'R$ 8' },
+  { motorista: 'Lucas P.', curso: 'Direito - PUC-Rio', origem: 'Botafogo', destino: 'Gávea', horario: '08:00', vagas: 2, preco: 'R$ 6' },
+  { motorista: 'Ana C.', curso: 'Medicina - UERJ', origem: 'Méier', destino: 'Vila Isabel', horario: '06:45', vagas: 1, preco: 'R$ 7' },
 ];
 
-export const howItWorksSteps = [
-  { n: '01', title: 'Cadastre-se com seu e-mail acadêmico', desc: 'Validamos sua matrícula para garantir uma comunidade segura.' },
-  { n: '02', title: 'Ofereça ou peça uma carona', desc: 'Defina rota, horário e número de vagas, ou encontre uma compatível.' },
-  { n: '03', title: 'Combine, viaje e avalie', desc: 'Converse pelo chat, viaje em segurança e avalie a experiência.' },
+export const passosComoFunciona = [
+  { numero: '01', titulo: 'Cadastre-se com seu e-mail acadêmico', descricao: 'Validamos sua matrícula para garantir uma comunidade segura.' },
+  { numero: '02', titulo: 'Ofereça ou peça uma carona', descricao: 'Defina rota, horário e número de vagas, ou encontre uma compatível.' },
+  { numero: '03', titulo: 'Combine, viaje e avalie', descricao: 'Converse pelo chat, viaje em segurança e avalie a experiência.' },
 ];
 
-export const testimonials = [
-  { tag: 'Recomendado', quote: 'Economizo R$ 200 por mês indo pra faculdade.', author: 'Pedro Alencar', course: 'Engenharia - UFRJ' },
-  { tag: 'Aprovado', quote: 'Fiz amizades incríveis no caminho pro campus.', author: 'Júlia Martins', course: 'Direito - PUC-Rio' },
-  { tag: 'Feito pra você', quote: 'Caronas seguras, só com gente da minha universidade.', author: 'Marcos Ribeiro', course: 'Medicina - UERJ' },
+export const depoimentos = [
+  { etiqueta: 'Recomendado', frase: 'Economizo R$ 200 por mês indo pra faculdade.', autor: 'Pedro Alencar', curso: 'Engenharia - UFRJ' },
+  { etiqueta: 'Aprovado', frase: 'Fiz amizades incríveis no caminho pro campus.', autor: 'Júlia Martins', curso: 'Direito - PUC-Rio' },
+  { etiqueta: 'Feito pra você', frase: 'Caronas seguras, só com gente da minha universidade.', autor: 'Marcos Ribeiro', curso: 'Medicina - UERJ' },
 ];

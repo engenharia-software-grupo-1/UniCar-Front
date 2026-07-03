@@ -1,6 +1,13 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import ConfirmDialog from '../../components/common/ConfirmDialog.jsx';
+import { NavLink, useNavigate } from 'react-router-dom';
+import {
+  Car,
+  Home,
+  PlusCircle,
+  Search,
+  User,
+} from 'lucide-react';
+import Confirmacao from '../../components/common/Confirmacao.jsx';
 import {
   listarVeiculos,
   criarVeiculo,
@@ -165,6 +172,7 @@ function MeusVeiculos() {
         <section className="veiculos-card">
           <p className="veiculos-loading">Carregando veículos...</p>
         </section>
+        <BarraInferior />
       </main>
     );
   }
@@ -191,6 +199,7 @@ function MeusVeiculos() {
             </button>
           </div>
         </section>
+        <BarraInferior />
       </main>
     );
   }
@@ -249,6 +258,7 @@ function MeusVeiculos() {
             </div>
           </form>
         </section>
+        <BarraInferior />
       </main>
     );
   }
@@ -309,7 +319,7 @@ function MeusVeiculos() {
         )}
       </section>
 
-      <ConfirmDialog
+      <Confirmacao
         open={Boolean(confirmandoExclusao)}
         danger
         title="Excluir veículo?"
@@ -324,6 +334,7 @@ function MeusVeiculos() {
         onConfirm={confirmarExclusao}
         onCancel={() => setConfirmandoExclusao(null)}
       />
+      <BarraInferior />
     </main>
   );
 }
@@ -340,6 +351,39 @@ function VeiculoField({ label, value, onChange, placeholder, disabled = false })
         onChange={(event) => onChange(event.target.value)}
       />
     </label>
+  );
+}
+
+function BarraInferior() {
+  return (
+    <nav className="veiculos-bottom-nav" aria-label="Navegação principal">
+      <NavLink to="/inicio" end>
+        <Home size={24} />
+        Início
+      </NavLink>
+
+      <NavLink to="/inicio" className={() => ''}>
+        <Search size={24} />
+        Buscar
+      </NavLink>
+
+      <NavLink to="/meus-veiculos" className={() => 'veiculos-offer-link'}>
+        <span>
+          <PlusCircle size={30} />
+        </span>
+        Ofertar
+      </NavLink>
+
+      <NavLink to="/meus-veiculos">
+        <Car size={24} />
+        Minhas
+      </NavLink>
+
+      <NavLink to="/perfil">
+        <User size={24} />
+        Perfil
+      </NavLink>
+    </nav>
   );
 }
 

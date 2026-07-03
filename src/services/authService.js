@@ -4,10 +4,7 @@ const SESSION_KEY = 'unicar.session';
 const MOCK_TOKEN = 'mocked-unicar-token';
 
 function usarAutenticacaoMockada() {
-  return (
-    import.meta.env.VITE_ENABLE_MOCKS === 'true' ||
-    !import.meta.env.VITE_API_BASE_URL
-  );
+  return import.meta.env.VITE_ENABLE_MOCKS === 'true';
 }
 
 export async function login({ matricula, usuario, senha }) {
@@ -93,10 +90,10 @@ export function isAuthenticated() {
 export function normalizeUsuario(usuario = {}, identificacao = '') {
   return {
     ...usuario,
-    nomeCompleto: usuario.nomeCompleto || usuario.nome || 'Usuário UniCar',
+    nomeCompleto: usuario.nomeCompleto || usuario.nome || '',
     matricula: usuario.matricula || usuario.usuario || identificacao,
     emailInstitucional:
-      usuario.emailInstitucional || usuario.email || 'usuario@academico.ufcg.edu.br',
+      usuario.emailInstitucional || usuario.email || '',
     curso: getCurso(usuario),
     recebeEmails: usuario.recebeEmails ?? usuario.receberEmail ?? true,
   };

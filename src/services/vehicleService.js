@@ -1,14 +1,17 @@
-const API_BASE_URL = import.meta.env?.VITE_API_URL ?? 'http://localhost:8080';
+const API_BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8080';
 const VEICULOS_ENDPOINT = `${API_BASE_URL}/veiculos`;
-const TOKENMOCKED = "123456"
-const MOCK_VEHICLES_KEY = 'unicar.mock.veiculos';
+const TOKEN_MOCKADO = '123456';
 
-const VEICULOS_MOCKADOS = [
-  { id: 1, modelo: 'Onix', placa: 'ABC1D23', cor: 'Prata' },
-  { id: 2, modelo: 'HB20', placa: 'XYZ9A87', cor: 'Branco' },
-];
+const MOCK_VEHICLES_KEY = 'unicar.mock.veiculos';
+const MOCK_VEHICLES_VERSION_KEY = 'unicar.mock.veiculos.version';
+const MOCK_VEHICLES_VERSION = 'sem-exemplos-v1';
+const VEICULOS_MOCKADOS = [];
 
 function usarVeiculosMockados() {
+  if (import.meta.env.MODE === 'test') {
+    return import.meta.env.VITE_ENABLE_MOCKS === 'true';
+  }
+
   return (
     import.meta.env.VITE_ENABLE_MOCKS === 'true' ||
     !import.meta.env.VITE_API_URL
@@ -16,18 +19,24 @@ function usarVeiculosMockados() {
 }
 
 function carregarVeiculosMockados() {
+  if (localStorage.getItem(MOCK_VEHICLES_VERSION_KEY) !== MOCK_VEHICLES_VERSION) {
+    localStorage.setItem(MOCK_VEHICLES_KEY, JSON.stringify(VEICULOS_MOCKADOS));
+    localStorage.setItem(MOCK_VEHICLES_VERSION_KEY, MOCK_VEHICLES_VERSION);
+    return [];
+  }
+
   const salvos = localStorage.getItem(MOCK_VEHICLES_KEY);
 
   if (!salvos) {
     localStorage.setItem(MOCK_VEHICLES_KEY, JSON.stringify(VEICULOS_MOCKADOS));
-    return [...VEICULOS_MOCKADOS];
+    return [];
   }
 
   try {
     return JSON.parse(salvos);
   } catch {
     localStorage.setItem(MOCK_VEHICLES_KEY, JSON.stringify(VEICULOS_MOCKADOS));
-    return [...VEICULOS_MOCKADOS];
+    return [];
   }
 }
 
@@ -36,9 +45,13 @@ function salvarVeiculosMockados(veiculos) {
 }
 
 function obterToken() {
-  const sessionJSON = usarVeiculosMockados()
-    ? JSON.stringify({ token: TOKENMOCKED })
-    : localStorage.getItem('unicar.session');
+  let sessionJSON;
+
+  if (usarVeiculosMockados()) {
+    sessionJSON = JSON.stringify({ token: TOKEN_MOCKADO });
+  } else {
+    sessionJSON = localStorage.getItem('unicar.session');
+  }
 
   if (!sessionJSON) {
     throw new Error('Usuário não autenticado.');
@@ -69,53 +82,31 @@ function montarHeaders(token, comCorpo = false) {
   return headers;
 }
 
-async function extrairMensagemErro(response, mensagemPadrao) {
-  try {
-    const corpo = await response.json();
-
-    if (corpo?.message) {
-      return corpo.message;
-    }
-  } catch {
-    // Resposta sem corpo JSON; usa a mensagem padrão.
-  }
-
-  return mensagemPadrao;
-}
-
-async function requisitar(url, opcoes, mensagemErroPadrao) {
-  let response;
-
-  try {
-    response = await fetch(url, opcoes);
-  } catch {
-    throw new Error('Não foi possível conectar ao servidor. Tente novamente.');
-  }
-
-  if (!response.ok) {
-    const mensagem = await extrairMensagemErro(response, mensagemErroPadrao);
-
-    throw new Error(mensagem);
-  }
-
-  return response;
-}
-
 export async function listarVeiculos() {
   if (usarVeiculosMockados()) {
     obterToken();
     return carregarVeiculosMockados();
   }
 
-  const token = obterToken();
-
-  const response = await requisitar(
+  const dados = await requisitarApi(
     VEICULOS_ENDPOINT,
-    { method: 'GET', headers: montarHeaders(token) },
+    { method: 'GET' },
     'Não foi possível carregar os veículos.',
   );
 
-  return response.json();
+  if (Array.isArray(dados)) {
+    return dados;
+  }
+
+  if (Array.isArray(dados?.content)) {
+    return dados.content;
+  }
+
+  if (Array.isArray(dados?.veiculos)) {
+    return dados.veiculos;
+  }
+
+  throw new Error('A resposta de veículos veio em um formato inesperado.');
 }
 
 export async function obterVeiculo(id) {
@@ -131,15 +122,11 @@ export async function obterVeiculo(id) {
     return veiculo;
   }
 
-  const token = obterToken();
-
-  const response = await requisitar(
+  return requisitarApi(
     `${VEICULOS_ENDPOINT}/${id}`,
-    { method: 'GET', headers: montarHeaders(token) },
+    { method: 'GET' },
     'Não foi possível carregar o veículo.',
   );
-
-  return response.json();
 }
 
 export async function criarVeiculo({ modelo, placa, cor }) {
@@ -164,19 +151,15 @@ export async function criarVeiculo({ modelo, placa, cor }) {
     return novoVeiculo;
   }
 
-  const token = obterToken();
-
-  const response = await requisitar(
+  return requisitarApi(
     VEICULOS_ENDPOINT,
     {
       method: 'POST',
-      headers: montarHeaders(token, true),
       body: JSON.stringify({ modelo, placa, cor }),
+      comCorpo: true,
     },
     'Não foi possível cadastrar o veículo.',
   );
-
-  return response.json();
 }
 
 export async function atualizarVeiculo(id, { modelo, placa, cor }) {
@@ -202,19 +185,15 @@ export async function atualizarVeiculo(id, { modelo, placa, cor }) {
     return atualizado;
   }
 
-  const token = obterToken();
-
-  const response = await requisitar(
+  return requisitarApi(
     `${VEICULOS_ENDPOINT}/${id}`,
     {
       method: 'PUT',
-      headers: montarHeaders(token, true),
       body: JSON.stringify({ modelo, placa, cor }),
+      comCorpo: true,
     },
     'Não foi possível atualizar o veículo.',
   );
-
-  return response.json();
 }
 
 export async function deletarVeiculo(id) {
@@ -233,11 +212,51 @@ export async function deletarVeiculo(id) {
     return;
   }
 
-  const token = obterToken();
-
-  await requisitar(
+  await requisitarApi(
     `${VEICULOS_ENDPOINT}/${id}`,
-    { method: 'DELETE', headers: montarHeaders(token) },
+    { method: 'DELETE' },
     'Não foi possível remover o veículo.',
   );
+}
+
+async function requisitarApi(url, opcoes, mensagemErroPadrao) {
+  const token = obterToken();
+  const { comCorpo = false, ...opcoesFetch } = opcoes;
+
+  try {
+    const resposta = await fetch(url, {
+      ...opcoesFetch,
+      headers: montarHeaders(token, comCorpo),
+    });
+
+    if (resposta.status === 204) {
+      return undefined;
+    }
+
+    let dados = null;
+
+    try {
+      dados = await resposta.json();
+    } catch {
+      dados = null;
+    }
+
+    if (!resposta.ok) {
+      throw new Error(
+        dados?.message || mensagemErroPadrao,
+      );
+    }
+
+    return dados;
+  } catch (error) {
+    if (/failed to fetch|networkerror|load failed/i.test(error?.message || '')) {
+      throw new Error('Não foi possível conectar ao servidor. Tente novamente.', {
+        cause: error,
+      });
+    }
+
+    throw new Error(error.message || mensagemErroPadrao, {
+      cause: error,
+    });
+  }
 }

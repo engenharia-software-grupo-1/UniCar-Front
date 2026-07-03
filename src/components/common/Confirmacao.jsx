@@ -1,6 +1,6 @@
-import './ConfirmDialog.css';
+import './Confirmacao.css';
 
-export default function ConfirmDialog({
+export default function Confirmacao({
   open,
   title,
   message,
@@ -18,11 +18,11 @@ export default function ConfirmDialog({
 
   return (
     <div
-      className="unicar-modal-overlay"
+      className="confirmacaoFundo"
       onClick={loading ? undefined : onCancel}
     >
       <div
-        className="unicar-modal-card"
+        className="confirmacaoCaixa"
         role="dialog"
         aria-modal="true"
         onClick={(event) => event.stopPropagation()}
@@ -30,10 +30,10 @@ export default function ConfirmDialog({
         {title && <h2>{title}</h2>}
         {message && <p>{message}</p>}
 
-        <div className="unicar-modal-actions">
+        <div className="confirmacaoBotoes">
           <button
             type="button"
-            className="secondary"
+            className="botaoSecundario"
             onClick={onCancel}
             disabled={loading}
           >
@@ -42,7 +42,7 @@ export default function ConfirmDialog({
 
           <button
             type="button"
-            className={danger ? 'danger' : ''}
+            className={danger ? 'botaoPerigo' : ''}
             onClick={onConfirm}
             disabled={loading}
           >

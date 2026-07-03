@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import Field from '../../components/common/Field.jsx';
+import Campo from '../../components/common/Campo.jsx';
 import {
   ArrowRight,
   Car,
@@ -7,34 +7,33 @@ import {
   MapPin,
   Search,
   Shield,
-  Users,
-} from '../../components/common/Icon.jsx';
-import SectionHeader from '../../components/common/SectionHeader.jsx';
-import Footer from '../../components/layout/Footer.jsx';
-import Header from '../../components/layout/Header.jsx';
+} from '../../components/common/Icone.jsx';
+import TituloSecao from '../../components/common/TituloSecao.jsx';
+import Rodape from '../../components/layout/Rodape.jsx';
+import Cabecalho from '../../components/layout/Cabecalho.jsx';
 import promoImg from '../../assets/promo-1.webp';
 import promoImgTwo from '../../assets/promo-3.webp';
 import promoImgThree from '../../assets/promo-4.webp';
-import logoAsset from '../../assets/unicar-logo-transparent.png';
+import Logo from '../../components/common/Logo.jsx';
 import {
-  featureItems,
-  howItWorksSteps,
-  rideExamples,
-  testimonials,
+  depoimentos,
+  exemplosDeCaronas,
+  itensDeRecursos,
+  passosComoFunciona,
 } from '../../data/homePage.js';
 import { isAuthenticated } from '../../services/authService.js';
 
 export default function Home() {
   return (
     <main className="unicar-page">
-      <Header />
+      <Cabecalho />
       <Hero />
       <Features />
       <SearchPreview />
       <HowItWorks />
       <Divulgacao />
       <CTA />
-      <Footer />
+      <Rodape />
     </main>
   );
 }
@@ -47,7 +46,7 @@ function Hero() {
       <div className="unicar-container unicar-hero__grid">
         <div className="unicar-hero__copy">
           <div className="unicar-eyebrow">
-            <GraduationCap className="unicar-icon unicar-icon--small" />
+            <GraduationCap className="icone iconePequeno" />
             Exclusivo para universitários
           </div>
           <h1>
@@ -62,22 +61,13 @@ function Hero() {
             menos trânsito e novas amizades a cada viagem.
           </p>
           <div className="unicar-actions">
-            {estaLogado ? (
-              <Link to="/perfil" className="unicar-button unicar-button--orange">
-                <Users className="unicar-icon unicar-icon--small" />
-                Meu perfil
-              </Link>
-            ) : (
-              <>
-                <Link to="/login" className="unicar-button unicar-button--orange">
-                  Oferecer carona
-                  <ArrowRight className="unicar-icon unicar-icon--small" />
-                </Link>
-                <Link to="/login" className="unicar-button unicar-button--ghost">
-                  Encontrar carona
-                </Link>
-              </>
-            )}
+            <Link to={estaLogado ? '/meus-veiculos' : '/login'} className="unicar-button unicar-button--orange">
+              Oferecer carona
+              <ArrowRight className="icone iconePequeno" />
+            </Link>
+            <Link to={estaLogado ? '/inicio' : '/login'} className="unicar-button unicar-button--ghost">
+              Encontrar carona
+            </Link>
           </div>
           <div className="unicar-stats">
             <span><strong>178</strong> estudantes pesquisados</span>
@@ -89,7 +79,7 @@ function Hero() {
           <div className="unicar-orbit unicar-orbit--outer" />
           <div className="unicar-orbit unicar-orbit--inner" />
           <div className="unicar-logo-orb">
-            <img src={logoAsset} alt="" />
+            <Logo alt="" />
           </div>
           <InfoBadge className="unicar-badge--left" value="178" title="Pesquisa real" text="Estudantes ouvidos" />
           <InfoBadge className="unicar-badge--right" value="80%" title="Interesse de uso" text="Querem usar o app" />
@@ -104,7 +94,7 @@ function InfoBadge({ className = '', value, title, text, icon: BadgeIcon }) {
   return (
     <div className={`unicar-info-badge ${className}`}>
       <div className="unicar-info-badge__mark">
-        {BadgeIcon ? <BadgeIcon className="unicar-icon" /> : value}
+        {BadgeIcon ? <BadgeIcon className="icone" /> : value}
       </div>
       <div>
         <span>{title}</span>
@@ -118,15 +108,15 @@ function Features() {
   return (
     <section id="features" className="unicar-section unicar-section--soft">
       <div className="unicar-container">
-        <SectionHeader title="Pensado para a vida universitária" text="Tudo o que você precisa para ir e voltar da faculdade com segurança e economia." />
+        <TituloSecao title="Pensado para a vida universitária" text="Tudo o que você precisa para ir e voltar da faculdade com segurança e economia." />
         <div className="unicar-feature-grid">
-          {featureItems.map(({ icon: FeatureIcon, title, desc }) => (
-            <article key={title} className="unicar-card">
+          {itensDeRecursos.map(({ icone: IconeRecurso, titulo, descricao }) => (
+            <article key={titulo} className="unicar-card">
               <div className="unicar-card__icon">
-                <FeatureIcon className="unicar-icon" />
+                <IconeRecurso className="icone" />
               </div>
-              <h3>{title}</h3>
-              <p>{desc}</p>
+              <h3>{titulo}</h3>
+              <p>{descricao}</p>
             </article>
           ))}
         </div>
@@ -140,37 +130,37 @@ function SearchPreview() {
     <section id="buscar" className="unicar-section">
       <div className="unicar-container unicar-search-grid">
         <div>
-          <SectionHeader title="Encontre a carona ideal" text="Filtre por campus, horário e disponibilidade de vagas." />
+          <TituloSecao title="Encontre a carona ideal" text="Filtre por campus, horário e disponibilidade de vagas." />
           <form className="unicar-form">
-            <Field label="De onde" placeholder="Seu bairro" icon={MapPin} />
-            <Field label="Para onde" placeholder="Campus / faculdade" icon={GraduationCap} />
+            <Campo label="De onde" placeholder="Seu bairro" icon={MapPin} />
+            <Campo label="Para onde" placeholder="Campus / faculdade" icon={GraduationCap} />
             <div className="unicar-form__row">
-              <Field label="Data" placeholder="Hoje" />
-              <Field label="Horário" placeholder="07:00" />
+              <Campo label="Data" placeholder="Hoje" />
+              <Campo label="Horário" placeholder="07:00" />
             </div>
             <button type="button" className="unicar-button unicar-button--block">
-              <Search className="unicar-icon unicar-icon--small" />
+              <Search className="icone iconePequeno" />
               Buscar caronas
             </button>
           </form>
         </div>
         <div className="unicar-rides">
-          {rideExamples.map((ride) => (
-            <article key={ride.driver} className="unicar-ride">
-              <div className="unicar-avatar">{ride.driver[0]}</div>
+          {exemplosDeCaronas.map((carona) => (
+            <article key={carona.motorista} className="unicar-ride">
+              <div className="unicar-avatar">{carona.motorista[0]}</div>
               <div className="unicar-ride__main">
-                <h3>{ride.driver}</h3>
-                <p>{ride.course}</p>
+                <h3>{carona.motorista}</h3>
+                <p>{carona.curso}</p>
                 <div className="unicar-route">
-                  <strong>{ride.from}</strong>
-                  <ArrowRight className="unicar-icon unicar-icon--small" />
-                  <strong>{ride.to}</strong>
+                  <strong>{carona.origem}</strong>
+                  <ArrowRight className="icone iconePequeno" />
+                  <strong>{carona.destino}</strong>
                 </div>
               </div>
               <div className="unicar-ride__meta">
-                <strong>{ride.time}</strong>
-                <span>{ride.seats} vagas</span>
-                <b>{ride.price}</b>
+                <strong>{carona.horario}</strong>
+                <span>{carona.vagas} vagas</span>
+                <b>{carona.preco}</b>
               </div>
             </article>
           ))}
@@ -184,13 +174,13 @@ function HowItWorks() {
   return (
     <section id="como-funciona" className="unicar-section unicar-section--soft">
       <div className="unicar-container">
-        <SectionHeader title="Em três passos você está na estrada" />
+        <TituloSecao title="Em três passos você está na estrada" />
         <div className="unicar-steps">
-          {howItWorksSteps.map((step) => (
-            <article key={step.n} className="unicar-step">
-              <span>{step.n}</span>
-              <h3>{step.title}</h3>
-              <p>{step.desc}</p>
+          {passosComoFunciona.map((passo) => (
+            <article key={passo.numero} className="unicar-step">
+              <span>{passo.numero}</span>
+              <h3>{passo.titulo}</h3>
+              <p>{passo.descricao}</p>
             </article>
           ))}
         </div>
@@ -200,24 +190,36 @@ function HowItWorks() {
 }
 
 function Divulgacao() {
-  const promoImages = [promoImg, promoImgTwo, promoImgThree];
+  const promoImages = [promoImg, promoImgThree, promoImgTwo];
 
   return (
-    <section className="unicar-section">
+    <section className="unicar-section unicar-divulgacao">
       <div className="unicar-container">
-        <SectionHeader title="Universitários já estão na carona" text="A comunidade UniCar cresce a cada semestre. Junte-se a quem já trocou o trânsito por boas conversas." />
+        <div className="unicar-selo">
+          <span />
+          #SOUUNICAR
+        </div>
+        <div className="tituloSecao">
+          <h2>
+            Universitários já estão <span>na carona</span>
+          </h2>
+          <p>
+            A comunidade UniCar cresce a cada semestre. Junte-se a quem já
+            trocou o trânsito por boas conversas.
+          </p>
+        </div>
         <div className="unicar-promo-grid">
-          {testimonials.map((item, index) => (
-            <figure key={item.author} className="unicar-promo">
+          {depoimentos.map((depoimento, index) => (
+            <figure key={depoimento.autor} className="unicar-promo">
               <div className="unicar-promo__top">
-                <span>{item.tag}</span>
+                <span>{depoimento.etiqueta}</span>
                 <b>{String(index + 1).padStart(2, '0')}</b>
               </div>
               <img src={promoImages[index]} alt="" />
               <figcaption>
-                <p>"{item.quote}"</p>
-                <strong>{item.author}</strong>
-                <span>{item.course}</span>
+                <p>"{depoimento.frase}"</p>
+                <strong>{depoimento.autor}</strong>
+                <span>{depoimento.curso}</span>
               </figcaption>
             </figure>
           ))}
@@ -234,11 +236,11 @@ function CTA() {
     <section className="unicar-section">
       <div className="unicar-container">
         <div className="unicar-cta">
-          <Car className="unicar-icon unicar-icon--large" />
+          <Car className="icone iconeGrande" />
           <h2>Pronto para sua próxima carona?</h2>
           <p>Junte-se a milhares de estudantes que já economizam tempo e dinheiro com o UniCar.</p>
           <Link to={estaLogado ? '/perfil' : '/login'} className="unicar-button unicar-button--orange">
-            {estaLogado ? 'Ir para meu perfil' : 'Criar minha conta grátis'}
+            Entrar
           </Link>
         </div>
       </div>

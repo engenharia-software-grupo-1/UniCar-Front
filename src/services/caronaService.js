@@ -44,3 +44,22 @@ function montarRota(origem, destino) {
 function primeiraLetra(nome = '') {
   return nome.trim()[0]?.toUpperCase() || '';
 }
+
+// implementacao provisoria enquanto back ainda nao foi implementada
+export async function listarTrajetosRecorrentes() {
+  return [
+    {
+      id: 1,
+      origem: 'Campina Grande',
+      destino: 'João Pessoa',
+      quantidadeViagens: 15,
+    },
+    {
+      id: 2,
+      origem: 'Campina Grande',
+      destino: 'Lagoa Seca',
+      quantidadeViagens: 8,
+    },
+  ];
+}
+

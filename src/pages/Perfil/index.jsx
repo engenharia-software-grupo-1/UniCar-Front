@@ -218,7 +218,10 @@ function Perfil() {
 
         <section className="perfil-menu" aria-label="Opções do perfil">
           <ProfileRow icon={History} label="Histórico de caronas" />
-          <ProfileRow icon={RefreshCw} label="Caronas recorrentes" />
+          <ProfileRow 
+            icon={RefreshCw} 
+            label="Trajetos recorrentes" />
+            nClick={() => navigate('/trajetos-recorrentes')}
           <ProfileRow
             icon={StarIcon}
             label="Minhas avaliações"

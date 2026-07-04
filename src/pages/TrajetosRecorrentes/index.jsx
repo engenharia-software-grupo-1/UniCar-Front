@@ -16,12 +16,12 @@ function TrajetosRecorrentes() {
 
   async function carregarTrajetos() {
     try {
-        const dados = await listarTrajetosRecorrentes();
-        setTrajetos(dados);
+      const dados = await listarTrajetosRecorrentes();
+      setTrajetos(dados);
     } catch (error) {
-        setErro('Não foi possível carregar os trajetos.');
+      console.error('Erro ao carregar trajetos');
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
   }
 
@@ -33,7 +33,6 @@ function TrajetosRecorrentes() {
     );
   }
 
-
   return (
     <main className="trajetos-page">
       <header className="trajetos-header">
@@ -43,10 +42,7 @@ function TrajetosRecorrentes() {
 
       {trajetos.length === 0 ? (
         <div className="trajetos-empty">
-          <p>
-            Você ainda não possui trajetos recorrentes.
-          </p>
-
+          <p>Você ainda não possui trajetos recorrentes.</p>
           <p>
             Eles aparecerão aqui conforme você criar e finalizar caronas!
           </p>
@@ -54,22 +50,41 @@ function TrajetosRecorrentes() {
       ) : (
         <section className="trajetos-lista">
           {trajetos.map((trajeto) => (
-            <article key={trajeto.id} className="trajeto-card">
-              <h2>
-                {trajeto.origem} → {trajeto.destino}
-              </h2>
+            <article key={trajeto.id} className="trajeto-card-recorrente">
 
-              <p>
-                {trajeto.quantidadeViagens} viagens realizadas
-              </p>
+              <div className="trajeto-card-topo">
+                <span className="badge ativo">Ativa</span>
+
+                <span className="preco">
+                  R$ {trajeto.price ?? 5}
+                </span>
+              </div>
+
+              <div className="trajeto-rota">
+                <span>{trajeto.origem}</span>
+                <span>→</span>
+                <span>{trajeto.destino}</span>
+              </div>
+
+              <div className="trajeto-info">
+                07:00 • 3 vagas
+              </div>
+
+              <div className="trajeto-dias">
+                {["Seg", "Ter", "Qua", "Qui", "Sex"].map((d) => (
+                  <span key={d} className="dia-chip">{d}</span>
+                ))}
+              </div>
 
               <button
+                className="trajeto-btn"
                 onClick={() =>
                   navigate(`/trajetos-recorrentes/${trajeto.id}`)
                 }
               >
                 Visualizar
               </button>
+
             </article>
           ))}
         </section>

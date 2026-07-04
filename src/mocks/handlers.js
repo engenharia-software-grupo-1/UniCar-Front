@@ -148,6 +148,21 @@ export const handlers = [
     return HttpResponse.json(carona, { status: 200 });
   }),
 
+  // PATCH /caronas/{id}/cancelar — cancela uma carona do motorista (contrato US7).
+  http.patch(`${API_BASE_URL}/caronas/:id/cancelar`, ({ request, params }) => {
+    const negado = exigirAutorizacao(request);
+    if (negado) return negado;
+
+    const carona = caronas.find((item) => item.id === Number(params.id));
+
+    if (!carona) {
+      return HttpResponse.json({ message: 'Carona não encontrada' }, { status: 404 });
+    }
+
+    carona.status = 'CANCELADA'; // resetStore() restaura o estado entre os testes
+    return HttpResponse.json({ id: carona.id, status: carona.status }, { status: 200 });
+  }),
+
   // GET /veiculos — lista os veículos do usuário autenticado.
   http.get(`${API_BASE_URL}/veiculos`, ({ request }) => {
     const negado = exigirAutorizacao(request);

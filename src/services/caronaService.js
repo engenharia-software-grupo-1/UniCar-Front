@@ -31,6 +31,16 @@ export async function obterCarona(id) {
   return ajustarCaronaMotorista(carona);
 }
 
+// Cancela uma carona do motorista (PATCH /caronas/{id}/cancelar) — contrato
+// US7-BACK-05. Sem corpo; devolve { id, status: 'CANCELADA' }.
+export async function cancelarCarona(id) {
+  if (shouldUseLocalDataMocks()) {
+    return { id: Number(id), status: 'CANCELADA' };
+  }
+
+  return apiRequest(`/caronas/${id}/cancelar`, { method: 'PATCH' });
+}
+
 // Lista as caronas criadas pelo motorista autenticado. O GET /caronas/minhas
 // devolve poucos campos, então enriquecemos cada item com o GET /caronas/{id}
 // (em paralelo) para exibir ponto de encontro e contagem de passageiros.

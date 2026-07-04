@@ -179,6 +179,42 @@ describe('mock local (dev / VITE_ENABLE_MOCKS)', () => {
   });
 });
 
+describe('cancelarCarona', () => {
+  it('faz PATCH /caronas/{id}/cancelar com o token e sem corpo', async () => {
+    fetch.mockResolvedValue(respostaJson({ id: 10, status: 'CANCELADA' }));
+
+    const { cancelarCarona } = await importarService();
+    const resultado = await cancelarCarona(10);
+
+    const [url, opcoes] = fetch.mock.calls[0];
+    expect(url).toBe(`${BASE_URL}/caronas/10/cancelar`);
+    expect(opcoes.method).toBe('PATCH');
+    expect(opcoes.headers.Authorization).toBe(`Bearer ${TOKEN}`);
+    expect(opcoes.body).toBeUndefined();
+    expect(resultado).toEqual({ id: 10, status: 'CANCELADA' });
+  });
+
+  it('propaga erro quando o backend recusa o cancelamento', async () => {
+    fetch.mockResolvedValue(
+      respostaJson({ message: 'Acesso negado' }, { ok: false, status: 403 }),
+    );
+
+    const { cancelarCarona } = await importarService();
+
+    await expect(cancelarCarona(10)).rejects.toThrow('Acesso negado');
+  });
+
+  it('no modo mock devolve status CANCELADA sem chamar fetch', async () => {
+    vi.stubEnv('VITE_ENABLE_MOCKS', 'true');
+
+    const { cancelarCarona } = await importarService();
+    const resultado = await cancelarCarona(10);
+
+    expect(fetch).not.toHaveBeenCalled();
+    expect(resultado).toEqual({ id: 10, status: 'CANCELADA' });
+  });
+});
+
 describe('obterCarona', () => {
   it('faz GET /caronas/{id} e normaliza o detalhe', async () => {
     fetch.mockResolvedValue(respostaJson(DETALHE_10));

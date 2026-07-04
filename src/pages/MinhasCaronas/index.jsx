@@ -205,9 +205,9 @@ function CaronaCard({ carona }) {
         </button>
       </div>
 
-      <button type="button" className="carona-card__detalhes" disabled>
+      <Link to={`/minhas-caronas/${carona.id}`} className="carona-card__detalhes">
         Ver detalhes da carona
-      </button>
+      </Link>
     </article>
   );
 }

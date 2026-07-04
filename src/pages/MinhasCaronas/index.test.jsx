@@ -80,16 +80,17 @@ describe('carregamento e listagem', () => {
     expect(screen.getByText('2 de 3 passageiros confirmados')).toBeInTheDocument();
   });
 
-  it('mostra os botões de ação apenas visualmente (desabilitados)', async () => {
+  it('mantém ações principais desabilitadas e permite abrir detalhes', async () => {
     listarMinhasCaronas.mockResolvedValue(CARONAS);
 
     renderPagina();
 
     expect(await screen.findByRole('button', { name: /iniciar/i })).toBeDisabled();
     expect(screen.getByRole('button', { name: /cancelar carona/i })).toBeDisabled();
-    expect(
-      screen.getByRole('button', { name: /ver detalhes da carona/i }),
-    ).toBeDisabled();
+    expect(screen.getByRole('link', { name: /ver detalhes da carona/i })).toHaveAttribute(
+      'href',
+      '/minhas-caronas/10',
+    );
   });
 });
 

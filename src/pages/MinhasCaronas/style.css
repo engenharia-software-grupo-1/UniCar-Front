@@ -235,8 +235,11 @@
   border: 0;
   background: transparent;
   color: #0b1531;
+  display: inline-flex;
+  justify-content: center;
   font-size: 15px;
   font-weight: 800;
+  text-decoration: none;
   cursor: pointer;
 }
 

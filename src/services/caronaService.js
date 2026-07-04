@@ -71,7 +71,10 @@ function caronasMockadas() {
       dataHoraSaida: saidaMockada(0, 13, 30),
       quantidadeVagas: 3,
       vagasDisponiveis: 1,
+      valorContribuicao: 5,
       status: 'CRIADA',
+      motorista: { id: 1, nome: 'Estudante UniCar', avaliacao: 4.8 },
+      veiculo: { id: 1, modelo: 'Onix', cor: 'Prata' },
     },
     {
       id: 11,
@@ -81,7 +84,10 @@ function caronasMockadas() {
       dataHoraSaida: saidaMockada(1, 7, 0),
       quantidadeVagas: 4,
       vagasDisponiveis: 4,
+      valorContribuicao: 6,
       status: 'CRIADA',
+      motorista: { id: 1, nome: 'Estudante UniCar', avaliacao: 4.8 },
+      veiculo: { id: 1, modelo: 'Onix', cor: 'Prata' },
     },
   ];
 }
@@ -114,6 +120,8 @@ function ajustarCaronaMotorista(carona = {}) {
     quantidadeVagas !== null && vagasDisponiveis !== null
       ? Math.max(0, quantidadeVagas - vagasDisponiveis)
       : null;
+  const motorista = carona.motorista || carona.driver || carona.usuario || {};
+  const veiculo = carona.veiculo || carona.vehicle || {};
 
   return {
     id: carona.id,
@@ -122,9 +130,21 @@ function ajustarCaronaMotorista(carona = {}) {
     origem: descricaoLocal(carona.origem),
     destino: descricaoLocal(carona.destino),
     pontoEncontro: carona.pontoEncontro || '',
+    valorContribuicao: carona.valorContribuicao ?? carona.valor ?? carona.preco ?? null,
     quantidadeVagas,
     vagasDisponiveis,
     passageirosConfirmados,
+    motorista: {
+      id: motorista.id ?? motorista.usuarioId ?? '',
+      nome: motorista.nomeCompleto || motorista.nome || motorista.name || '',
+      avaliacao: motorista.avaliacao ?? motorista.rating ?? '',
+    },
+    veiculo: {
+      id: veiculo.id ?? veiculo.veiculoId ?? '',
+      modelo: veiculo.modelo || veiculo.model || '',
+      cor: veiculo.cor || veiculo.color || '',
+      placa: veiculo.placa || '',
+    },
   };
 }
 

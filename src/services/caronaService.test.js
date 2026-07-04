@@ -30,7 +30,10 @@ const DETALHE_10 = {
   dataHoraSaida: '2026-06-25T13:30:00',
   quantidadeVagas: 3,
   vagasDisponiveis: 1,
+  valorContribuicao: 5,
   status: 'CRIADA',
+  motorista: { id: 1, nome: 'João Silva', avaliacao: 4.8 },
+  veiculo: { id: 1, modelo: 'Onix', cor: 'Prata' },
 };
 
 async function importarService() {
@@ -93,9 +96,21 @@ describe('listarMinhasCaronas', () => {
         origem: 'Bodocongó',
         destino: 'UFCG',
         pontoEncontro: 'Campus Sede',
+        valorContribuicao: 5,
         quantidadeVagas: 3,
         vagasDisponiveis: 1,
         passageirosConfirmados: 2,
+        motorista: {
+          id: 1,
+          nome: 'João Silva',
+          avaliacao: 4.8,
+        },
+        veiculo: {
+          id: 1,
+          modelo: 'Onix',
+          cor: 'Prata',
+          placa: '',
+        },
       },
     ]);
   });
@@ -132,9 +147,21 @@ describe('listarMinhasCaronas', () => {
         origem: 'Centro',
         destino: 'UFCG',
         pontoEncontro: '',
+        valorContribuicao: null,
         quantidadeVagas: null,
         vagasDisponiveis: null,
         passageirosConfirmados: null,
+        motorista: {
+          id: '',
+          nome: '',
+          avaliacao: '',
+        },
+        veiculo: {
+          id: '',
+          modelo: '',
+          cor: '',
+          placa: '',
+        },
       },
     ]);
   });
@@ -164,7 +191,15 @@ describe('mock local (dev / VITE_ENABLE_MOCKS)', () => {
       destino: 'UFCG',
       pontoEncontro: 'Campus Sede',
       quantidadeVagas: 3,
+      valorContribuicao: 5,
       passageirosConfirmados: 2,
+      veiculo: {
+        modelo: 'Onix',
+        cor: 'Prata',
+      },
+      motorista: {
+        nome: 'Estudante UniCar',
+      },
     });
   });
 
@@ -232,9 +267,21 @@ describe('obterCarona', () => {
       origem: 'Bodocongó',
       destino: 'UFCG',
       pontoEncontro: 'Campus Sede',
+      valorContribuicao: 5,
       quantidadeVagas: 3,
       vagasDisponiveis: 1,
       passageirosConfirmados: 2,
+      motorista: {
+        id: 1,
+        nome: 'João Silva',
+        avaliacao: 4.8,
+      },
+      veiculo: {
+        id: 1,
+        modelo: 'Onix',
+        cor: 'Prata',
+        placa: '',
+      },
     });
   });
 });

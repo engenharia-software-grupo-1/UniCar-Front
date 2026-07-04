@@ -31,10 +31,64 @@ const avaliacoesIniciais = () => [
 
 let avaliacoesRecebidas = avaliacoesIniciais();
 
+function isoLocal(data) {
+  const pad = (n) => String(n).padStart(2, '0');
+
+  return (
+    `${data.getFullYear()}-${pad(data.getMonth() + 1)}-${pad(data.getDate())}` +
+    `T${pad(data.getHours())}:${pad(data.getMinutes())}:00`
+  );
+}
+
+function saidaEm(diasAFrente, hora) {
+  const [h, m] = hora.split(':');
+  const data = new Date();
+  data.setDate(data.getDate() + diasAFrente);
+  data.setHours(Number(h), Number(m), 0, 0);
+
+  return isoLocal(data);
+}
+
+const caronasIniciais = () => [
+  {
+    id: 10,
+    origem: { descricao: 'Bodocongó', latitude: -7.21456, longitude: -35.90872 },
+    destino: { descricao: 'UFCG', latitude: -7.2159, longitude: -35.9095 },
+    pontoEncontro: 'Campus Sede',
+    dataHoraSaida: saidaEm(0, '13:30'),
+    quantidadeVagas: 3,
+    vagasDisponiveis: 1,
+    valorContribuicao: 5.0,
+    status: 'CRIADA',
+    motorista: { id: 1, nome: 'Estudante UniCar' },
+    veiculo: { id: 1, modelo: 'Onix', cor: 'Prata' },
+  },
+  {
+    id: 11,
+    origem: { descricao: 'Catolé', latitude: -7.2405, longitude: -35.8877 },
+    destino: { descricao: 'UFCG', latitude: -7.2159, longitude: -35.9095 },
+    pontoEncontro: 'Portão principal',
+    dataHoraSaida: saidaEm(1, '07:00'),
+    quantidadeVagas: 4,
+    vagasDisponiveis: 4,
+    valorContribuicao: 6.0,
+    status: 'CRIADA',
+    motorista: { id: 1, nome: 'Estudante UniCar' },
+    veiculo: { id: 1, modelo: 'Onix', cor: 'Prata' },
+  },
+];
+
+let caronas = caronasIniciais();
+
 export function resetStore() {
   veiculos = estadoInicial();
   proximoId = 3;
   avaliacoesRecebidas = avaliacoesIniciais();
+  caronas = caronasIniciais();
+}
+
+export function semCaronas() {
+  caronas = [];
 }
 
 export function semVeiculos() {
@@ -62,6 +116,36 @@ export const handlers = [
     if (negado) return negado;
 
     return HttpResponse.json(avaliacoesRecebidas, { status: 200 });
+  }),
+
+  // GET /caronas/minhas — caronas criadas pelo motorista (payload reduzido do contrato US7).
+  http.get(`${API_BASE_URL}/caronas/minhas`, ({ request }) => {
+    const negado = exigirAutorizacao(request);
+    if (negado) return negado;
+
+    const resumo = caronas.map(({ id, origem, destino, status, dataHoraSaida }) => ({
+      id,
+      origem,
+      destino,
+      status,
+      dataHoraSaida,
+    }));
+
+    return HttpResponse.json(resumo, { status: 200 });
+  }),
+
+  // GET /caronas/{id} — detalhe completo de uma carona.
+  http.get(`${API_BASE_URL}/caronas/:id`, ({ request, params }) => {
+    const negado = exigirAutorizacao(request);
+    if (negado) return negado;
+
+    const carona = caronas.find((item) => item.id === Number(params.id));
+
+    if (!carona) {
+      return HttpResponse.json({ message: 'Carona não encontrada' }, { status: 404 });
+    }
+
+    return HttpResponse.json(carona, { status: 200 });
   }),
 
   // GET /veiculos — lista os veículos do usuário autenticado.

@@ -417,54 +417,6 @@
   color: #ef0000;
 }
 
-.perfil-bottom-nav {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 30;
-  height: 72px;
-  border-top: 1px solid #dce7f3;
-  background: rgba(248, 251, 255, 0.96);
-  backdrop-filter: blur(16px);
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  align-items: center;
-  padding: 6px max(18px, calc((100vw - 760px) / 2)) 8px;
-  box-shadow: 0 -8px 24px rgba(7, 19, 43, 0.04);
-}
-
-.perfil-bottom-nav a {
-  min-height: 54px;
-  color: #5a7398;
-  text-decoration: none;
-  font-size: 11px;
-  font-weight: 700;
-  display: grid;
-  place-items: center;
-  gap: 3px;
-}
-
-.perfil-bottom-nav a.active {
-  color: #07132b;
-}
-
-.perfil-offer-link {
-  position: relative;
-}
-
-.perfil-offer-link span {
-  width: 56px;
-  height: 56px;
-  margin-top: -28px;
-  border-radius: 50%;
-  background: #07132b;
-  color: #ffffff;
-  display: grid;
-  place-items: center;
-  box-shadow: 0 10px 18px rgba(7, 19, 43, 0.22);
-}
-
 .perfil-modal-overlay {
   position: fixed;
   inset: 0;
@@ -658,13 +610,5 @@
 
   .perfil-dados-grid {
     grid-template-columns: 1fr;
-  }
-
-  .perfil-bottom-nav {
-    padding-inline: 6px;
-  }
-
-  .perfil-bottom-nav a {
-    font-size: 12px;
   }
 }

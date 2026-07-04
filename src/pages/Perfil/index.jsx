@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   Bell,
   Car,
@@ -7,19 +7,16 @@ import {
   CircleHelp,
   Edit3,
   History,
-  Home,
   LogOut,
-  PlusCircle,
   RefreshCw,
-  Search,
   Shield,
   ShieldCheck,
   Star,
   StarIcon,
   Trash2,
-  User,
 } from 'lucide-react';
 import Confirmacao from '../../components/common/Confirmacao.jsx';
+import NavegacaoInferior from '../../components/layout/NavegacaoInferior.jsx';
 import {
   atualizarPerfilUsuarioAutenticado,
   excluirContaUsuarioAutenticado,
@@ -256,34 +253,7 @@ function Perfil() {
         </section>
       </section>
 
-      <nav className="perfil-bottom-nav" aria-label="Navegação principal">
-        <NavLink to="/inicio">
-          <Home size={24} />
-          Início
-        </NavLink>
-
-        <NavLink to="/inicio" className={() => ''}>
-          <Search size={24} />
-          Buscar
-        </NavLink>
-
-        <NavLink to="/meus-veiculos" className={() => 'perfil-offer-link'}>
-          <span>
-            <PlusCircle size={30} />
-          </span>
-          Ofertar
-        </NavLink>
-
-        <NavLink to="/meus-veiculos">
-          <Car size={24} />
-          Minhas
-        </NavLink>
-
-        <NavLink to="/perfil">
-          <User size={24} />
-          Perfil
-        </NavLink>
-      </nav>
+      <NavegacaoInferior />
 
       <Confirmacao
         open={modalSairAberto}

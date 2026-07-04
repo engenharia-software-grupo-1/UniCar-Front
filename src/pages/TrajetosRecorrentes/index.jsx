@@ -38,6 +38,7 @@ function TrajetosRecorrentes() {
       <header className="trajetos-header">
         <Logo />
         <h1>Trajetos recorrentes</h1>
+        <h3>Publicadas automaticamente nos dias selecionados</h3>
       </header>
 
       {trajetos.length === 0 ? (

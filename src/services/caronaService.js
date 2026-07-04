@@ -50,14 +50,14 @@ export async function listarTrajetosRecorrentes() {
   return [
     {
       id: 1,
-      origem: 'Campina Grande',
-      destino: 'João Pessoa',
+      origem: 'José Pinheiro',
+      destino: 'UFCG - Campus Sede',
       quantidadeViagens: 15,
     },
     {
       id: 2,
-      origem: 'Campina Grande',
-      destino: 'Lagoa Seca',
+      origem: 'Centro',
+      destino: 'UFCG - Campus Sede',
       quantidadeViagens: 8,
     },
   ];

@@ -1,19 +1,94 @@
+body {
+  margin: 0;
+  font-family: "Inter", system-ui, sans-serif;
+  background: oklch(0.985 0.005 250);
+  color: oklch(0.18 0.06 265);
+}
+
+.trajetos-page {
+  min-height: 100vh;
+  padding: 20px 16px 90px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+
+.trajetos-header {
+  width: min(760px, 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 15px;
+}
+
+.trajetos-header h1 {
+  font-family: "Poppins", system-ui, sans-serif;
+  font-size: 22px;
+  font-weight: 800;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.trajetos-header h3 {
+  font-family: "Poppins", system-ui, sans-serif;
+  font-size: 15px;
+  font-weight: 100;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.trajetos-header img,
+.trajetos-header svg {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+}
+
+.trajetos-empty {
+  width: min(760px, 100%);
+  background: white;
+  border: 1px solid oklch(0.929 0.013 255.508);
+  border-radius: 16px;
+  padding: 22px 16px;
+  text-align: center;
+  box-shadow: 0 10px 24px rgba(7, 19, 43, 0.06);
+}
+
+.trajetos-empty p {
+  margin: 0 0 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: oklch(0.5 0.02 260);
+}
+
+
+.trajetos-lista {
+  width: min(760px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+
 .trajeto-card-recorrente {
-  background: #ffffff;
-  border: 1px solid #dce7f3;
-  border-radius: 22px;
-  padding: 16px;
-  box-shadow: 0 14px 30px rgba(7, 19, 43, 0.06);
+  background: white;
+  border: 1px solid oklch(0.929 0.013 255.508);
+  border-radius: 16px;
+  padding: 14px;
   display: flex;
   flex-direction: column;
   gap: 10px;
+  box-shadow: 0 10px 24px rgba(7, 19, 43, 0.06);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .trajeto-card-recorrente:hover {
   transform: translateY(-2px);
-  box-shadow: 0 18px 36px rgba(7, 19, 43, 0.10);
+  box-shadow: 0 14px 28px rgba(7, 19, 43, 0.10);
 }
+
 
 .trajeto-card-topo {
   display: flex;
@@ -22,42 +97,43 @@
 }
 
 .badge {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 800;
   padding: 4px 10px;
   border-radius: 999px;
 }
 
 .badge.ativo {
-  background: #e7f9ef;
-  color: #1f8a4c;
+  background: oklch(0.95 0.02 150);
+  color: oklch(0.35 0.12 150);
 }
 
 .preco {
   font-size: 13px;
   font-weight: 900;
-  color: #07132b;
+  color: oklch(0.18 0.06 265);
 }
-
 
 .trajeto-rota {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   font-size: 14px;
   font-weight: 700;
-  color: #07132b;
+  letter-spacing: -0.01em;
 }
 
-.arrow {
-  color: #5a7398;
+.trajeto-rota span:nth-child(2) {
+  color: oklch(0.55 0.02 260);
 }
+
 
 .trajeto-info {
   font-size: 12px;
-  color: #5a7398;
   font-weight: 600;
+  color: oklch(0.55 0.02 260);
 }
+
 
 .trajeto-dias {
   display: flex;
@@ -67,37 +143,36 @@
 
 .dia-chip {
   font-size: 10px;
-  font-weight: 800;
+  font-weight: 700;
   padding: 3px 8px;
   border-radius: 999px;
-  background: rgba(7, 19, 43, 0.06);
-  color: #07132b;
+  background: oklch(0.968 0.007 247.896);
+  color: oklch(0.35 0.02 260);
 }
 
-.trajeto-actions {
-  display: flex;
-  gap: 10px;
+.trajeto-btn {
   margin-top: 6px;
-}
-
-.btn-secundario {
-  flex: 1;
   padding: 10px;
   border-radius: 12px;
-  border: 1px solid #dce7f3;
-  background: #fff;
+  border: none;
+  background: oklch(0.18 0.06 265);
+  color: white;
+  font-size: 13px;
   font-weight: 800;
-  font-size: 12px;
   cursor: pointer;
+  transition: opacity 0.2s ease, transform 0.1s ease;
 }
 
-.btn-danger {
-  padding: 10px 14px;
-  border-radius: 12px;
-  border: 1px solid #ffdddd;
-  background: #fff5f5;
-  color: #c92a2a;
-  font-weight: 800;
-  font-size: 12px;
-  cursor: pointer;
+.trajeto-btn:hover {
+  opacity: 0.92;
+}
+
+.trajeto-btn:active {
+  transform: scale(0.98);
+}
+
+.trajetos-page p {
+  font-size: 14px;
+  font-weight: 600;
+  color: oklch(0.55 0.02 260);
 }

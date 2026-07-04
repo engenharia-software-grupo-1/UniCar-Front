@@ -10,6 +10,7 @@ import MeusVeiculos from './pages/MeusVeiculos/index.jsx';
 import MinhasCaronas from './pages/MinhasCaronas/index.jsx';
 import AvaliacoesRecebidas from './pages/AvaliacoesRecebidas/index.jsx';
 import CentralAjuda from './pages/CentralAjuda/index.jsx';
+import UsuariosBloqueados from './pages/UsuariosBloqueados/index.jsx';
 import PoliticaPrivacidade from './pages/PoliticaPrivacidade/index.jsx';
 import TermosUso from './pages/TermosUso/index.jsx';
 import NaoEncontrada from './pages/NaoEncontrada/index.jsx';
@@ -116,6 +117,15 @@ function App() {
           element={
             <RequireAuthAndTerms>
               <CentralAjuda />
+            </RequireAuthAndTerms>
+          }
+        />
+
+        <Route
+          path="/bloqueados"
+          element={
+            <RequireAuthAndTerms>
+              <UsuariosBloqueados />
             </RequireAuthAndTerms>
           }
         />

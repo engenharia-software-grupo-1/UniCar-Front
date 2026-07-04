@@ -190,6 +190,44 @@
   cursor: pointer;
 }
 
+.perfil-block-button {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  min-width: 178px;
+  min-height: 42px;
+  border: 1px solid rgba(255, 255, 255, 0.26);
+  border-radius: 999px;
+  background: #fee2e2;
+  color: #991b1b;
+  padding: 0 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background 0.2s ease, opacity 0.2s ease, transform 0.2s ease;
+}
+
+.perfil-block-button:hover {
+  background: #fecaca;
+  transform: translateY(-1px);
+}
+
+.perfil-block-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.76;
+  transform: none;
+}
+
+.perfil-block-button--blocked {
+  background: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+}
+
 .perfil-message,
 .perfil-edit-card,
 .perfil-dados,
@@ -591,6 +629,22 @@
   .perfil-hero-main h1 {
     padding-right: 44px;
     font-size: 21px;
+  }
+
+  .perfil-hero:has(.perfil-block-button) {
+    padding-bottom: 82px;
+  }
+
+  .perfil-hero:has(.perfil-block-button) .perfil-hero-main h1 {
+    padding-right: 0;
+  }
+
+  .perfil-block-button {
+    top: auto;
+    right: 24px;
+    bottom: 24px;
+    left: 24px;
+    width: auto;
   }
 
   .perfil-row,

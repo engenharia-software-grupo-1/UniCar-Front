@@ -220,8 +220,8 @@ function Perfil() {
           <ProfileRow icon={History} label="Histórico de caronas" />
           <ProfileRow 
             icon={RefreshCw} 
-            label="Trajetos recorrentes" />
-            nClick={() => navigate('/trajetos-recorrentes')}
+            label="Trajetos recorrentes" 
+            onClick={() => navigate('/trajetos-recorrentes')}/>
           <ProfileRow
             icon={StarIcon}
             label="Minhas avaliações"

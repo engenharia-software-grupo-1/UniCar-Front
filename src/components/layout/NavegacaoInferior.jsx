@@ -17,7 +17,7 @@ export default function NavegacaoInferior() {
         Buscar
       </NavLink>
 
-      <NavLink to="/meus-veiculos" className={() => 'nav-inferior__ofertar'}>
+      <NavLink to="/ofertar-carona" className={() => 'nav-inferior__ofertar'}>
         <span>
           <PlusCircle size={30} />
         </span>

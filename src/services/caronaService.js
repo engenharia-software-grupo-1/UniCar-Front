@@ -17,7 +17,7 @@ export async function buscarSugestoesDeCaronas() {
 // Detalha uma carona (GET /caronas/{id}), trazendo ponto de encontro, vagas etc.
 export async function obterCarona(id) {
   if (shouldUseLocalDataMocks()) {
-    const carona = caronasMockadas().find((item) => item.id === Number(id));
+    const carona = carregarCaronasMock().find((item) => item.id === Number(id));
 
     if (!carona) {
       throw new Error('Carona não encontrada.');
@@ -31,10 +31,72 @@ export async function obterCarona(id) {
   return ajustarCaronaMotorista(carona);
 }
 
+// Cria uma nova carona (POST /caronas) — contrato US7-BACK-01. Recebe origem e
+// destino como texto (ou objeto) e devolve o payload no formato do contrato,
+// com origem/destino em { descricao, latitude, longitude }. Responde
+// { id, status: 'CRIADA' }.
+export async function criarCarona(dados) {
+  const payload = montarPayloadCarona(dados);
+
+  if (shouldUseLocalDataMocks()) {
+    const caronas = carregarCaronasMock();
+
+    const novaCarona = {
+      id: Math.max(10, ...caronas.map((carona) => carona.id)) + 1,
+      ...payload,
+      vagasDisponiveis: payload.quantidadeVagas,
+      status: 'CRIADA',
+    };
+
+    salvarCaronasMock([...caronas, novaCarona]);
+
+    return { id: novaCarona.id, status: 'CRIADA' };
+  }
+
+  return apiRequest('/caronas', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+function montarPayloadCarona(dados = {}) {
+  return {
+    veiculoId: Number(dados.veiculoId),
+    origem: montarLocalContrato(dados.origem),
+    destino: montarLocalContrato(dados.destino),
+    pontoEncontro: dados.pontoEncontro ?? '',
+    dataHoraSaida: dados.dataHoraSaida,
+    quantidadeVagas: Number(dados.quantidadeVagas),
+    valorContribuicao: Number(dados.valorContribuicao),
+  };
+}
+
+// O contrato exige origem/destino com descricao, latitude e longitude. A UI só
+// coleta texto, então preenchemos as coordenadas com null quando ausentes.
+function montarLocalContrato(valor) {
+  if (valor && typeof valor === 'object') {
+    return {
+      descricao: valor.descricao ?? '',
+      latitude: valor.latitude ?? null,
+      longitude: valor.longitude ?? null,
+    };
+  }
+
+  return { descricao: valor ?? '', latitude: null, longitude: null };
+}
+
 // Cancela uma carona do motorista (PATCH /caronas/{id}/cancelar) — contrato
 // US7-BACK-05. Sem corpo; devolve { id, status: 'CANCELADA' }.
 export async function cancelarCarona(id) {
   if (shouldUseLocalDataMocks()) {
+    const caronas = carregarCaronasMock();
+    const carona = caronas.find((item) => item.id === Number(id));
+
+    if (carona) {
+      carona.status = 'CANCELADA';
+      salvarCaronasMock(caronas);
+    }
+
     return { id: Number(id), status: 'CANCELADA' };
   }
 
@@ -46,7 +108,7 @@ export async function cancelarCarona(id) {
 // (em paralelo) para exibir ponto de encontro e contagem de passageiros.
 export async function listarMinhasCaronas() {
   if (shouldUseLocalDataMocks()) {
-    return caronasMockadas().map(ajustarCaronaMotorista);
+    return carregarCaronasMock().map(ajustarCaronaMotorista);
   }
 
   const resposta = await apiRequest('/caronas/minhas');
@@ -59,9 +121,15 @@ export async function listarMinhasCaronas() {
   );
 }
 
-// Dados simulados usados em dev (VITE_ENABLE_MOCKS / modo DEV) para exibir a
-// tela sem backend. As datas são geradas na hora para caírem em "Hoje"/"Amanhã".
-function caronasMockadas() {
+// Store simulado (VITE_ENABLE_MOCKS / modo DEV) persistido em localStorage, para
+// que caronas criadas via `criarCarona` apareçam em "Minhas caronas" e o
+// cancelamento seja refletido — assim como o mock de veículos.
+const MOCK_CARONAS_KEY = 'unicar.mock.caronas';
+const MOCK_CARONAS_VERSION_KEY = 'unicar.mock.caronas.version';
+const MOCK_CARONAS_VERSION = 'semente-v1';
+
+// Semente inicial. As datas são geradas na hora para caírem em "Hoje"/"Amanhã".
+function caronasSemente() {
   return [
     {
       id: 10,
@@ -71,6 +139,7 @@ function caronasMockadas() {
       dataHoraSaida: saidaMockada(0, 13, 30),
       quantidadeVagas: 3,
       vagasDisponiveis: 1,
+      valorContribuicao: 5,
       status: 'CRIADA',
     },
     {
@@ -81,9 +150,39 @@ function caronasMockadas() {
       dataHoraSaida: saidaMockada(1, 7, 0),
       quantidadeVagas: 4,
       vagasDisponiveis: 4,
+      valorContribuicao: 6,
       status: 'CRIADA',
     },
   ];
+}
+
+function carregarCaronasMock() {
+  if (localStorage.getItem(MOCK_CARONAS_VERSION_KEY) !== MOCK_CARONAS_VERSION) {
+    const semente = caronasSemente();
+    salvarCaronasMock(semente);
+    localStorage.setItem(MOCK_CARONAS_VERSION_KEY, MOCK_CARONAS_VERSION);
+    return semente;
+  }
+
+  const salvos = localStorage.getItem(MOCK_CARONAS_KEY);
+
+  if (!salvos) {
+    const semente = caronasSemente();
+    salvarCaronasMock(semente);
+    return semente;
+  }
+
+  try {
+    return JSON.parse(salvos);
+  } catch {
+    const semente = caronasSemente();
+    salvarCaronasMock(semente);
+    return semente;
+  }
+}
+
+function salvarCaronasMock(caronas) {
+  localStorage.setItem(MOCK_CARONAS_KEY, JSON.stringify(caronas));
 }
 
 function saidaMockada(diasAFrente, hora, minuto) {

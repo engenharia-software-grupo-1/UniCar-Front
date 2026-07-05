@@ -126,7 +126,7 @@ describe('requests', () => {
   });
 
   it('criarVeiculo faz POST com Content-Type e body JSON', async () => {
-    const dados = { modelo: 'Onix', placa: 'ABC1D23', cor: 'Prata' };
+    const dados = { modelo: 'Onix', placa: 'ABC1D23', cor: 'Prata', tipo: 'carro' };
     fetch.mockResolvedValue(respostaJson({ id: 1, ...dados }, { status: 201 }));
 
     const resultado = await criarVeiculo(dados);
@@ -140,7 +140,7 @@ describe('requests', () => {
   });
 
   it('atualizarVeiculo faz PUT /veiculos/{id} com body JSON', async () => {
-    const dados = { modelo: 'Onix Plus', placa: 'ABC1D23', cor: 'Preto' };
+    const dados = { modelo: 'Onix Plus', placa: 'ABC1D23', cor: 'Preto', tipo: 'moto' };
     fetch.mockResolvedValue(respostaJson({ id: 1, ...dados }));
 
     const resultado = await atualizarVeiculo(1, dados);

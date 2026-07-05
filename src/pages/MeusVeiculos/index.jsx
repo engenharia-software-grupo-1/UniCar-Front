@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Car, Bike } from 'lucide-react';
 import Confirmacao from '../../components/common/Confirmacao.jsx';
 import NavegacaoInferior from '../../components/layout/NavegacaoInferior.jsx';
 import {
@@ -25,6 +26,7 @@ function MeusVeiculos() {
   const [modelo, setModelo] = useState('');
   const [placa, setPlaca] = useState('');
   const [cor, setCor] = useState('');
+  const [tipo, setTipo] = useState('carro');
   const [erroForm, setErroForm] = useState('');
   const [salvando, setSalvando] = useState(false);
 
@@ -82,6 +84,7 @@ function MeusVeiculos() {
     setModelo('');
     setPlaca('');
     setCor('');
+    setTipo('carro');
     setErroForm('');
     setModo('form');
   }
@@ -91,6 +94,7 @@ function MeusVeiculos() {
     setModelo(veiculo.modelo);
     setPlaca(veiculo.placa);
     setCor(veiculo.cor);
+    setTipo(veiculo.tipo ?? 'carro');
     setErroForm('');
     setModo('form');
   }
@@ -120,7 +124,7 @@ function MeusVeiculos() {
       return;
     }
 
-    const dados = { modelo: modeloLimpo, placa: placaLimpa, cor: corLimpa };
+    const dados = { modelo: modeloLimpo, placa: placaLimpa, cor: corLimpa, tipo };
 
     try {
       setSalvando(true);
@@ -210,6 +214,34 @@ function MeusVeiculos() {
           </div>
 
           <form className="veiculos-form" onSubmit={submitFormulario}>
+            <fieldset className="veiculos-tipo">
+              <legend>Tipo de veículo</legend>
+
+              <div className="veiculos-tipo-opcoes">
+                <button
+                  type="button"
+                  className={tipo === 'carro' ? 'ativo' : ''}
+                  aria-pressed={tipo === 'carro'}
+                  onClick={() => setTipo('carro')}
+                  disabled={salvando}
+                >
+                  <Car size={18} />
+                  Carro
+                </button>
+
+                <button
+                  type="button"
+                  className={tipo === 'moto' ? 'ativo' : ''}
+                  aria-pressed={tipo === 'moto'}
+                  onClick={() => setTipo('moto')}
+                  disabled={salvando}
+                >
+                  <Bike size={18} />
+                  Moto
+                </button>
+              </div>
+            </fieldset>
+
             <VeiculoField
               label="Modelo"
               value={modelo}
@@ -291,6 +323,19 @@ function MeusVeiculos() {
                   <strong>{veiculo.modelo}</strong>
                   <span>
                     {veiculo.placa} · {veiculo.cor}
+                  </span>
+                  <span className="veiculos-item__tipo">
+                    {(veiculo.tipo ?? 'carro') === 'moto' ? (
+                      <>
+                        <Bike size={14} />
+                        Moto
+                      </>
+                    ) : (
+                      <>
+                        <Car size={14} />
+                        Carro
+                      </>
+                    )}
                   </span>
                 </div>
 

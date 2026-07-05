@@ -3,7 +3,6 @@ const IS_JSDOM =
   /jsdom/i.test(navigator.userAgent || '');
 
 const USE_DEV_PROXY = Boolean(import.meta.hot) && !IS_JSDOM;
-const USE_DEV_DATA_MOCKS = import.meta.env.DEV && !IS_JSDOM;
 
 export const API_BASE_URL = USE_DEV_PROXY
   ? ''
@@ -13,6 +12,9 @@ export function shouldUseMocks() {
   return import.meta.env.VITE_ENABLE_MOCKS === 'true';
 }
 
+// Os mocks de dados (localStorage) dos serviços dependem SÓ da flag: com
+// VITE_ENABLE_MOCKS=false, mesmo em `npm run dev`, os serviços batem no backend
+// real (via proxy). Assim dá para alternar offline/backend só pelo .env.
 export function shouldUseLocalDataMocks() {
-  return shouldUseMocks() || USE_DEV_DATA_MOCKS;
+  return shouldUseMocks();
 }

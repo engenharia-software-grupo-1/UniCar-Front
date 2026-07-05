@@ -148,6 +148,67 @@
   opacity: 0.7;
 }
 
+.veiculos-tipo {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.veiculos-tipo legend {
+  padding: 0;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.veiculos-tipo-opcoes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.veiculos-card .veiculos-tipo-opcoes button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 50px;
+  border: 1px solid #d6dee8;
+  border-radius: 12px;
+  background-color: #f8fbff;
+  color: #64748b;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 0.2s, background-color 0.2s, color 0.2s;
+}
+
+.veiculos-card .veiculos-tipo-opcoes button.ativo {
+  border-color: #0f3d5e;
+  background-color: #0f3d5e;
+  color: #fff;
+}
+
+.veiculos-card .veiculos-tipo-opcoes button:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.veiculos-item__info span.veiculos-item__tipo {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+  color: #587091;
+  font-size: 13px;
+  font-weight: 700;
+}
+
 .veiculos-actions {
   display: flex;
   gap: 12px;

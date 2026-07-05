@@ -12,11 +12,22 @@ vi.mock('../../services/caronaService.js', () => ({
 import MinhasCaronas from './index.jsx';
 import { listarMinhasCaronas, cancelarCarona } from '../../services/caronaService.js';
 
+// Data/hora de saída relativa ao "agora" real, para exercitar o filtro por
+// tolerância de forma determinística. Offset em minutos (negativo = passado).
+function saidaEm(minutos) {
+  const d = new Date(Date.now() + minutos * 60 * 1000);
+  const pad = (n) => String(n).padStart(2, '0');
+  return (
+    `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}` +
+    `T${pad(d.getHours())}:${pad(d.getMinutes())}:00`
+  );
+}
+
 const CARONAS = [
   {
     id: 10,
     status: 'CRIADA',
-    dataHoraSaida: '2026-06-25T13:30:00',
+    dataHoraSaida: saidaEm(120),
     origem: 'Bodocongó',
     destino: 'UFCG',
     pontoEncontro: 'Campus Sede',
@@ -94,12 +105,74 @@ describe('carregamento e listagem', () => {
   });
 
   it('desabilita "Cancelar" quando a carona não está CRIADA', async () => {
-    listarMinhasCaronas.mockResolvedValue([{ ...CARONAS[0], status: 'FINALIZADA' }]);
+    listarMinhasCaronas.mockResolvedValue([{ ...CARONAS[0], status: 'EM_ANDAMENTO' }]);
 
     renderPagina();
 
-    await screen.findByText('Finalizada');
+    await screen.findByText('Em andamento');
     expect(screen.getByRole('button', { name: /cancelar carona/i })).toBeDisabled();
+  });
+});
+
+describe('filtro e ordenação da lista', () => {
+  it('mostra apenas CRIADA e EM_ANDAMENTO, ocultando canceladas, finalizadas e expiradas', async () => {
+    listarMinhasCaronas.mockResolvedValue([
+      { ...CARONAS[0], id: 1, status: 'EM_ANDAMENTO', dataHoraSaida: saidaEm(30) },
+      { ...CARONAS[0], id: 2, status: 'CANCELADA', dataHoraSaida: saidaEm(60) },
+      { ...CARONAS[0], id: 3, status: 'FINALIZADA', dataHoraSaida: saidaEm(90) },
+      { ...CARONAS[0], id: 4, status: 'EXPIRADA', dataHoraSaida: saidaEm(120) },
+    ]);
+
+    renderPagina();
+
+    expect(await screen.findByText('Em andamento')).toBeInTheDocument();
+    expect(screen.queryByText('Cancelada')).not.toBeInTheDocument();
+    expect(screen.queryByText('Finalizada')).not.toBeInTheDocument();
+    expect(screen.getAllByRole('article')).toHaveLength(1);
+  });
+
+  it('mantém uma CRIADA por até 30 min após o horário e a remove depois', async () => {
+    listarMinhasCaronas.mockResolvedValue([
+      { ...CARONAS[0], dataHoraSaida: saidaEm(-10) },
+    ]);
+
+    const { unmount } = renderPagina();
+    expect(await screen.findByText('Aguardando')).toBeInTheDocument();
+    unmount();
+
+    listarMinhasCaronas.mockResolvedValue([
+      { ...CARONAS[0], dataHoraSaida: saidaEm(-40) },
+    ]);
+
+    renderPagina();
+    expect(
+      await screen.findByText('Você ainda não criou nenhuma carona.'),
+    ).toBeInTheDocument();
+  });
+
+  it('mantém a EM_ANDAMENTO mesmo passados 30 min do horário', async () => {
+    listarMinhasCaronas.mockResolvedValue([
+      { ...CARONAS[0], status: 'EM_ANDAMENTO', dataHoraSaida: saidaEm(-90) },
+    ]);
+
+    renderPagina();
+
+    expect(await screen.findByText('Em andamento')).toBeInTheDocument();
+  });
+
+  it('ordena as caronas pela data/hora de saída (mais cedo primeiro)', async () => {
+    listarMinhasCaronas.mockResolvedValue([
+      { ...CARONAS[0], id: 1, origem: 'Centro', dataHoraSaida: saidaEm(180) },
+      { ...CARONAS[0], id: 2, origem: 'Bodocongó', dataHoraSaida: saidaEm(60) },
+    ]);
+
+    renderPagina();
+
+    await screen.findByText('Bodocongó');
+
+    const cards = screen.getAllByRole('article');
+    expect(within(cards[0]).getByText('Bodocongó')).toBeInTheDocument();
+    expect(within(cards[1]).getByText('Centro')).toBeInTheDocument();
   });
 });
 
@@ -167,7 +240,8 @@ describe('cancelamento', () => {
     expect(
       await screen.findByText('Carona cancelada com sucesso.'),
     ).toBeInTheDocument();
-    expect(screen.getByText('Cancelada')).toBeInTheDocument();
+    // Ao cancelar, a carona sai da listagem (vai para o histórico).
+    expect(screen.queryByText('Aguardando')).not.toBeInTheDocument();
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
@@ -233,6 +307,29 @@ describe('cancelamento', () => {
 
     expect(
       await screen.findByText('Não foi possível cancelar a carona.'),
+    ).toBeInTheDocument();
+  });
+});
+
+describe('feedback vindo de outra tela', () => {
+  it('exibe a mensagem de sucesso recebida via navegação (ex.: publicação)', async () => {
+    listarMinhasCaronas.mockResolvedValue([]);
+
+    render(
+      <MemoryRouter
+        initialEntries={[
+          {
+            pathname: '/minhas-caronas',
+            state: { mensagem: 'Carona publicada com sucesso.' },
+          },
+        ]}
+      >
+        <MinhasCaronas />
+      </MemoryRouter>,
+    );
+
+    expect(
+      await screen.findByText('Carona publicada com sucesso.'),
     ).toBeInTheDocument();
   });
 });

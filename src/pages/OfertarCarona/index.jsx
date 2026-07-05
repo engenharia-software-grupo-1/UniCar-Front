@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   AlertTriangle,
   ArrowRight,
@@ -7,6 +7,7 @@ import {
   Car,
   ChevronDown,
   DollarSign,
+  History,
   MapPin,
   Repeat,
   Users,
@@ -14,11 +15,42 @@ import {
 import NavegacaoInferior from '../../components/layout/NavegacaoInferior.jsx';
 import { listarVeiculos } from '../../services/vehicleService.js';
 import { criarCarona } from '../../services/caronaService.js';
+import { listarTrajetosRecorrentes } from '../../services/caronaService.js';
 import './style.css';
 
 const TOTAL_PASSOS = 3;
+// dados mockados
+const TRAJETOS_FREQUENTES = [
+  {
+    id: 1,
+    origem: 'Bodocongó',
+    destino: 'UFCG • Campus Sede',
+    quantidade: 18,
+  },
+  {
+    id: 2,
+    origem: 'Centenário',
+    destino: 'UFCG • CCT',
+    quantidade: 9,
+  },
+  {
+    id: 3,
+    origem: 'Catolé',
+    destino: 'UFCG • Campus Sede',
+    quantidade: 6,
+  },
+];
 const VAGAS_CARRO = [1, 2, 3, 4];
 const CONTRIBUICAO_MAX = 20;
+const DIAS_SEMANA = [
+  'Seg',
+  'Ter',
+  'Qua',
+  'Qui',
+  'Sex',
+  'Sáb',
+  'Dom',
+];
 
 // Veículo pode ter um atributo `tipo` ('carro' ou 'moto'). Quando ausente,
 // tratamos como carro (regra da issue #31).
@@ -38,7 +70,17 @@ function dataLocalISO(data) {
 function OfertarCarona() {
   const navigate = useNavigate();
 
+  const location = useLocation();
+
+  const trajetoId = location.state?.trajetoId;
+
+  const veioDeRecriar = Boolean(trajetoId);
+
   const [passo, setPasso] = useState(1);
+
+  // Passo 0 - reusar trajeto recorrente
+  const [usarTrajetoRecorrente, setUsarTrajetoRecorrente] = useState(false);
+  const [trajetoSelecionado, setTrajetoSelecionado] = useState('');
 
   // Passo 1 — trajeto e horário.
   const [origem, setOrigem] = useState('');
@@ -47,6 +89,8 @@ function OfertarCarona() {
   const [data, setData] = useState('');
   const [horario, setHorario] = useState('');
   const [recorrente, setRecorrente] = useState(false);
+  const [diasRecorrencia, setDiasRecorrencia] = useState([]);
+  const [trajetosRecorrentes, setTrajetosRecorrentes] = useState([]);
 
   // Passo 2 — veículo e vagas.
   const [tipoVeiculo, setTipoVeiculo] = useState('carro');
@@ -89,6 +133,20 @@ function OfertarCarona() {
     return () => {
       ativo = false;
     };
+  }, []);
+
+  useEffect(() => {
+    if (!trajetoId) return;
+
+    setUsarTrajetoRecorrente(true);
+    setTrajetoSelecionado(trajetoId);
+
+    // ainda falta implementar a chamada à api
+    console.log("Trajeto recebido:", trajetoId);
+  }, [trajetoId]);
+
+  useEffect(() => {
+    setTrajetosRecorrentes(TRAJETOS_FREQUENTES);
   }, []);
 
   const veiculosDoTipo = useMemo(
@@ -147,6 +205,14 @@ function OfertarCarona() {
       delete proximos[campo];
       return proximos;
     });
+  }
+
+  function alternarDia(dia) {
+    setDiasRecorrencia((atual) =>
+      atual.includes(dia)
+        ? atual.filter((d) => d !== dia)
+        : [...atual, dia],
+    );
   }
 
   // A data/horário da carona precisa ser no futuro (RN-CAR-02).
@@ -272,6 +338,8 @@ function OfertarCarona() {
         dataHoraSaida: `${data}T${horario}:00`,
         quantidadeVagas: vagas,
         valorContribuicao: contribuicao,
+        recorrente,
+        diasRecorrencia,
       });
 
       navigate('/minhas-caronas', {
@@ -339,6 +407,35 @@ function OfertarCarona() {
         {passo === 1 && (
           <div className="ofertar-card">
             <h2>Trajeto e horário</h2>
+
+            <div className="ofertar-trajetos-recorrentes">
+              <span className="ofertar-campo-titulo">
+                <History size={14} />
+                Reutilizar rota frequente
+              </span>
+
+              <div className="ofertar-trajetos-lista">
+                {trajetosRecorrentes.map((trajeto) => (
+                  <button
+                    key={trajeto.id}
+                    type="button"
+                    className="ofertar-trajeto-card"
+                    onClick={() => {
+                      setOrigem(trajeto.origem);
+                      setDestino(trajeto.destino);
+                    }}
+                  >
+                    <strong>
+                      {trajeto.origem} → {trajeto.destino}
+                    </strong>
+
+                    <small>
+                      {trajeto.quantidade}x realizadas
+                    </small>
+                  </button>
+                ))}
+              </div>
+            </div>
 
             <label className="ofertar-campo">
               <span>Ponto de partida</span>
@@ -442,6 +539,25 @@ function OfertarCarona() {
               <Repeat size={16} />
               Carona recorrente
             </label>
+
+            {recorrente && (
+              <div className="ofertar-dias-recorrencia">
+                {DIAS_SEMANA.map((dia) => (
+                  <button
+                    key={dia}
+                    type="button"
+                    className={
+                      diasRecorrencia.includes(dia)
+                        ? 'ofertar-dia ativo'
+                        : 'ofertar-dia'
+                    }
+                    onClick={() => alternarDia(dia)}
+                  >
+                    {dia}
+                  </button>
+                ))}
+              </div>
+            )}
 
             {acoes}
           </div>
@@ -611,6 +727,7 @@ function OfertarCarona() {
                 {tipoVeiculo === 'moto' ? <Bike size={15} /> : <Car size={15} />}
                 {tipoVeiculo === 'moto' ? 'Moto' : 'Carro'}
                 {veiculoSelecionado ? ` • ${descricaoVeiculo(veiculoSelecionado)}` : ''}
+                {recorrente && diasRecorrencia.length > 0 && (<> {' • '} <Repeat size={14} /> {diasRecorrencia.join(', ')}</>)}
               </p>
             </div>
 

@@ -89,7 +89,7 @@ body {
 }
 
 .local p {
-  margin: 4px 0 0;
+  margin: 2px 0 0;
   font-size: 13px;
   opacity: .8;
 }
@@ -109,7 +109,7 @@ body {
   margin-top: 4px;
 }
 
-.info-viagem span {
+.info-viagem > span {
   padding: 7px 12px;
   border-radius: 999px;
   background: rgba(255,255,255,.12);
@@ -125,12 +125,24 @@ body {
 }
 
 .dia-chip {
-  padding: 5px 10px;
-  border-radius: 999px;
-  background: #f4c542;
-  color: #07132b;
-  font-size: 11px;
+  all: unset; /* 🔥 mata qualquer estilo herdado */
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 2px 8px;
+
+  border-radius: 3px;
+
+  background: #D06E28 !important;
+  color: #07132b !important;
+
+  font-size: 10px;
   font-weight: 800;
+  letter-spacing: 0.03em;
+
+  border: 1px solid rgba(0,0,0,0.12);
 }
 
 .metricas {
@@ -266,4 +278,76 @@ body {
     padding: 18px;
   }
 
+}
+
+.local-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.local-row .icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.local-row .icon.destination {
+  background: #D06E28;
+  color: #07132b;
+}
+
+.local-row .text h3 {
+  margin: 0;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  opacity: .7;
+}
+
+.local-row .text strong {
+  display: block;
+  margin-top: 3px;
+  font-size: 16px;
+}
+
+.local-row .text p {
+  margin: 2px 0 0;
+  font-size: 13px;
+  opacity: .8;
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.status-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.status-icon.finalizada {
+  background: #dff8e6;
+  color: #18794e;
+}
+
+.status-icon.cancelada {
+  background: #ffe2e2;
+  color: #b42318;
+}
+
+.status-text {
+  font-size: 11px;
+  font-weight: 800;
 }

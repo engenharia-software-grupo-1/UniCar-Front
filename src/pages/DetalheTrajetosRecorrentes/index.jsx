@@ -1,6 +1,17 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Logo from '../../components/common/Logo';
+import {
+  MapPin,
+  Clock,
+  Users,
+  DollarSign,
+  TrendingUp,
+  Calendar,
+  CheckCircle2,
+  RotateCcw,
+  Repeat
+} from "lucide-react";
 import './style.css';
 
 function DetalheTrajetoRecorrente() {
@@ -15,16 +26,12 @@ function DetalheTrajetoRecorrente() {
   }, []);
 
   function carregarTrajeto() {
-    // dados mockados
-
     const mock = {
       id,
       origem: 'Bodocongó',
-      enderecoOrigem:
-        'Rua Aprígio Veloso, Bodocongó - Campina Grande/PB',
+      enderecoOrigem: 'Rua Aprígio Veloso, Bodocongó - Campina Grande/PB',
       destino: 'UFCG - Campus Sede',
-      enderecoDestino:
-        'Av. Aprígio Veloso, 882 - Universitário, Campina Grande/PB',
+      enderecoDestino: 'Av. Aprígio Veloso, 882 - Universitário, Campina Grande/PB',
       horario: '07:00',
       vagas: 3,
       preco: 5,
@@ -32,34 +39,9 @@ function DetalheTrajetoRecorrente() {
       quantidadeViagens: 42,
       ultimaViagem: '02/07/2026',
       historico: [
-        {
-          id: 1,
-          data: '02/07',
-          horario: '07:02',
-          passageiros: 3,
-          status: 'Finalizada',
-        },
-        {
-          id: 2,
-          data: '01/07',
-          horario: '07:05',
-          passageiros: 2,
-          status: 'Finalizada',
-        },
-        {
-          id: 3,
-          data: '30/06',
-          horario: '07:00',
-          passageiros: 3,
-          status: 'Finalizada',
-        },
-        {
-          id: 4,
-          data: '27/06',
-          horario: '07:10',
-          passageiros: 1,
-          status: 'Cancelada',
-        },
+        { id: 1, data: '02/07', horario: '07:02', passageiros: 3, status: 'Finalizada' },
+        { id: 2, data: '01/07', horario: '07:05', passageiros: 2, status: 'Finalizada' },
+        { id: 3, data: '27/06', horario: '07:10', passageiros: 1, status: 'Cancelada' },
       ],
     };
 
@@ -79,10 +61,7 @@ function DetalheTrajetoRecorrente() {
     <main className="detalhe-page">
       <header className="detalhe-header">
         <Logo />
-        <button
-          className="voltar-btn"
-          onClick={() => navigate('/trajetos-recorrentes')}
-        >
+        <button className="voltar-btn" onClick={() => navigate('/trajetos-recorrentes')}>
           ←
         </button>
 
@@ -93,46 +72,53 @@ function DetalheTrajetoRecorrente() {
       </header>
 
       <section className="card-principal">
-        <div className="local">
-          <h3>Origem</h3>
-          <strong>{trajeto.origem}</strong>
-          <p>{trajeto.enderecoOrigem}</p>
+
+        <div className="local-row">
+        <div className="icon">
+            <MapPin size={14} />
+        </div>
+
+        <div className="text">
+            <h3>Origem</h3>
+            <strong>{trajeto.origem}</strong>
+            <p>{trajeto.enderecoOrigem}</p>
+        </div>
         </div>
 
         <div className="linha"></div>
-        <div className="local">
-          <h3>Destino</h3>
-          <strong>{trajeto.destino}</strong>
-          <p>{trajeto.enderecoDestino}</p>
+
+        <div className="local-row">
+        <div className="icon destination">
+            <MapPin size={14} />
+        </div>
+
+        <div className="text">
+            <h3>Destino</h3>
+            <strong>{trajeto.destino}</strong>
+            <p>{trajeto.enderecoDestino}</p>
+        </div>
         </div>
 
         <div className="info-viagem">
-          <span>{trajeto.horario}</span>
-          <span>{trajeto.vagas} vagas</span>
-          <span>R$ {trajeto.preco}</span>
-        </div>
-
-        <div className="dias">
+          <span><Clock size={14} /> {trajeto.horario}</span>
+          <span><Users size={14} /> {trajeto.vagas} vagas</span>
+          <span><DollarSign size={14} /> R$ {trajeto.preco}</span>
           {trajeto.dias.map((dia) => (
-            <span
-              key={dia}
-              className="dia-chip"
-            >
-              {dia}
-            </span>
+            <span key={dia} className="dia-chip">{dia}</span>
           ))}
         </div>
 
       </section>
+
       <section className="metricas">
         <div className="metrica-card">
-          <span>Total de viagens</span>
+          <span><TrendingUp size={14} /> Total de viagens</span>
           <strong>{trajeto.quantidadeViagens}</strong>
           <small>realizadas nesse trajeto</small>
         </div>
 
         <div className="metrica-card">
-          <span>Última viagem</span>
+          <span><Calendar size={14} /> Última viagem</span>
           <strong>{trajeto.ultimaViagem}</strong>
         </div>
       </section>
@@ -140,50 +126,44 @@ function DetalheTrajetoRecorrente() {
       <button
         className="recriar-btn"
         onClick={() =>
-          navigate('/ofertar', {
-            state: {
-              trajetoId: trajeto.id,
-            },
+          navigate("/ofertar-carona", {
+            state: { trajetoId: trajeto.id },
           })
         }
       >
-        Recriar viagem →
+        <RotateCcw size={14} /> Recriar viagem →
       </button>
+
       <section className="historico">
+
         <div className="historico-topo">
           <h2>Histórico de viagens</h2>
-          <span>
-            {trajeto.historico.length} registros
-          </span>
-
+          <span>{trajeto.historico.length} registros</span>
         </div>
-        {trajeto.historico.map((viagem) => (
-          <div
-            key={viagem.id}
-            className="historico-item"
-          >
+
+        {trajeto.historico.map((v) => (
+          <div key={v.id} className="historico-item">
+
             <div className="historico-info">
               <strong>
-                {viagem.data} • {viagem.horario}
+                {v.data} • {v.horario}
               </strong>
               <p>
-                {viagem.status === 'Finalizada'
-                  ? `${viagem.passageiros} passageiro(s)`
+                {v.status === 'Finalizada'
+                  ? `${v.passageiros} passageiro(s)`
                   : 'Viagem cancelada'}
               </p>
             </div>
 
-            <span
-              className={
-                viagem.status === 'Finalizada'
-                  ? 'status finalizada'
-                  : 'status cancelada'
-              }
-            >
-              {viagem.status}
+            <span className={`status ${v.status === 'Finalizada' ? 'finalizada' : 'cancelada'}`}>
+              {v.status === 'Finalizada' ? (
+                <><CheckCircle2 size={12} /> Finalizada</>
+              ) : (
+                <><Repeat size={12} /> Cancelada</>
+              )}
             </span>
-          </div>
 
+          </div>
         ))}
 
       </section>

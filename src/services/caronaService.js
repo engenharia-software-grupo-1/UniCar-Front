@@ -326,7 +326,10 @@ function primeiraLetra(nome = '') {
   return nome.trim()[0]?.toUpperCase() || '';
 }
 
-// implementacao provisoria enquanto back ainda nao foi implementada
+// TRAJETOS RECORRENTES 
+
+// versão provisória enquanto não temos essa parte 
+// do back devidamente implementada
 export async function listarTrajetosRecorrentes() {
   return [
     {
@@ -334,15 +337,32 @@ export async function listarTrajetosRecorrentes() {
       origem: 'Bodocongó',
       destino: 'UFCG - Campus Sede',
       quantidadeViagens: 15,
+      active: true,
     },
     {
       id: 2,
       origem: 'Centro',
       destino: 'UFCG - Campus Sede',
       quantidadeViagens: 8,
+      active: true,
     },
   ];
 }
 
-// AINDA FALTA IMPLEMENTAR A BUSCA DE T. RECORRENTE POR ID
+// versão provisória enquanto não temos essa parte 
+// do back devidamente implementada
+export async function obterTrajetoRecorrente(id) {
+  if (shouldUseLocalDataMocks()) {
+    return {
+      id,
+      origem: "Bodocongó",
+      destino: "UFCG - Campus Sede",
+      veiculoId: 1,
+      quantidadeVagas: 3,
+      valorContribuicao: 5,
+    };
+  }
+
+  return apiRequest(`/trajetos-recorrentes/${id}`);
+}
 

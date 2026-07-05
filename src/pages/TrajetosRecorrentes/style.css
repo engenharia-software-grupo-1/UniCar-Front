@@ -21,6 +21,7 @@ body {
   align-items: flex-start;
   gap: 8px;
   margin-bottom: 15px;
+  position: relative;
 }
 
 .trajetos-header h1 {
@@ -104,8 +105,17 @@ body {
 }
 
 .badge.ativo {
+  padding: 3px 8px;
+  font-family: "Poppins", system-ui, sans-serif;
   background: oklch(0.95 0.02 150);
   color: oklch(0.35 0.12 150);
+}
+
+.badge.inativo {
+  padding: 3px 8px;
+  font-family: "Poppins", system-ui, sans-serif;
+  background: oklch(0.92 0.01 260);
+  color: oklch(0.45 0.02 260);
 }
 
 .preco {
@@ -146,8 +156,8 @@ body {
   font-weight: 700;
   padding: 3px 8px;
   border-radius: 999px;
-  background: oklch(0.968 0.007 247.896);
-  color: oklch(0.35 0.02 260);
+  background: oklch(0.94 0.01 260);
+  color: oklch(0.45 0.02 260);
 }
 
 .trajeto-btn {
@@ -176,4 +186,82 @@ body {
   font-size: 14px;
   font-weight: 600;
   color: oklch(0.55 0.02 260);
+}
+
+.add-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  background: #0B1F3B; 
+  color: white;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: none;
+  cursor: pointer;
+
+  box-shadow: 0 10px 20px rgba(11, 31, 59, 0.25);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+
+  pointer-events: auto;
+}
+
+.add-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 26px rgba(11, 31, 59, 0.35);
+}
+
+.add-btn:active {
+  transform: scale(0.95);
+}
+
+.trajeto-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.trajeto-btn-secondary {
+  flex: 1;
+  border: 1px solid oklch(0.9 0.01 260);
+  background: white;
+  border-radius: 12px;
+  padding: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.trajeto-btn-secondary:hover {
+  transform: translateY(-1px);
+}
+
+.trajeto-btn-danger {
+  width: 42px;
+  border: 1px solid oklch(0.8 0.02 20);
+  background: white;
+  color: #dc2626;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.trajeto-btn-danger:hover {
+  transform: translateY(-1px);
 }

@@ -15,7 +15,6 @@ import {
   Star,
   StarIcon,
   Trash2,
-  User,
 } from 'lucide-react';
 import Confirmacao from '../../components/common/Confirmacao.jsx';
 import NavegacaoInferior from '../../components/layout/NavegacaoInferior.jsx';
@@ -289,7 +288,6 @@ function Perfil() {
             label="Notificações"
             onClick={() => navigate('/notificacoes')}
           />
-          <ProfileRow icon={Bell} label="Notificações" />
           <ProfileRow
             icon={ShieldOff}
             label="Usuários bloqueados"

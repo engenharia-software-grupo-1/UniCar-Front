@@ -5,8 +5,8 @@ const API_BASE_URL = import.meta.env?.VITE_API_URL ?? 'http://localhost:8080';
 // Store em memória que emula a persistência do backend US6.
 // Reiniciado por `resetStore()` entre os testes.
 const estadoInicial = () => [
-  { id: 1, modelo: 'Onix', placa: 'ABC1D23', cor: 'Prata' },
-  { id: 2, modelo: 'HB20', placa: 'XYZ9A87', cor: 'Branco' },
+  { id: 1, modelo: 'Onix', placa: 'ABC1D23', cor: 'Prata', tipo: 'carro' },
+  { id: 2, modelo: 'CG 160', placa: 'XYZ9A87', cor: 'Preta', tipo: 'moto' },
 ];
 
 let veiculos = estadoInicial();
@@ -61,7 +61,7 @@ const caronasIniciais = () => [
     valorContribuicao: 5.0,
     status: 'CRIADA',
     motorista: { id: 1, nome: 'Estudante UniCar' },
-    veiculo: { id: 1, modelo: 'Onix', cor: 'Prata' },
+    veiculo: { id: 1, modelo: 'Onix', cor: 'Prata', tipo: 'carro' },
   },
   {
     id: 11,
@@ -74,7 +74,7 @@ const caronasIniciais = () => [
     valorContribuicao: 6.0,
     status: 'CRIADA',
     motorista: { id: 1, nome: 'Estudante UniCar' },
-    veiculo: { id: 1, modelo: 'Onix', cor: 'Prata' },
+    veiculo: { id: 1, modelo: 'Onix', cor: 'Prata', tipo: 'carro' },
   },
 ];
 
@@ -217,13 +217,13 @@ export const handlers = [
     const negado = exigirAutorizacao(request);
     if (negado) return negado;
 
-    const { modelo, placa, cor } = await request.json();
+    const { modelo, placa, cor, tipo } = await request.json();
 
     if (veiculos.some((veiculo) => veiculo.placa === placa)) {
       return HttpResponse.json({ message: 'Placa já cadastrada' }, { status: 400 });
     }
 
-    const novoVeiculo = { id: proximoId, modelo, placa, cor };
+    const novoVeiculo = { id: proximoId, modelo, placa, cor, tipo };
     proximoId += 1;
     veiculos.push(novoVeiculo);
 
@@ -256,7 +256,7 @@ export const handlers = [
       return HttpResponse.json({ message: 'Veículo não encontrado' }, { status: 404 });
     }
 
-    const { modelo, placa, cor } = await request.json();
+    const { modelo, placa, cor, tipo } = await request.json();
 
     const placaDuplicada = veiculos.some(
       (item) => item.placa === placa && item.id !== id,
@@ -266,7 +266,7 @@ export const handlers = [
       return HttpResponse.json({ message: 'Placa já cadastrada' }, { status: 400 });
     }
 
-    veiculos[index] = { id, modelo, placa, cor };
+    veiculos[index] = { id, modelo, placa, cor, tipo };
 
     return HttpResponse.json(veiculos[index], { status: 200 });
   }),

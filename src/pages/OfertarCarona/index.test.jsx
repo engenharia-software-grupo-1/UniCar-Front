@@ -76,10 +76,12 @@ afterEach(() => {
 });
 
 describe('breadcrumb e navegação entre passos', () => {
-  it('começa no passo 1 de 3', () => {
+  it('começa no passo 1 de 3', async () => {
     renderPagina();
 
-    expect(screen.getByText('Passo 1 de 3')).toBeInTheDocument();
+    // Aguarda o carregamento assíncrono de veículos (useEffect no mount)
+    // concluir dentro de act(...) antes de encerrar o teste.
+    expect(await screen.findByText('Passo 1 de 3')).toBeInTheDocument();
     expect(screen.getByText('Trajeto e horário')).toBeInTheDocument();
   });
 

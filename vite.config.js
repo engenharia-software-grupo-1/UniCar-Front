@@ -14,6 +14,7 @@ export default defineConfig({
     // dos services OFF, independente do VITE_ENABLE_MOCKS do .env de dev.
     env: {
       VITE_ENABLE_MOCKS: 'false',
+      VITE_API_URL: 'http://localhost:8080',
     },
   },
   server: {

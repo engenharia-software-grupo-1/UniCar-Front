@@ -8,6 +8,7 @@ import Login from './pages/Login/index.jsx';
 import Perfil from './pages/Perfil/index.jsx';
 import MeusVeiculos from './pages/MeusVeiculos/index.jsx';
 import AvaliacoesRecebidas from './pages/AvaliacoesRecebidas/index.jsx';
+import Notificacoes from './pages/Notificacoes/index.jsx';
 import CentralAjuda from './pages/CentralAjuda/index.jsx';
 import PoliticaPrivacidade from './pages/PoliticaPrivacidade/index.jsx';
 import TermosUso from './pages/TermosUso/index.jsx';
@@ -97,6 +98,15 @@ function App() {
           element={
             <RequireAuthAndTerms>
               <AvaliacoesRecebidas />
+            </RequireAuthAndTerms>
+          }
+        />
+
+        <Route
+          path="/notificacoes"
+          element={
+            <RequireAuthAndTerms>
+              <Notificacoes />
             </RequireAuthAndTerms>
           }
         />

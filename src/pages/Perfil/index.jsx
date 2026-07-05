@@ -28,6 +28,7 @@ import {
 import { getSession, logout } from '../../services/authService.js';
 import { listarVeiculos } from '../../services/vehicleService.js';
 import { listarAvaliacoesRecebidas } from '../../services/avaliacaoService.js';
+import { listarNotificacoes } from '../../services/notificationService.js';
 import Logo from '../../components/common/Logo.jsx';
 import './style.css';
 
@@ -47,6 +48,7 @@ function Perfil() {
   const [modalExcluirAberto, setModalExcluirAberto] = useState(false);
   const [excluindoConta, setExcluindoConta] = useState(false);
   const [totalVeiculos, setTotalVeiculos] = useState(null);
+  const [temNotificacaoNaoLida, setTemNotificacaoNaoLida] = useState(false);
   const [resumoAvaliacoes, setResumoAvaliacoes] = useState(() => ({
     media: Number(perfil.avaliacao) || 0,
     total: 0,
@@ -57,10 +59,11 @@ function Perfil() {
 
     async function carregarPerfil() {
       try {
-        const [dados, veiculos, avaliacoes] = await Promise.all([
+        const [dados, veiculos, avaliacoes, notificacoes] = await Promise.all([
           getPerfilUsuarioAutenticado(),
           listarVeiculos().catch(() => null),
           listarAvaliacoesRecebidas().catch(() => []),
+          listarNotificacoes().catch(() => []),
         ]);
 
         if (!ativo) {
@@ -74,6 +77,9 @@ function Perfil() {
         setCurso(dados.curso);
         setTotalVeiculos(Array.isArray(veiculos) ? veiculos.length : null);
         setResumoAvaliacoes(calcularResumoAvaliacoes(avaliacoes, dados.avaliacao));
+        setTemNotificacaoNaoLida(
+          Array.isArray(notificacoes) && notificacoes.some((notificacao) => !notificacao.lida),
+        );
         setErro('');
       } catch (error) {
         if (ativo) {
@@ -144,9 +150,14 @@ function Perfil() {
           <Logo />
         </Link>
 
-        <button type="button" className="perfil-notification" aria-label="Notificações">
+        <button
+          type="button"
+          className="perfil-notification"
+          aria-label="Notificações"
+          onClick={() => navigate('/notificacoes')}
+        >
           <Bell size={24} />
-          <span />
+          {temNotificacaoNaoLida && <span />}
         </button>
       </header>
 
@@ -230,7 +241,11 @@ function Perfil() {
             meta={formatarTotalVeiculos(totalVeiculos)}
             onClick={() => navigate('/meus-veiculos')}
           />
-          <ProfileRow icon={Bell} label="Notificações" />
+          <ProfileRow
+            icon={Bell}
+            label="Notificações"
+            onClick={() => navigate('/notificacoes')}
+          />
           <ProfileRow
             icon={CircleHelp}
             label="Central de ajuda"

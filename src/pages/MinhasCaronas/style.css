@@ -217,6 +217,24 @@
   cursor: pointer;
 }
 
+.carona-card__editar {
+  width: 52px;
+  min-height: 52px;
+  border: 1px solid #dbe6f4;
+  border-radius: 14px;
+  background: #ffffff;
+  color: #07132b;
+  display: grid;
+  place-items: center;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.carona-card__editar:hover {
+  background: #f6faff;
+  border-color: #b9cbe4;
+}
+
 .carona-card__cancelar:not(:disabled):hover {
   background: #fef2f2;
   border-color: #fca5a5;
@@ -224,6 +242,7 @@
 
 .carona-card__iniciar:disabled,
 .carona-card__cancelar:disabled,
+.carona-card__editar.is-disabled,
 .carona-card__detalhes:disabled {
   cursor: default;
   opacity: 0.85;

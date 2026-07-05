@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import {
   ArrowLeft,
   Ban,
@@ -10,6 +10,7 @@ import {
   Flag,
   MapPin,
   MessageCircle,
+  Pencil,
   Send,
   Shield,
   Star,
@@ -46,6 +47,7 @@ const MOTIVOS_DENUNCIA = [
 
 function DetalheCarona() {
   const { id } = useParams();
+  const location = useLocation();
   const navigate = useNavigate();
   const [carona, setCarona] = useState(null);
   const [carregando, setCarregando] = useState(true);
@@ -62,7 +64,13 @@ function DetalheCarona() {
   const [denunciaEnviada, setDenunciaEnviada] = useState(false);
   const [mensagens, setMensagens] = useState(MENSAGENS_INICIAIS);
   const [textoMensagem, setTextoMensagem] = useState('');
-  const [feedback, setFeedback] = useState('');
+  const [feedback, setFeedback] = useState(location.state?.mensagem || '');
+
+  useEffect(() => {
+    if (location.state?.mensagem) {
+      window.history.replaceState({}, '');
+    }
+  }, [location.state]);
 
   async function carregarDetalhe() {
     try {
@@ -260,7 +268,15 @@ function DetalheCarona() {
                 <strong>{formatarValor(carona.valorContribuicao)}</strong>
               </div>
 
-              <span className={`detalhe-status detalhe-status--${status.classe}`}>{status.rotulo}</span>
+              <div className="detalhe-main-actions">
+                <span className={`detalhe-status detalhe-status--${status.classe}`}>{status.rotulo}</span>
+                {isMinhaCarona && carona.status === 'CRIADA' && (
+                  <Link to={`/minhas-caronas/${id}/editar`} className="detalhe-edit-link">
+                    <Pencil size={16} />
+                    Editar
+                  </Link>
+                )}
+              </div>
             </section>
 
             {confirmada && (

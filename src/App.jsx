@@ -9,6 +9,7 @@ import Perfil from './pages/Perfil/index.jsx';
 import MeusVeiculos from './pages/MeusVeiculos/index.jsx';
 import MinhasCaronas from './pages/MinhasCaronas/index.jsx';
 import DetalheCarona from './pages/DetalheCarona/index.jsx';
+import EditarCarona from './pages/EditarCarona/index.jsx';
 import OfertarCarona from './pages/OfertarCarona/index.jsx';
 import AvaliacoesRecebidas from './pages/AvaliacoesRecebidas/index.jsx';
 import Notificacoes from './pages/Notificacoes/index.jsx';
@@ -120,6 +121,15 @@ function App() {
           element={
             <RequireAuthAndTerms>
               <DetalheCarona />
+            </RequireAuthAndTerms>
+          }
+        />
+
+        <Route
+          path="/minhas-caronas/:id/editar"
+          element={
+            <RequireAuthAndTerms>
+              <EditarCarona />
             </RequireAuthAndTerms>
           }
         />

@@ -107,6 +107,7 @@ describe('listarMinhasCaronas', () => {
         },
         veiculo: {
           id: 1,
+          tipo: 'carro',
           modelo: 'Onix',
           cor: 'Prata',
           placa: '',
@@ -158,6 +159,7 @@ describe('listarMinhasCaronas', () => {
         },
         veiculo: {
           id: '',
+          tipo: 'carro',
           modelo: '',
           cor: '',
           placa: '',
@@ -194,6 +196,7 @@ describe('mock local (dev / VITE_ENABLE_MOCKS)', () => {
       valorContribuicao: 5,
       passageirosConfirmados: 2,
       veiculo: {
+        tipo: 'carro',
         modelo: 'Onix',
         cor: 'Prata',
       },
@@ -319,11 +322,83 @@ describe('obterCarona', () => {
       },
       veiculo: {
         id: 1,
+        tipo: 'carro',
         modelo: 'Onix',
         cor: 'Prata',
         placa: '',
       },
     });
+  });
+});
+
+describe('editarCarona', () => {
+  const DADOS = {
+    veiculoId: 1,
+    origem: 'Bodocongó',
+    destino: 'UFCG',
+    pontoEncontro: 'Biblioteca central',
+    dataHoraSaida: '2026-08-25T07:30:00',
+    quantidadeVagas: 3,
+    valorContribuicao: 6,
+  };
+
+  it('faz PATCH /caronas/{id} com o payload do contrato', async () => {
+    fetch.mockResolvedValue(
+      respostaJson({
+        ...DETALHE_10,
+        pontoEncontro: 'Biblioteca central',
+        valorContribuicao: 6,
+      }),
+    );
+
+    const { editarCarona } = await importarService();
+    const resultado = await editarCarona(10, DADOS);
+
+    const [url, opcoes] = fetch.mock.calls[0];
+    expect(url).toBe(`${BASE_URL}/caronas/10`);
+    expect(opcoes.method).toBe('PATCH');
+    expect(opcoes.headers.Authorization).toBe(`Bearer ${TOKEN}`);
+    expect(JSON.parse(opcoes.body)).toEqual({
+      veiculoId: 1,
+      origem: { descricao: 'Bodocongó', latitude: null, longitude: null },
+      destino: { descricao: 'UFCG', latitude: null, longitude: null },
+      pontoEncontro: 'Biblioteca central',
+      dataHoraSaida: '2026-08-25T07:30:00',
+      quantidadeVagas: 3,
+      valorContribuicao: 6,
+    });
+    expect(resultado).toMatchObject({
+      id: 10,
+      pontoEncontro: 'Biblioteca central',
+      valorContribuicao: 6,
+    });
+  });
+
+  it('atualiza a carona no modo mock sem chamar fetch', async () => {
+    vi.stubEnv('VITE_ENABLE_MOCKS', 'true');
+
+    const { editarCarona, obterCarona } = await importarService();
+
+    await editarCarona(10, {
+      ...DADOS,
+      origem: 'Centro',
+      quantidadeVagas: 2,
+    });
+
+    await expect(obterCarona(10)).resolves.toMatchObject({
+      origem: 'Centro',
+      quantidadeVagas: 2,
+      vagasDisponiveis: 0,
+    });
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it('propaga erro quando a carona editada não existe no mock', async () => {
+    vi.stubEnv('VITE_ENABLE_MOCKS', 'true');
+
+    const { editarCarona } = await importarService();
+
+    await expect(editarCarona(999, DADOS)).rejects.toThrow('Carona não encontrada.');
   });
 });
 

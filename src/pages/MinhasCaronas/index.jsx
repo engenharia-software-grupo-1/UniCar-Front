@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { ArrowRight, Bell, Play, X } from 'lucide-react';
+import { ArrowRight, Bell, Pencil, Play, X } from 'lucide-react';
 import Logo from '../../components/common/Logo.jsx';
 import NavegacaoInferior from '../../components/layout/NavegacaoInferior.jsx';
 import Confirmacao from '../../components/common/Confirmacao.jsx';
@@ -319,6 +319,21 @@ function CaronaCard({ carona, onCancelar }) {
           <Play size={18} aria-hidden="true" />
           Iniciar
         </button>
+
+        <Link
+          to={`/minhas-caronas/${carona.id}/editar`}
+          className={`carona-card__editar ${podeCancelar ? '' : 'is-disabled'}`}
+          aria-disabled={!podeCancelar}
+          tabIndex={podeCancelar ? undefined : -1}
+          onClick={(event) => {
+            if (!podeCancelar) {
+              event.preventDefault();
+            }
+          }}
+          aria-label="Editar carona"
+        >
+          <Pencil size={18} aria-hidden="true" />
+        </Link>
 
         <button
           type="button"

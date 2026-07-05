@@ -59,6 +59,38 @@ export async function criarCarona(dados) {
   });
 }
 
+// Atualiza os dados editáveis de uma carona (PATCH /caronas/{id}).
+export async function editarCarona(id, dados) {
+  const payload = montarPayloadCarona(dados);
+
+  if (shouldUseLocalDataMocks()) {
+    const caronas = carregarCaronasMock();
+    const indice = caronas.findIndex((item) => item.id === Number(id));
+
+    if (indice === -1) {
+      throw new Error('Carona não encontrada.');
+    }
+
+    const atualizada = {
+      ...caronas[indice],
+      ...payload,
+      vagasDisponiveis: recalcularVagasDisponiveis(caronas[indice], payload.quantidadeVagas),
+    };
+
+    caronas[indice] = atualizada;
+    salvarCaronasMock(caronas);
+
+    return ajustarCaronaMotorista(atualizada);
+  }
+
+  const carona = await apiRequest(`/caronas/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  });
+
+  return carona ? ajustarCaronaMotorista(carona) : { id: Number(id), status: 'ATUALIZADA' };
+}
+
 function montarPayloadCarona(dados = {}) {
   return {
     veiculoId: Number(dados.veiculoId),
@@ -83,6 +115,14 @@ function montarLocalContrato(valor) {
   }
 
   return { descricao: valor ?? '', latitude: null, longitude: null };
+}
+
+function recalcularVagasDisponiveis(caronaAtual, novaQuantidadeVagas) {
+  const quantidadeAtual = Number(caronaAtual.quantidadeVagas ?? 0);
+  const vagasAtuais = Number(caronaAtual.vagasDisponiveis ?? novaQuantidadeVagas);
+  const passageirosConfirmados = Math.max(0, quantidadeAtual - vagasAtuais);
+
+  return Math.max(0, Number(novaQuantidadeVagas) - passageirosConfirmados);
 }
 
 // Cancela uma carona do motorista (PATCH /caronas/{id}/cancelar) — contrato
@@ -142,7 +182,7 @@ function caronasSemente() {
       valorContribuicao: 5,
       status: 'CRIADA',
       motorista: { id: 1, nome: 'Estudante UniCar', avaliacao: 4.8 },
-      veiculo: { id: 1, modelo: 'Onix', cor: 'Prata' },
+      veiculo: { id: 1, modelo: 'Onix', cor: 'Prata', tipo: 'carro' },
     },
     {
       id: 11,
@@ -155,7 +195,7 @@ function caronasSemente() {
       valorContribuicao: 6,
       status: 'CRIADA',
       motorista: { id: 1, nome: 'Estudante UniCar', avaliacao: 4.8 },
-      veiculo: { id: 1, modelo: 'Onix', cor: 'Prata' },
+      veiculo: { id: 1, modelo: 'Onix', cor: 'Prata', tipo: 'carro' },
     },
   ];
 }
@@ -238,6 +278,7 @@ function ajustarCaronaMotorista(carona = {}) {
     },
     veiculo: {
       id: veiculo.id ?? veiculo.veiculoId ?? '',
+      tipo: veiculo.tipo || veiculo.type || 'carro',
       modelo: veiculo.modelo || veiculo.model || '',
       cor: veiculo.cor || veiculo.color || '',
       placa: veiculo.placa || '',

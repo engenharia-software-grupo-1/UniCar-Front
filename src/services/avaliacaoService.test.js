@@ -14,10 +14,26 @@ function respostaJson(body, { ok = true, status = 200 } = {}) {
   return { ok, status, json: async () => body };
 }
 
+// criarAvaliacao passa pelo apiRequest, que inspeciona response.headers.get(...).
+function respostaApi(body, { ok = true, status = 200 } = {}) {
+  return {
+    ok,
+    status,
+    headers: { get: () => 'application/json' },
+    json: async () => body,
+  };
+}
+
 async function importarService() {
   vi.resetModules();
   const service = await import('./avaliacaoService.js');
   return service.listarAvaliacoesRecebidas;
+}
+
+async function importarCriarAvaliacao() {
+  vi.resetModules();
+  const service = await import('./avaliacaoService.js');
+  return service.criarAvaliacao;
 }
 
 beforeEach(() => {
@@ -110,5 +126,88 @@ describe('listarAvaliacoesRecebidas', () => {
     const listarAvaliacoesRecebidas = await importarService();
 
     await expect(listarAvaliacoesRecebidas()).rejects.toThrow('Acesso negado');
+  });
+});
+
+describe('criarAvaliacao', () => {
+  const payload = {
+    caronaId: 10,
+    avaliadoId: 5,
+    nota: 5,
+    comentario: 'Motorista pontual e educado.',
+  };
+
+  it('rejeita sem sessão e não chama fetch', async () => {
+    const criarAvaliacao = await importarCriarAvaliacao();
+
+    await expect(criarAvaliacao(payload)).rejects.toThrow('Usuário não autenticado.');
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it('rejeita nota inválida sem chamar fetch', async () => {
+    comSessao();
+    const criarAvaliacao = await importarCriarAvaliacao();
+
+    await expect(criarAvaliacao({ ...payload, nota: 0 })).rejects.toThrow(
+      'Selecione uma nota de 1 a 5 estrelas.',
+    );
+    await expect(criarAvaliacao({ ...payload, nota: 6 })).rejects.toThrow(
+      'Selecione uma nota de 1 a 5 estrelas.',
+    );
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it('faz POST /avaliacoes com Authorization, JSON e retorna o id', async () => {
+    comSessao();
+    fetch.mockResolvedValue(respostaApi({ id: 100 }, { status: 201 }));
+
+    const criarAvaliacao = await importarCriarAvaliacao();
+    const resultado = await criarAvaliacao(payload);
+
+    const [url, options] = fetch.mock.calls[0];
+    expect(url).toBe(`${BASE_URL}/avaliacoes`);
+    expect(options.method).toBe('POST');
+    expect(options.headers.Authorization).toBe(`Bearer ${TOKEN}`);
+    expect(options.headers['Content-Type']).toBe('application/json');
+    expect(JSON.parse(options.body)).toEqual({
+      caronaId: 10,
+      avaliadoId: 5,
+      nota: 5,
+      comentario: 'Motorista pontual e educado.',
+    });
+    expect(resultado).toEqual({ id: 100 });
+  });
+
+  it('envia comentário vazio quando omitido', async () => {
+    comSessao();
+    fetch.mockResolvedValue(respostaApi({ id: 101 }, { status: 201 }));
+
+    const criarAvaliacao = await importarCriarAvaliacao();
+    await criarAvaliacao({ caronaId: 10, avaliadoId: 5, nota: 4 });
+
+    const [, options] = fetch.mock.calls[0];
+    expect(JSON.parse(options.body).comentario).toBe('');
+  });
+
+  it('mapeia erro da API para a mensagem retornada', async () => {
+    comSessao();
+    fetch.mockResolvedValue(
+      respostaApi({ message: 'Carona não encontrada.' }, { ok: false, status: 400 }),
+    );
+
+    const criarAvaliacao = await importarCriarAvaliacao();
+
+    await expect(criarAvaliacao(payload)).rejects.toThrow('Carona não encontrada.');
+  });
+
+  it('traduz falha de conexão', async () => {
+    comSessao();
+    fetch.mockRejectedValue(new TypeError('Failed to fetch'));
+
+    const criarAvaliacao = await importarCriarAvaliacao();
+
+    await expect(criarAvaliacao(payload)).rejects.toThrow(
+      'Não foi possível conectar ao servidor. Tente novamente.',
+    );
   });
 });

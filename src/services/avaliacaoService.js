@@ -1,5 +1,6 @@
 import { getSession } from './authService.js';
-import { API_BASE_URL, shouldUseLocalDataMocks } from './apiConfig.js';
+import { apiRequest } from './api.js';
+import { API_BASE_URL, shouldUseLocalDataMocks, shouldUseMocks } from './apiConfig.js';
 
 const AVALIACOES_RECEBIDAS_ENDPOINT = `${API_BASE_URL}/usuarios/me/avaliacoes`;
 const MOCK_AVALIACOES_RECEBIDAS = [
@@ -87,6 +88,35 @@ export async function listarAvaliacoesRecebidas() {
   }
 
   return avaliacoes.map(normalizarAvaliacao);
+}
+
+export async function criarAvaliacao({ caronaId, avaliadoId, nota, comentario } = {}) {
+  // Garante que há sessão antes de enviar (mesmo comportamento das demais funções).
+  obterToken();
+
+  const notaNumerica = Number(nota);
+
+  if (!Number.isInteger(notaNumerica) || notaNumerica < 1 || notaNumerica > 5) {
+    throw new Error('Selecione uma nota de 1 a 5 estrelas.');
+  }
+
+  const corpo = {
+    caronaId,
+    avaliadoId,
+    nota: notaNumerica,
+    comentario: comentario?.trim() ? comentario.trim() : '',
+  };
+
+  // Em modo totalmente offline (VITE_ENABLE_MOCKS=true) não tocamos a rede.
+  // Em dev normal o POST é real, passando pelo proxy do Vite para o backend.
+  if (shouldUseMocks()) {
+    return { id: Date.now() };
+  }
+
+  return apiRequest('/avaliacoes', {
+    method: 'POST',
+    body: JSON.stringify(corpo),
+  });
 }
 
 function normalizarAvaliacao(avaliacao = {}) {

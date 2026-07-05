@@ -11,6 +11,7 @@ import MinhasCaronas from './pages/MinhasCaronas/index.jsx';
 import DetalheCarona from './pages/DetalheCarona/index.jsx';
 import OfertarCarona from './pages/OfertarCarona/index.jsx';
 import AvaliacoesRecebidas from './pages/AvaliacoesRecebidas/index.jsx';
+import Notificacoes from './pages/Notificacoes/index.jsx';
 import CentralAjuda from './pages/CentralAjuda/index.jsx';
 import UsuariosBloqueados from './pages/UsuariosBloqueados/index.jsx';
 import PoliticaPrivacidade from './pages/PoliticaPrivacidade/index.jsx';
@@ -128,6 +129,15 @@ function App() {
           element={
             <RequireAuthAndTerms>
               <AvaliacoesRecebidas />
+            </RequireAuthAndTerms>
+          }
+        />
+
+        <Route
+          path="/notificacoes"
+          element={
+            <RequireAuthAndTerms>
+              <Notificacoes />
             </RequireAuthAndTerms>
           }
         />

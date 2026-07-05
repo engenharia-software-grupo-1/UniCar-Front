@@ -5,8 +5,8 @@ const API_BASE_URL = import.meta.env?.VITE_API_URL ?? 'http://localhost:8080';
 // Store em memória que emula a persistência do backend US6.
 // Reiniciado por `resetStore()` entre os testes.
 const estadoInicial = () => [
-  { id: 1, modelo: 'Onix', placa: 'ABC1D23', cor: 'Prata' },
-  { id: 2, modelo: 'HB20', placa: 'XYZ9A87', cor: 'Branco' },
+  { id: 1, modelo: 'Onix', placa: 'ABC1D23', cor: 'Prata', tipo: 'carro' },
+  { id: 2, modelo: 'CG 160', placa: 'XYZ9A87', cor: 'Preta', tipo: 'moto' },
 ];
 
 let veiculos = estadoInicial();
@@ -61,7 +61,7 @@ const caronasIniciais = () => [
     valorContribuicao: 5.0,
     status: 'CRIADA',
     motorista: { id: 1, nome: 'Estudante UniCar' },
-    veiculo: { id: 1, modelo: 'Onix', cor: 'Prata' },
+    veiculo: { id: 1, modelo: 'Onix', cor: 'Prata', tipo: 'carro' },
   },
   {
     id: 11,
@@ -74,17 +74,19 @@ const caronasIniciais = () => [
     valorContribuicao: 6.0,
     status: 'CRIADA',
     motorista: { id: 1, nome: 'Estudante UniCar' },
-    veiculo: { id: 1, modelo: 'Onix', cor: 'Prata' },
+    veiculo: { id: 1, modelo: 'Onix', cor: 'Prata', tipo: 'carro' },
   },
 ];
 
 let caronas = caronasIniciais();
+let proximaCaronaId = 100;
 
 export function resetStore() {
   veiculos = estadoInicial();
   proximoId = 3;
   avaliacoesRecebidas = avaliacoesIniciais();
   caronas = caronasIniciais();
+  proximaCaronaId = 100;
 }
 
 export function semCaronas() {
@@ -134,6 +136,45 @@ export const handlers = [
     return HttpResponse.json(resumo, { status: 200 });
   }),
 
+  // POST /caronas — cria uma nova carona (contrato US7-BACK-01).
+  http.post(`${API_BASE_URL}/caronas`, async ({ request }) => {
+    const negado = exigirAutorizacao(request);
+    if (negado) return negado;
+
+    const corpo = await request.json();
+    const { veiculoId, origem, destino, quantidadeVagas } = corpo;
+
+    if (!veiculoId) {
+      return HttpResponse.json({ message: 'Veículo é obrigatório' }, { status: 400 });
+    }
+
+    // RN-CAR-03: a quantidade de vagas deve ser maior que zero.
+    if (!(quantidadeVagas > 0)) {
+      return HttpResponse.json(
+        { message: 'A quantidade de vagas deve ser maior que zero' },
+        { status: 400 },
+      );
+    }
+
+    // RN-CAR-05 / RN-CAR-06: origem e destino precisam de descrição.
+    if (!origem?.descricao || !destino?.descricao) {
+      return HttpResponse.json(
+        { message: 'Origem e destino são obrigatórios' },
+        { status: 400 },
+      );
+    }
+
+    const novaCarona = {
+      id: proximaCaronaId,
+      ...corpo,
+      status: 'CRIADA',
+    };
+    proximaCaronaId += 1;
+    caronas.push(novaCarona);
+
+    return HttpResponse.json({ id: novaCarona.id, status: novaCarona.status }, { status: 201 });
+  }),
+
   // GET /caronas/{id} — detalhe completo de uma carona.
   http.get(`${API_BASE_URL}/caronas/:id`, ({ request, params }) => {
     const negado = exigirAutorizacao(request);
@@ -176,13 +217,13 @@ export const handlers = [
     const negado = exigirAutorizacao(request);
     if (negado) return negado;
 
-    const { modelo, placa, cor } = await request.json();
+    const { modelo, placa, cor, tipo } = await request.json();
 
     if (veiculos.some((veiculo) => veiculo.placa === placa)) {
       return HttpResponse.json({ message: 'Placa já cadastrada' }, { status: 400 });
     }
 
-    const novoVeiculo = { id: proximoId, modelo, placa, cor };
+    const novoVeiculo = { id: proximoId, modelo, placa, cor, tipo };
     proximoId += 1;
     veiculos.push(novoVeiculo);
 
@@ -215,7 +256,7 @@ export const handlers = [
       return HttpResponse.json({ message: 'Veículo não encontrado' }, { status: 404 });
     }
 
-    const { modelo, placa, cor } = await request.json();
+    const { modelo, placa, cor, tipo } = await request.json();
 
     const placaDuplicada = veiculos.some(
       (item) => item.placa === placa && item.id !== id,
@@ -225,7 +266,7 @@ export const handlers = [
       return HttpResponse.json({ message: 'Placa já cadastrada' }, { status: 400 });
     }
 
-    veiculos[index] = { id, modelo, placa, cor };
+    veiculos[index] = { id, modelo, placa, cor, tipo };
 
     return HttpResponse.json(veiculos[index], { status: 200 });
   }),

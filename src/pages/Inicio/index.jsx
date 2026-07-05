@@ -148,7 +148,7 @@ function Inicio() {
               Buscar carona
             </Link>
 
-            <Link to="/meus-veiculos" className="inicio-shortcut">
+            <Link to="/ofertar-carona" className="inicio-shortcut">
               <span>
                 <CalendarDays size={27} />
               </span>

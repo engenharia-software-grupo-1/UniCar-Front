@@ -1,11 +1,55 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { cancelarCarona, listarMinhasCaronas } from './caronaService.js';
+import { cancelarCarona, criarCarona, listarMinhasCaronas } from './caronaService.js';
 
 beforeEach(() => {
   localStorage.setItem(
     'unicar.session',
     JSON.stringify({ token: 'token-simulado', usuario: { nome: 'Motorista' } }),
   );
+});
+
+const CARONA_VALIDA = {
+  veiculoId: 1,
+  origem: 'Bodocongó',
+  destino: 'UFCG',
+  pontoEncontro: 'Portão principal',
+  dataHoraSaida: '2026-08-25T07:00:00',
+  quantidadeVagas: 4,
+  valorContribuicao: 5,
+};
+
+describe('POST /caronas', () => {
+  it('cria com 201 e devolve { id, status: CRIADA }', async () => {
+    const resultado = await criarCarona(CARONA_VALIDA);
+
+    expect(resultado).toEqual({ id: expect.any(Number), status: 'CRIADA' });
+  });
+
+  it('inclui a carona criada ao relistar as caronas do motorista', async () => {
+    const { id } = await criarCarona(CARONA_VALIDA);
+
+    const caronas = await listarMinhasCaronas();
+
+    expect(caronas.some((carona) => carona.id === id)).toBe(true);
+  });
+
+  it('rejeita quantidade de vagas igual a zero (RN-CAR-03)', async () => {
+    await expect(
+      criarCarona({ ...CARONA_VALIDA, quantidadeVagas: 0 }),
+    ).rejects.toThrow('A quantidade de vagas deve ser maior que zero');
+  });
+
+  it('rejeita quando origem ou destino não têm descrição (RN-CAR-05/06)', async () => {
+    await expect(
+      criarCarona({ ...CARONA_VALIDA, destino: '' }),
+    ).rejects.toThrow('Origem e destino são obrigatórios');
+  });
+
+  it('rejeita com 403 "Acesso negado" quando não há sessão', async () => {
+    localStorage.clear();
+
+    await expect(criarCarona(CARONA_VALIDA)).rejects.toThrow('Acesso negado');
+  });
 });
 
 describe('PATCH /caronas/{id}/cancelar', () => {

@@ -10,7 +10,7 @@ import {
 } from './vehicleService.js';
 
 const BASE_URL = 'http://localhost:8080';
-const CAMPOS_CONTRATO = ['id', 'modelo', 'placa', 'cor'];
+const CAMPOS_CONTRATO = ['id', 'modelo', 'placa', 'cor', 'tipo'];
 
 beforeEach(() => {
   localStorage.setItem(
@@ -31,8 +31,8 @@ describe('GET /veiculos', () => {
 });
 
 describe('POST /veiculos', () => {
-  it('cria com 201 e retorna {id,modelo,placa,cor}', async () => {
-    const dados = { modelo: 'Corolla', placa: 'QWE4R56', cor: 'Cinza' };
+  it('cria com 201 e retorna {id,modelo,placa,cor,tipo}', async () => {
+    const dados = { modelo: 'Corolla', placa: 'QWE4R56', cor: 'Cinza', tipo: 'carro' };
 
     const criado = await criarVeiculo(dados);
 
@@ -73,7 +73,7 @@ describe('GET /veiculos/{id}', () => {
 
 describe('PUT /veiculos/{id}', () => {
   it('atualiza com 200 e retorna o objeto atualizado', async () => {
-    const dados = { modelo: 'Onix Plus', placa: 'ABC1D23', cor: 'Preto' };
+    const dados = { modelo: 'Onix Plus', placa: 'ABC1D23', cor: 'Preto', tipo: 'carro' };
 
     const atualizado = await atualizarVeiculo(1, dados);
 

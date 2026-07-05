@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { ArrowRight, Bell, Play, X } from 'lucide-react';
 import Logo from '../../components/common/Logo.jsx';
 import NavegacaoInferior from '../../components/layout/NavegacaoInferior.jsx';
@@ -14,14 +14,64 @@ const STATUS = {
   CANCELADA: { rotulo: 'Cancelada', classe: 'cancelada' },
 };
 
+// Apenas caronas ativas aparecem em "Minhas caronas"; canceladas, finalizadas e
+// expiradas vão para o histórico (fora do escopo por ora).
+const STATUS_VISIVEIS = ['CRIADA', 'EM_ANDAMENTO'];
+
+// Tolerância aplicada a caronas CRIADA: elas permanecem na lista por até 30 min
+// após o horário agendado, para o motorista ainda conseguir iniciá-las.
+const TOLERANCIA_CRIADA_MS = 30 * 60 * 1000;
+
+function tempoSaida(carona) {
+  const saida = new Date(carona.dataHoraSaida).getTime();
+
+  return Number.isNaN(saida) ? Infinity : saida;
+}
+
+// Filtra as caronas exibíveis e ordena pela data/hora de saída (mais cedo
+// primeiro). Uma CRIADA some depois de 30 min do horário; EM_ANDAMENTO sempre
+// aparece (independe do horário).
+function caronasVisiveis(caronas, agora = Date.now()) {
+  return caronas
+    .filter((carona) => {
+      if (!STATUS_VISIVEIS.includes(carona.status)) {
+        return false;
+      }
+
+      if (carona.status === 'CRIADA') {
+        const saida = new Date(carona.dataHoraSaida).getTime();
+
+        if (!Number.isNaN(saida)) {
+          return agora <= saida + TOLERANCIA_CRIADA_MS;
+        }
+      }
+
+      return true;
+    })
+    .sort((a, b) => tempoSaida(a) - tempoSaida(b));
+}
+
 function MinhasCaronas() {
+  const location = useLocation();
   const [aba, setAba] = useState('motorista');
   const [caronas, setCaronas] = useState([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState('');
   const [caronaParaCancelar, setCaronaParaCancelar] = useState(null);
   const [cancelando, setCancelando] = useState(false);
-  const [mensagemSucesso, setMensagemSucesso] = useState('');
+  // Feedback vindo de outra tela (ex.: publicação de carona na página "Ofertar
+  // carona"), lido do state de navegação já no primeiro render.
+  const [mensagemSucesso, setMensagemSucesso] = useState(
+    location.state?.mensagem || '',
+  );
+
+  // Limpa o state do histórico para a mensagem não reaparecer ao recarregar ou
+  // navegar de volta.
+  useEffect(() => {
+    if (location.state?.mensagem) {
+      window.history.replaceState({}, '');
+    }
+  }, [location.state]);
 
   async function carregar() {
     try {
@@ -162,7 +212,7 @@ function MinhasCaronas() {
           <ConteudoMotorista
             carregando={carregando}
             erro={erro}
-            caronas={caronas}
+            caronas={caronasVisiveis(caronas)}
             onTentarNovamente={carregar}
             onCancelar={iniciarCancelamento}
           />

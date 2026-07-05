@@ -21,8 +21,8 @@ import {
 } from '../../services/vehicleService.js';
 
 const VEICULOS = [
-  { id: 1, modelo: 'Onix', placa: 'ABC1D23', cor: 'Prata' },
-  { id: 2, modelo: 'HB20', placa: 'XYZ9A87', cor: 'Branco' },
+  { id: 1, modelo: 'Onix', placa: 'ABC1D23', cor: 'Prata', tipo: 'carro' },
+  { id: 2, modelo: 'CG 160', placa: 'XYZ9A87', cor: 'Preta', tipo: 'moto' },
 ];
 
 function renderPagina() {
@@ -74,8 +74,18 @@ describe('carregamento e listagem', () => {
 
     expect(await screen.findByText('Onix')).toBeInTheDocument();
     expect(screen.getByText('ABC1D23 · Prata')).toBeInTheDocument();
-    expect(screen.getByText('HB20')).toBeInTheDocument();
-    expect(screen.getByText('XYZ9A87 · Branco')).toBeInTheDocument();
+    expect(screen.getByText('CG 160')).toBeInTheDocument();
+    expect(screen.getByText('XYZ9A87 · Preta')).toBeInTheDocument();
+  });
+
+  it('exibe o tipo (carro/moto) de cada veículo na lista', async () => {
+    listarVeiculos.mockResolvedValue(VEICULOS);
+
+    renderPagina();
+
+    const itens = await screen.findAllByRole('listitem');
+    expect(within(itens[0]).getByText('Carro')).toBeInTheDocument();
+    expect(within(itens[1]).getByText('Moto')).toBeInTheDocument();
   });
 
   it('exibe erro e "Tentar novamente" rechama o serviço', async () => {
@@ -133,11 +143,38 @@ describe('criação e edição', () => {
         modelo: 'Onix',
         placa: 'ABC1D23',
         cor: 'Prata',
+        tipo: 'carro',
       }),
     );
     expect(
       await screen.findByRole('button', { name: 'Cadastrar veículo' }),
     ).toBeInTheDocument();
+  });
+
+  it('cria veículo do tipo moto quando "Moto" é selecionado', async () => {
+    criarVeiculo.mockResolvedValue({
+      id: 3,
+      modelo: 'CG 160',
+      placa: 'MOT9A11',
+      cor: 'Preta',
+      tipo: 'moto',
+    });
+
+    renderPagina();
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Cadastrar veículo' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Moto' }));
+    await preencherForm({ modelo: 'CG 160', placa: 'mot9a11', cor: 'Preta' });
+    await userEvent.click(screen.getByRole('button', { name: 'Salvar' }));
+
+    await waitFor(() =>
+      expect(criarVeiculo).toHaveBeenCalledWith({
+        modelo: 'CG 160',
+        placa: 'MOT9A11',
+        cor: 'Preta',
+        tipo: 'moto',
+      }),
+    );
   });
 
   it('edita veículo com formulário pré-preenchido', async () => {
@@ -159,6 +196,7 @@ describe('criação e edição', () => {
         modelo: 'Onix',
         placa: 'ABC1D23',
         cor: 'Prata',
+        tipo: 'carro',
       }),
     );
   });

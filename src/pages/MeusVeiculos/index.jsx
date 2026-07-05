@@ -1,13 +1,8 @@
 import { useEffect, useState } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
-import {
-  Car,
-  Home,
-  PlusCircle,
-  Search,
-  User,
-} from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Car, Bike } from 'lucide-react';
 import Confirmacao from '../../components/common/Confirmacao.jsx';
+import NavegacaoInferior from '../../components/layout/NavegacaoInferior.jsx';
 import {
   listarVeiculos,
   criarVeiculo,
@@ -31,6 +26,7 @@ function MeusVeiculos() {
   const [modelo, setModelo] = useState('');
   const [placa, setPlaca] = useState('');
   const [cor, setCor] = useState('');
+  const [tipo, setTipo] = useState('carro');
   const [erroForm, setErroForm] = useState('');
   const [salvando, setSalvando] = useState(false);
 
@@ -88,6 +84,7 @@ function MeusVeiculos() {
     setModelo('');
     setPlaca('');
     setCor('');
+    setTipo('carro');
     setErroForm('');
     setModo('form');
   }
@@ -97,6 +94,7 @@ function MeusVeiculos() {
     setModelo(veiculo.modelo);
     setPlaca(veiculo.placa);
     setCor(veiculo.cor);
+    setTipo(veiculo.tipo ?? 'carro');
     setErroForm('');
     setModo('form');
   }
@@ -126,7 +124,7 @@ function MeusVeiculos() {
       return;
     }
 
-    const dados = { modelo: modeloLimpo, placa: placaLimpa, cor: corLimpa };
+    const dados = { modelo: modeloLimpo, placa: placaLimpa, cor: corLimpa, tipo };
 
     try {
       setSalvando(true);
@@ -172,7 +170,7 @@ function MeusVeiculos() {
         <section className="veiculos-card">
           <p className="veiculos-loading">Carregando veículos...</p>
         </section>
-        <BarraInferior />
+        <NavegacaoInferior />
       </main>
     );
   }
@@ -199,7 +197,7 @@ function MeusVeiculos() {
             </button>
           </div>
         </section>
-        <BarraInferior />
+        <NavegacaoInferior />
       </main>
     );
   }
@@ -216,6 +214,34 @@ function MeusVeiculos() {
           </div>
 
           <form className="veiculos-form" onSubmit={submitFormulario}>
+            <fieldset className="veiculos-tipo">
+              <legend>Tipo de veículo</legend>
+
+              <div className="veiculos-tipo-opcoes">
+                <button
+                  type="button"
+                  className={tipo === 'carro' ? 'ativo' : ''}
+                  aria-pressed={tipo === 'carro'}
+                  onClick={() => setTipo('carro')}
+                  disabled={salvando}
+                >
+                  <Car size={18} />
+                  Carro
+                </button>
+
+                <button
+                  type="button"
+                  className={tipo === 'moto' ? 'ativo' : ''}
+                  aria-pressed={tipo === 'moto'}
+                  onClick={() => setTipo('moto')}
+                  disabled={salvando}
+                >
+                  <Bike size={18} />
+                  Moto
+                </button>
+              </div>
+            </fieldset>
+
             <VeiculoField
               label="Modelo"
               value={modelo}
@@ -258,7 +284,7 @@ function MeusVeiculos() {
             </div>
           </form>
         </section>
-        <BarraInferior />
+        <NavegacaoInferior />
       </main>
     );
   }
@@ -298,6 +324,19 @@ function MeusVeiculos() {
                   <span>
                     {veiculo.placa} · {veiculo.cor}
                   </span>
+                  <span className="veiculos-item__tipo">
+                    {(veiculo.tipo ?? 'carro') === 'moto' ? (
+                      <>
+                        <Bike size={14} />
+                        Moto
+                      </>
+                    ) : (
+                      <>
+                        <Car size={14} />
+                        Carro
+                      </>
+                    )}
+                  </span>
                 </div>
 
                 <div className="veiculos-item__actions">
@@ -334,7 +373,7 @@ function MeusVeiculos() {
         onConfirm={confirmarExclusao}
         onCancel={() => setConfirmandoExclusao(null)}
       />
-      <BarraInferior />
+      <NavegacaoInferior />
     </main>
   );
 }
@@ -351,39 +390,6 @@ function VeiculoField({ label, value, onChange, placeholder, disabled = false })
         onChange={(event) => onChange(event.target.value)}
       />
     </label>
-  );
-}
-
-function BarraInferior() {
-  return (
-    <nav className="veiculos-bottom-nav" aria-label="Navegação principal">
-      <NavLink to="/inicio" end>
-        <Home size={24} />
-        Início
-      </NavLink>
-
-      <NavLink to="/inicio" className={() => ''}>
-        <Search size={24} />
-        Buscar
-      </NavLink>
-
-      <NavLink to="/meus-veiculos" className={() => 'veiculos-offer-link'}>
-        <span>
-          <PlusCircle size={30} />
-        </span>
-        Ofertar
-      </NavLink>
-
-      <NavLink to="/meus-veiculos">
-        <Car size={24} />
-        Minhas
-      </NavLink>
-
-      <NavLink to="/perfil">
-        <User size={24} />
-        Perfil
-      </NavLink>
-    </nav>
   );
 }
 

@@ -13,6 +13,8 @@ export function shouldUseMocks() {
   return import.meta.env.VITE_ENABLE_MOCKS === 'true';
 }
 
+// Em desenvolvimento, dados de telas ainda instáveis ficam mockados como na
+// branch de detalhes de carona; autenticação continua usando o backend real.
 export function shouldUseLocalDataMocks() {
   return shouldUseMocks() || USE_DEV_DATA_MOCKS;
 }

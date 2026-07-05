@@ -5,7 +5,7 @@ const TOKEN_MOCKADO = '123456';
 
 const MOCK_VEHICLES_KEY = 'unicar.mock.veiculos';
 const MOCK_VEHICLES_VERSION_KEY = 'unicar.mock.veiculos.version';
-const MOCK_VEHICLES_VERSION = 'sem-exemplos-v1';
+const MOCK_VEHICLES_VERSION = 'com-tipo-v2';
 const VEICULOS_MOCKADOS = [];
 
 function usarVeiculosMockados() {
@@ -127,7 +127,7 @@ export async function obterVeiculo(id) {
   );
 }
 
-export async function criarVeiculo({ modelo, placa, cor }) {
+export async function criarVeiculo({ modelo, placa, cor, tipo }) {
   if (usarVeiculosMockados()) {
     obterToken();
 
@@ -142,6 +142,7 @@ export async function criarVeiculo({ modelo, placa, cor }) {
       modelo,
       placa,
       cor,
+      tipo,
     };
 
     salvarVeiculosMockados([...veiculos, novoVeiculo]);
@@ -153,14 +154,14 @@ export async function criarVeiculo({ modelo, placa, cor }) {
     VEICULOS_ENDPOINT,
     {
       method: 'POST',
-      body: JSON.stringify({ modelo, placa, cor }),
+      body: JSON.stringify({ modelo, placa, cor, tipo }),
       comCorpo: true,
     },
     'Não foi possível cadastrar o veículo.',
   );
 }
 
-export async function atualizarVeiculo(id, { modelo, placa, cor }) {
+export async function atualizarVeiculo(id, { modelo, placa, cor, tipo }) {
   if (usarVeiculosMockados()) {
     obterToken();
 
@@ -176,7 +177,7 @@ export async function atualizarVeiculo(id, { modelo, placa, cor }) {
       throw new Error('Placa já cadastrada');
     }
 
-    const atualizado = { id: idNumerico, modelo, placa, cor };
+    const atualizado = { id: idNumerico, modelo, placa, cor, tipo };
     veiculos[index] = atualizado;
     salvarVeiculosMockados(veiculos);
 
@@ -187,7 +188,7 @@ export async function atualizarVeiculo(id, { modelo, placa, cor }) {
     `${VEICULOS_ENDPOINT}/${id}`,
     {
       method: 'PUT',
-      body: JSON.stringify({ modelo, placa, cor }),
+      body: JSON.stringify({ modelo, placa, cor, tipo }),
       comCorpo: true,
     },
     'Não foi possível atualizar o veículo.',

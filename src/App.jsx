@@ -7,8 +7,14 @@ import Inicio from './pages/Inicio/index.jsx';
 import Login from './pages/Login/index.jsx';
 import Perfil from './pages/Perfil/index.jsx';
 import MeusVeiculos from './pages/MeusVeiculos/index.jsx';
+import MinhasCaronas from './pages/MinhasCaronas/index.jsx';
+import DetalheCarona from './pages/DetalheCarona/index.jsx';
+import EditarCarona from './pages/EditarCarona/index.jsx';
+import OfertarCarona from './pages/OfertarCarona/index.jsx';
 import AvaliacoesRecebidas from './pages/AvaliacoesRecebidas/index.jsx';
+import Notificacoes from './pages/Notificacoes/index.jsx';
 import CentralAjuda from './pages/CentralAjuda/index.jsx';
+import UsuariosBloqueados from './pages/UsuariosBloqueados/index.jsx';
 import PoliticaPrivacidade from './pages/PoliticaPrivacidade/index.jsx';
 import TermosUso from './pages/TermosUso/index.jsx';
 import NaoEncontrada from './pages/NaoEncontrada/index.jsx';
@@ -122,6 +128,42 @@ function App() {
         />
 
         <Route
+          path="/ofertar-carona"
+          element={
+            <RequireAuthAndTerms>
+              <OfertarCarona />
+            </RequireAuthAndTerms>
+          }
+        />
+
+        <Route
+          path="/minhas-caronas"
+          element={
+            <RequireAuthAndTerms>
+              <MinhasCaronas />
+            </RequireAuthAndTerms>
+          }
+        />
+
+        <Route
+          path="/minhas-caronas/:id"
+          element={
+            <RequireAuthAndTerms>
+              <DetalheCarona />
+            </RequireAuthAndTerms>
+          }
+        />
+
+        <Route
+          path="/minhas-caronas/:id/editar"
+          element={
+            <RequireAuthAndTerms>
+              <EditarCarona />
+            </RequireAuthAndTerms>
+          }
+        />
+
+        <Route
           path="/avaliacoes-recebidas"
           element={
             <RequireAuthAndTerms>
@@ -131,10 +173,28 @@ function App() {
         />
 
         <Route
+          path="/notificacoes"
+          element={
+            <RequireAuthAndTerms>
+              <Notificacoes />
+            </RequireAuthAndTerms>
+          }
+        />
+
+        <Route
           path="/central-ajuda"
           element={
             <RequireAuthAndTerms>
               <CentralAjuda />
+            </RequireAuthAndTerms>
+          }
+        />
+
+        <Route
+          path="/bloqueados"
+          element={
+            <RequireAuthAndTerms>
+              <UsuariosBloqueados />
             </RequireAuthAndTerms>
           }
         />

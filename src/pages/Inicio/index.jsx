@@ -1,19 +1,15 @@
 import { useEffect, useState } from 'react';
-import { Link, NavLink } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import {
   ArrowRight,
   Bell,
   CalendarDays,
-  Car,
-  Home,
   MapPin,
-  PlusCircle,
-  Search,
   Sparkles,
   Star,
-  User,
 } from 'lucide-react';
 import Logo from '../../components/common/Logo.jsx';
+import NavegacaoInferior from '../../components/layout/NavegacaoInferior.jsx';
 import { getSession } from '../../services/authService.js';
 import { getPerfilUsuarioAutenticado } from '../../services/profileService.js';
 import {
@@ -152,7 +148,7 @@ function Inicio() {
               Buscar carona
             </Link>
 
-            <Link to="/meus-veiculos" className="inicio-shortcut">
+            <Link to="/ofertar-carona" className="inicio-shortcut">
               <span>
                 <CalendarDays size={27} />
               </span>
@@ -195,34 +191,7 @@ function Inicio() {
         </section>
       </section>
 
-      <nav className="inicio-bottom-nav" aria-label="Navegação principal">
-        <NavLink to="/inicio" end>
-          <Home size={24} />
-          Início
-        </NavLink>
-
-        <NavLink to="/inicio" className={() => ''}>
-          <Search size={24} />
-          Buscar
-        </NavLink>
-
-        <NavLink to="/meus-veiculos" className={() => 'inicio-offer-link'}>
-          <span>
-            <PlusCircle size={30} />
-          </span>
-          Ofertar
-        </NavLink>
-
-        <NavLink to="/meus-veiculos">
-          <Car size={24} />
-          Minhas
-        </NavLink>
-
-        <NavLink to="/perfil">
-          <User size={24} />
-          Perfil
-        </NavLink>
-      </nav>
+      <NavegacaoInferior />
     </main>
   );
 }

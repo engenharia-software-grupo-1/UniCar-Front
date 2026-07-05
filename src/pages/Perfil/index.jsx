@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   Bell,
   Car,
@@ -7,19 +7,19 @@ import {
   CircleHelp,
   Edit3,
   History,
-  Home,
   LogOut,
-  PlusCircle,
   RefreshCw,
-  Search,
   Shield,
   ShieldCheck,
+  ShieldOff,
   Star,
   StarIcon,
   Trash2,
-  User,
 } from 'lucide-react';
 import Confirmacao from '../../components/common/Confirmacao.jsx';
+import NavegacaoInferior from '../../components/layout/NavegacaoInferior.jsx';
+import BlockUserButton from './BlockUserButton.jsx';
+import ConfirmBlockModal from './ConfirmBlockModal.jsx';
 import {
   atualizarPerfilUsuarioAutenticado,
   excluirContaUsuarioAutenticado,
@@ -28,6 +28,8 @@ import {
 import { getSession, logout } from '../../services/authService.js';
 import { listarVeiculos } from '../../services/vehicleService.js';
 import { listarAvaliacoesRecebidas } from '../../services/avaliacaoService.js';
+import { bloquearUsuario } from '../../services/blockUserService.js';
+import { listarNotificacoes } from '../../services/notificationService.js';
 import Logo from '../../components/common/Logo.jsx';
 import './style.css';
 
@@ -45,22 +47,29 @@ function Perfil() {
   const [curso, setCurso] = useState(perfil.curso);
   const [modalSairAberto, setModalSairAberto] = useState(false);
   const [modalExcluirAberto, setModalExcluirAberto] = useState(false);
+  const [modalBloquearAberto, setModalBloquearAberto] = useState(false);
   const [excluindoConta, setExcluindoConta] = useState(false);
+  const [bloqueandoUsuario, setBloqueandoUsuario] = useState(false);
   const [totalVeiculos, setTotalVeiculos] = useState(null);
+  const [temNotificacaoNaoLida, setTemNotificacaoNaoLida] = useState(false);
   const [resumoAvaliacoes, setResumoAvaliacoes] = useState(() => ({
     media: Number(perfil.avaliacao) || 0,
     total: 0,
   }));
+  const usuarioAutenticadoId = getSession()?.usuario?.id;
+  const perfilUsuarioAlvo =
+    perfil.id && usuarioAutenticadoId && String(perfil.id) !== String(usuarioAutenticadoId);
 
   useEffect(() => {
     let ativo = true;
 
     async function carregarPerfil() {
       try {
-        const [dados, veiculos, avaliacoes] = await Promise.all([
+        const [dados, veiculos, avaliacoes, notificacoes] = await Promise.all([
           getPerfilUsuarioAutenticado(),
           listarVeiculos().catch(() => null),
           listarAvaliacoesRecebidas().catch(() => []),
+          listarNotificacoes().catch(() => []),
         ]);
 
         if (!ativo) {
@@ -74,6 +83,9 @@ function Perfil() {
         setCurso(dados.curso);
         setTotalVeiculos(Array.isArray(veiculos) ? veiculos.length : null);
         setResumoAvaliacoes(calcularResumoAvaliacoes(avaliacoes, dados.avaliacao));
+        setTemNotificacaoNaoLida(
+          Array.isArray(notificacoes) && notificacoes.some((notificacao) => !notificacao.lida),
+        );
         setErro('');
       } catch (error) {
         if (ativo) {
@@ -137,6 +149,31 @@ function Perfil() {
     }
   }
 
+  async function confirmarBloqueioUsuario() {
+    try {
+      setBloqueandoUsuario(true);
+      setErro('');
+      setMensagemSucesso('');
+
+      const resultado = await bloquearUsuario(perfil.id);
+
+      setPerfil((perfilAtual) => ({
+        ...perfilAtual,
+        isBlocked: resultado.isBlocked,
+      }));
+      setModalBloquearAberto(false);
+      setMensagemSucesso(
+        resultado.alreadyBlocked
+          ? 'Usuário já estava bloqueado.'
+          : 'Usuário bloqueado com sucesso',
+      );
+    } catch (error) {
+      setErro(getMensagemErroBloqueio(error));
+    } finally {
+      setBloqueandoUsuario(false);
+    }
+  }
+
   return (
     <main className="perfil-page">
       <header className="perfil-topbar">
@@ -144,9 +181,14 @@ function Perfil() {
           <Logo />
         </Link>
 
-        <button type="button" className="perfil-notification" aria-label="Notificações">
+        <button
+          type="button"
+          className="perfil-notification"
+          aria-label="Notificações"
+          onClick={() => navigate('/notificacoes')}
+        >
           <Bell size={24} />
-          <span />
+          {temNotificacaoNaoLida && <span />}
         </button>
       </header>
 
@@ -183,18 +225,29 @@ function Perfil() {
             </div>
           </div>
 
-          <button
-            type="button"
-            className="perfil-edit-button"
-            aria-label="Editar perfil"
-            onClick={() => setEditando((estadoAtual) => !estadoAtual)}
-          >
-            <Edit3 size={25} />
-          </button>
+          {perfilUsuarioAlvo ? (
+            <BlockUserButton
+              isBlocked={perfil.isBlocked}
+              loading={bloqueandoUsuario}
+              onClick={() => setModalBloquearAberto(true)}
+            />
+          ) : (
+            <button
+              type="button"
+              className="perfil-edit-button"
+              aria-label="Editar perfil"
+              onClick={() => setEditando((estadoAtual) => !estadoAtual)}
+            >
+              <Edit3 size={25} />
+            </button>
+          )}
         </section>
 
         {(erro || mensagemSucesso) && (
-          <div className={erro ? 'perfil-message perfil-message--error' : 'perfil-message perfil-message--success'}>
+          <div
+            className={erro ? 'perfil-message perfil-message--error' : 'perfil-message perfil-message--success'}
+            role={erro ? 'alert' : 'status'}
+          >
             {erro || mensagemSucesso}
           </div>
         )}
@@ -233,7 +286,16 @@ function Perfil() {
             meta={formatarTotalVeiculos(totalVeiculos)}
             onClick={() => navigate('/meus-veiculos')}
           />
-          <ProfileRow icon={Bell} label="Notificações" />
+          <ProfileRow
+            icon={Bell}
+            label="Notificações"
+            onClick={() => navigate('/notificacoes')}
+          />
+          <ProfileRow
+            icon={ShieldOff}
+            label="Usuários bloqueados"
+            onClick={() => navigate('/bloqueados')}
+          />
           <ProfileRow
             icon={CircleHelp}
             label="Central de ajuda"
@@ -259,34 +321,7 @@ function Perfil() {
         </section>
       </section>
 
-      <nav className="perfil-bottom-nav" aria-label="Navegação principal">
-        <NavLink to="/inicio">
-          <Home size={24} />
-          Início
-        </NavLink>
-
-        <NavLink to="/inicio" className={() => ''}>
-          <Search size={24} />
-          Buscar
-        </NavLink>
-
-        <NavLink to="/meus-veiculos" className={() => 'perfil-offer-link'}>
-          <span>
-            <PlusCircle size={30} />
-          </span>
-          Ofertar
-        </NavLink>
-
-        <NavLink to="/meus-veiculos">
-          <Car size={24} />
-          Minhas
-        </NavLink>
-
-        <NavLink to="/perfil">
-          <User size={24} />
-          Perfil
-        </NavLink>
-      </nav>
+      <NavegacaoInferior />
 
       <Confirmacao
         open={modalSairAberto}
@@ -307,6 +342,14 @@ function Perfil() {
         loading={excluindoConta}
         onConfirm={confirmarExclusaoConta}
         onCancel={() => setModalExcluirAberto(false)}
+      />
+
+      <ConfirmBlockModal
+        open={modalBloquearAberto}
+        userName={formatarNome(perfil.nomeCompleto)}
+        loading={bloqueandoUsuario}
+        onConfirm={confirmarBloqueioUsuario}
+        onCancel={() => setModalBloquearAberto(false)}
       />
 
       {editando && (
@@ -418,6 +461,7 @@ function toPerfilFromSession() {
   const usuario = getSession()?.usuario || {};
 
   return {
+    id: usuario.id ?? usuario.usuarioId ?? usuario.userId ?? '',
     nomeCompleto: usuario.nomeCompleto || usuario.nome || '',
     matricula: usuario.matricula || 'Não informado',
     cpf: usuario.cpf || 'Não informado',
@@ -430,6 +474,7 @@ function toPerfilFromSession() {
     motoristaVerificado: usuario.motoristaVerificado ?? usuario.driverVerified ?? false,
     avaliacao: usuario.avaliacao ?? usuario.rating ?? '',
     totalCaronas: usuario.totalCaronas ?? usuario.ridesCount ?? usuario.quantidadeCaronas ?? '',
+    isBlocked: usuario.isBlocked ?? usuario.bloqueado ?? usuario.blocked ?? false,
   };
 }
 
@@ -504,6 +549,18 @@ function isErroDeAutenticacao(error) {
   return /não autenticado|nao autenticado|unauthorized|forbidden|acesso negado/i.test(
     error?.message || '',
   );
+}
+
+function getMensagemErroBloqueio(error) {
+  if (error?.status === 409) {
+    return 'Usuário já estava bloqueado.';
+  }
+
+  if (error?.status >= 500) {
+    return 'Não foi possível bloquear o usuário agora. Tente novamente em instantes.';
+  }
+
+  return error?.message || 'Não foi possível bloquear o usuário.';
 }
 
 function formatarTotalVeiculos(total) {

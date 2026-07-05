@@ -55,7 +55,7 @@ export async function apiRequest(endpoint, options = {}) {
   }
 
   if (!response.ok) {
-    throw new Error(
+    const error = new Error(
       data?.message ||
       data?.erro ||
       data?.error ||
@@ -63,6 +63,10 @@ export async function apiRequest(endpoint, options = {}) {
       data?.title ||
       'Erro ao comunicar com o servidor.'
     );
+
+    error.status = response.status;
+    error.data = data;
+    throw error;
   }
 
   return data;

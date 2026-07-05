@@ -24,6 +24,7 @@ export async function getPerfilUsuarioAutenticado() {
 
 function toPerfil(usuario) {
   return {
+    id: usuario.id ?? usuario.usuarioId ?? usuario.userId ?? '',
     nomeCompleto: usuario.nomeCompleto || '',
     matricula: usuario.matricula || 'Não informado',
     cpf: usuario.cpf || 'Não informado',
@@ -36,6 +37,7 @@ function toPerfil(usuario) {
     motoristaVerificado: usuario.motoristaVerificado ?? usuario.driverVerified ?? false,
     avaliacao: usuario.avaliacao ?? usuario.rating ?? '',
     totalCaronas: usuario.totalCaronas ?? usuario.ridesCount ?? usuario.quantidadeCaronas ?? '',
+    isBlocked: usuario.isBlocked ?? usuario.bloqueado ?? usuario.blocked ?? false,
   };
 }
 

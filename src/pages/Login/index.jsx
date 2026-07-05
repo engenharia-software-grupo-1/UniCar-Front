@@ -2,7 +2,6 @@ import { useId, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Lock, User, Loader2 } from 'lucide-react';
 import { login } from '../../services/authService.js';
-import logoAsset from '../../assets/unicar-logo-transparent.png';
 import { hasAcceptedTerms } from '../../services/termsService.js';
 import Logo from '../../components/common/Logo.jsx';
 import './style.css';

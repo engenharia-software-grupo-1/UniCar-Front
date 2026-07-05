@@ -10,6 +10,12 @@ export default defineConfig({
     globals: true,
     setupFiles: './src/test/setup.js',
     css: false,
+    // A suíte exercita o caminho real de fetch/MSW; força os mocks internos
+    // dos services OFF, independente do VITE_ENABLE_MOCKS do .env de dev.
+    env: {
+      VITE_ENABLE_MOCKS: 'false',
+      VITE_API_URL: 'http://localhost:8080',
+    },
   },
   server: {
     proxy: {

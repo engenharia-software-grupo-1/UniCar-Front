@@ -79,12 +79,14 @@ const caronasIniciais = () => [
 ];
 
 let caronas = caronasIniciais();
+let proximaCaronaId = 100;
 
 export function resetStore() {
   veiculos = estadoInicial();
   proximoId = 3;
   avaliacoesRecebidas = avaliacoesIniciais();
   caronas = caronasIniciais();
+  proximaCaronaId = 100;
 }
 
 export function semCaronas() {
@@ -132,6 +134,45 @@ export const handlers = [
     }));
 
     return HttpResponse.json(resumo, { status: 200 });
+  }),
+
+  // POST /caronas — cria uma nova carona (contrato US7-BACK-01).
+  http.post(`${API_BASE_URL}/caronas`, async ({ request }) => {
+    const negado = exigirAutorizacao(request);
+    if (negado) return negado;
+
+    const corpo = await request.json();
+    const { veiculoId, origem, destino, quantidadeVagas } = corpo;
+
+    if (!veiculoId) {
+      return HttpResponse.json({ message: 'Veículo é obrigatório' }, { status: 400 });
+    }
+
+    // RN-CAR-03: a quantidade de vagas deve ser maior que zero.
+    if (!(quantidadeVagas > 0)) {
+      return HttpResponse.json(
+        { message: 'A quantidade de vagas deve ser maior que zero' },
+        { status: 400 },
+      );
+    }
+
+    // RN-CAR-05 / RN-CAR-06: origem e destino precisam de descrição.
+    if (!origem?.descricao || !destino?.descricao) {
+      return HttpResponse.json(
+        { message: 'Origem e destino são obrigatórios' },
+        { status: 400 },
+      );
+    }
+
+    const novaCarona = {
+      id: proximaCaronaId,
+      ...corpo,
+      status: 'CRIADA',
+    };
+    proximaCaronaId += 1;
+    caronas.push(novaCarona);
+
+    return HttpResponse.json({ id: novaCarona.id, status: novaCarona.status }, { status: 201 });
   }),
 
   // GET /caronas/{id} — detalhe completo de uma carona.

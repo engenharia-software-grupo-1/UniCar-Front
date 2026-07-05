@@ -177,6 +177,47 @@ describe('mock local (dev / VITE_ENABLE_MOCKS)', () => {
     await expect(obterCarona(999)).rejects.toThrow('Carona não encontrada.');
     expect(fetch).not.toHaveBeenCalled();
   });
+
+  it('persiste a carona criada, que passa a aparecer em listarMinhasCaronas', async () => {
+    vi.stubEnv('VITE_ENABLE_MOCKS', 'true');
+
+    const { criarCarona, listarMinhasCaronas, obterCarona } = await importarService();
+
+    const { id } = await criarCarona({
+      veiculoId: 1,
+      origem: 'Centro',
+      destino: 'UFCG',
+      pontoEncontro: 'Praça',
+      dataHoraSaida: '2026-09-10T08:00:00',
+      quantidadeVagas: 2,
+      valorContribuicao: 7,
+    });
+
+    const caronas = await listarMinhasCaronas();
+    const criada = caronas.find((carona) => carona.id === id);
+
+    expect(criada).toMatchObject({
+      origem: 'Centro',
+      destino: 'UFCG',
+      pontoEncontro: 'Praça',
+      quantidadeVagas: 2,
+      status: 'CRIADA',
+    });
+    await expect(obterCarona(id)).resolves.toMatchObject({ destino: 'UFCG' });
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it('reflete o cancelamento no store simulado', async () => {
+    vi.stubEnv('VITE_ENABLE_MOCKS', 'true');
+
+    const { cancelarCarona, listarMinhasCaronas } = await importarService();
+
+    await cancelarCarona(10);
+    const caronas = await listarMinhasCaronas();
+
+    expect(caronas.find((carona) => carona.id === 10).status).toBe('CANCELADA');
+    expect(fetch).not.toHaveBeenCalled();
+  });
 });
 
 describe('cancelarCarona', () => {
@@ -236,5 +277,77 @@ describe('obterCarona', () => {
       vagasDisponiveis: 1,
       passageirosConfirmados: 2,
     });
+  });
+});
+
+describe('criarCarona', () => {
+  const DADOS = {
+    veiculoId: 1,
+    origem: 'Bodocongó',
+    destino: 'UFCG',
+    pontoEncontro: 'Portão principal',
+    dataHoraSaida: '2026-08-25T07:00:00',
+    quantidadeVagas: 4,
+    valorContribuicao: 5,
+  };
+
+  it('faz POST /caronas com o token e o corpo no formato do contrato', async () => {
+    fetch.mockResolvedValue(respostaJson({ id: 10, status: 'CRIADA' }, { status: 201 }));
+
+    const { criarCarona } = await importarService();
+    const resultado = await criarCarona(DADOS);
+
+    const [url, opcoes] = fetch.mock.calls[0];
+    expect(url).toBe(`${BASE_URL}/caronas`);
+    expect(opcoes.method).toBe('POST');
+    expect(opcoes.headers.Authorization).toBe(`Bearer ${TOKEN}`);
+    expect(JSON.parse(opcoes.body)).toEqual({
+      veiculoId: 1,
+      origem: { descricao: 'Bodocongó', latitude: null, longitude: null },
+      destino: { descricao: 'UFCG', latitude: null, longitude: null },
+      pontoEncontro: 'Portão principal',
+      dataHoraSaida: '2026-08-25T07:00:00',
+      quantidadeVagas: 4,
+      valorContribuicao: 5,
+    });
+    expect(resultado).toEqual({ id: 10, status: 'CRIADA' });
+  });
+
+  it('preserva latitude/longitude quando origem/destino vêm como objeto', async () => {
+    fetch.mockResolvedValue(respostaJson({ id: 11, status: 'CRIADA' }, { status: 201 }));
+
+    const { criarCarona } = await importarService();
+    await criarCarona({
+      ...DADOS,
+      origem: { descricao: 'Bodocongó', latitude: -7.21, longitude: -35.9 },
+    });
+
+    const [, opcoes] = fetch.mock.calls[0];
+    expect(JSON.parse(opcoes.body).origem).toEqual({
+      descricao: 'Bodocongó',
+      latitude: -7.21,
+      longitude: -35.9,
+    });
+  });
+
+  it('propaga erro quando o backend recusa a criação', async () => {
+    fetch.mockResolvedValue(
+      respostaJson({ message: 'Acesso negado' }, { ok: false, status: 403 }),
+    );
+
+    const { criarCarona } = await importarService();
+
+    await expect(criarCarona(DADOS)).rejects.toThrow('Acesso negado');
+  });
+
+  it('no modo mock devolve status CRIADA sem chamar fetch', async () => {
+    vi.stubEnv('VITE_ENABLE_MOCKS', 'true');
+
+    const { criarCarona } = await importarService();
+    const resultado = await criarCarona(DADOS);
+
+    expect(fetch).not.toHaveBeenCalled();
+    expect(resultado).toMatchObject({ status: 'CRIADA' });
+    expect(resultado.id).toEqual(expect.any(Number));
   });
 });

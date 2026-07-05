@@ -104,6 +104,15 @@ function App() {
         />
 
         <Route
+          path="/ofertar"
+          element={
+            <RequireAuthAndTerms>
+              <OfertarCarona />
+            </RequireAuthAndTerms>
+          }
+        />
+
+        <Route
           path="/meus-veiculos"
           element={
             <RequireAuthAndTerms>

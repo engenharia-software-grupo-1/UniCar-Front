@@ -50,7 +50,7 @@ export async function listarTrajetosRecorrentes() {
   return [
     {
       id: 1,
-      origem: 'José Pinheiro',
+      origem: 'Bodocongó',
       destino: 'UFCG - Campus Sede',
       quantidadeViagens: 15,
     },
@@ -62,4 +62,6 @@ export async function listarTrajetosRecorrentes() {
     },
   ];
 }
+
+// AINDA FALTA IMPLEMENTAR A BUSCA DE T. RECORRENTE POR ID
 

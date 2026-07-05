@@ -109,14 +109,14 @@ function TrajetosRecorrentes() {
                   07:00 • 3 vagas
                 </div>
 
-                <div className="trajeto-dias">
+                <div className="trajeto-days">
                   {["Seg", "Ter", "Qua", "Qui", "Sex"].map((d) => (
-                    <span key={d} className="dia-chip">{d}</span>
+                    <span key={d} className="day-chip">{d}</span>
                   ))}
                 </div>
 
               </div>
-              
+
               <div
                 className="trajeto-actions"
                 onClick={(e) => e.stopPropagation()}

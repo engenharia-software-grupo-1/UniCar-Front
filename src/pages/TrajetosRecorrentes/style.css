@@ -145,13 +145,13 @@ body {
 }
 
 
-.trajeto-dias {
+.trajeto-days {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
 }
 
-.dia-chip {
+.day-chip {
   font-size: 10px;
   font-weight: 700;
   padding: 3px 8px;

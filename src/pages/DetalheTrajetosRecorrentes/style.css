@@ -1,0 +1,269 @@
+body {
+  margin: 0;
+  font-family: "Inter", system-ui, sans-serif;
+  background: oklch(0.985 0.005 250);
+  color: oklch(0.18 0.06 265);
+}
+
+.detalhe-page {
+  min-height: 100vh;
+  padding: 20px 16px 90px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  align-items: center;
+}
+
+
+.detalhe-header {
+  width: min(760px, 100%);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.detalhe-header img,
+.detalhe-header svg {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+}
+
+.voltar-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid oklch(0.929 0.013 255.508);
+  background: white;
+  cursor: pointer;
+  font-size: 18px;
+  font-weight: bold;
+  transition: 0.2s;
+}
+
+.voltar-btn:hover {
+  background: oklch(0.96 0.01 250);
+}
+
+.detalhe-header h1 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+  font-family: "Poppins", sans-serif;
+}
+
+.detalhe-header p {
+  margin: 2px 0 0;
+  color: oklch(0.55 0.02 260);
+  font-size: 13px;
+}
+
+
+.card-principal {
+  width: min(760px, 100%);
+  background: linear-gradient(
+    180deg,
+    oklch(0.30 0.10 265),
+    oklch(0.18 0.06 265)
+  );
+  color: white;
+  border-radius: 22px;
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.local h3 {
+  margin: 0;
+  font-size: 11px;
+  text-transform: uppercase;
+  opacity: .75;
+  letter-spacing: .08em;
+}
+
+.local strong {
+  display: block;
+  margin-top: 4px;
+  font-size: 17px;
+}
+
+.local p {
+  margin: 4px 0 0;
+  font-size: 13px;
+  opacity: .8;
+}
+
+.linha {
+  width: 2px;
+  height: 18px;
+  background: rgba(255,255,255,.3);
+  margin-left: 10px;
+}
+
+
+.info-viagem {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.info-viagem span {
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.12);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+
+.dias {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.dia-chip {
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: #f4c542;
+  color: #07132b;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.metricas {
+  width: min(760px, 100%);
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+
+.metrica-card {
+  background: white;
+  border: 1px solid oklch(0.929 0.013 255.508);
+  border-radius: 18px;
+  padding: 18px;
+  box-shadow: 0 8px 20px rgba(7,19,43,.05);
+}
+
+.metrica-card span {
+  display: block;
+  color: oklch(0.55 0.02 260);
+  font-size: 12px;
+}
+
+.metrica-card strong {
+  display: block;
+  margin: 6px 0;
+  font-size: 28px;
+  font-weight: 800;
+}
+
+.metrica-card small {
+  color: oklch(0.55 0.02 260);
+}
+
+
+.recriar-btn {
+  font-family: "Poppins", system-ui, sans-serif;
+  width: min(760px, 100%);
+  padding: 16px;
+  border: none;
+  border-radius: 18px;
+  background: oklch(0.18 0.06 265);
+  color: white;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: .2s;
+}
+
+.recriar-btn:hover {
+  opacity: .92;
+}
+
+.recriar-btn:active {
+  transform: scale(.98);
+}
+
+
+.historico {
+  width: min(760px, 100%);
+}
+
+.historico-topo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.historico-topo h2 {
+  font-family: "Poppins", system-ui, sans-serif;
+  margin: 0;
+  font-size: 18px;
+}
+
+.historico-topo span {
+  font-size: 12px;
+  color: oklch(0.55 0.02 260);
+}
+
+.historico-item {
+  background: white;
+  border: 1px solid oklch(0.929 0.013 255.508);
+  border-radius: 16px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 8px 18px rgba(7,19,43,.05);
+}
+
+.historico-info strong {
+  display: block;
+  font-size: 15px;
+}
+
+.historico-info p {
+  margin: 4px 0 0;
+  color: oklch(0.55 0.02 260);
+  font-size: 13px;
+}
+
+.status {
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.finalizada {
+  background: #dff8e6;
+  color: #18794e;
+}
+
+.cancelada {
+  background: #ffe2e2;
+  color: #b42318;
+}
+
+
+@media (max-width: 700px) {
+  .metricas {
+    grid-template-columns: 1fr;
+  }
+  .detalhe-header {
+    gap: 10px;
+  }
+  .detalhe-header h1 {
+    font-size: 19px;
+  }
+  .card-principal {
+    padding: 18px;
+  }
+
+}

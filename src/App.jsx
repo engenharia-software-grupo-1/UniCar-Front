@@ -13,6 +13,7 @@ import PoliticaPrivacidade from './pages/PoliticaPrivacidade/index.jsx';
 import TermosUso from './pages/TermosUso/index.jsx';
 import NaoEncontrada from './pages/NaoEncontrada/index.jsx';
 import TrajetosRecorrentes from './pages/TrajetosRecorrentes/index.jsx';
+import DetalheTrajetosRecorrentes from './pages/DetalheTrajetosRecorrentes/index.jsx';
 
 import { isAuthenticated } from './services/authService.js';
 import { hasAcceptedTerms } from './services/termsService.js';
@@ -89,6 +90,15 @@ function App() {
           element={
             <RequireAuthAndTerms>
               <TrajetosRecorrentes />
+            </RequireAuthAndTerms>
+          }
+        />
+
+        <Route
+          path="/trajetos-recorrentes/:id"
+          element={
+            <RequireAuthAndTerms>
+              <DetalheTrajetosRecorrentes />
             </RequireAuthAndTerms>
           }
         />

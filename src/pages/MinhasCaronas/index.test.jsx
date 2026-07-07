@@ -92,16 +92,21 @@ describe('carregamento e listagem', () => {
     expect(screen.getByText('2 de 3 passageiros confirmados')).toBeInTheDocument();
   });
 
-  it('mantém "Iniciar" e "Ver detalhes" desabilitados, mas habilita "Cancelar" para caronas CRIADA', async () => {
+  it('mantém "Iniciar" desabilitado e habilita "Editar", "Cancelar" e "Ver detalhes" para caronas CRIADA', async () => {
     listarMinhasCaronas.mockResolvedValue(CARONAS);
 
     renderPagina();
 
     expect(await screen.findByRole('button', { name: /iniciar/i })).toBeDisabled();
-    expect(
-      screen.getByRole('button', { name: /ver detalhes da carona/i }),
-    ).toBeDisabled();
     expect(screen.getByRole('button', { name: /cancelar carona/i })).toBeEnabled();
+
+    const editar = screen.getByRole('link', { name: /editar carona/i });
+    expect(editar).toHaveAttribute('aria-disabled', 'false');
+    expect(editar).toHaveAttribute('href', '/minhas-caronas/10/editar');
+
+    expect(
+      screen.getByRole('link', { name: /ver detalhes da carona/i }),
+    ).toHaveAttribute('href', '/minhas-caronas/10');
   });
 
   it('desabilita "Cancelar" quando a carona não está CRIADA', async () => {

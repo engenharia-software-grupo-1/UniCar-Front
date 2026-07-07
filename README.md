@@ -94,6 +94,21 @@ A pasta `services` está preparada para concentrar chamadas ao backend quando a 
 
 Enquanto a página inicial estiver usando apenas conteúdo estático, essa pasta pode permanecer sem implementação.
 
+## Avaliação de usuário (temporário)
+
+O modal `AvaliarUsuarioModal` (`src/pages/Perfil/`) registra a avaliação de um usuário via
+`POST /avaliacoes` (`criarAvaliacao` em `src/services/avaliacaoService.js`).
+
+Enquanto não existe a tela adequada para acioná-lo — ele deveria abrir a partir de uma
+**carona concluída**, com `caronaId`/`avaliadoId` reais —, há um **botão temporário**
+"Avaliar usuário (temporário)" na tela de Perfil. Esse botão usa um alvo fixo (`Marina
+Souza`, `caronaId`/`avaliadoId` fixos) apenas para exercitar o endpoint ponta a ponta.
+
+> ⚠️ **Provisório:** o botão do Perfil e a constante `AVALIAR_TESTE` (em
+> `src/pages/Perfil/index.jsx`, marcados com `// TODO temporário`) devem ser **movidos para
+> o lugar correto** quando o fluxo real de avaliação existir. O modal reutilizável
+> permanece; apenas o gatilho no Perfil sai.
+
 ## Status
 
 Projeto em desenvolvimento. A página inicial já está estruturada e pronta para evoluir para integração com rotas, autenticação e backend.

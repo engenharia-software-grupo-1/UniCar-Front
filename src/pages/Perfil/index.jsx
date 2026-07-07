@@ -20,6 +20,7 @@ import Confirmacao from '../../components/common/Confirmacao.jsx';
 import NavegacaoInferior from '../../components/layout/NavegacaoInferior.jsx';
 import BlockUserButton from './BlockUserButton.jsx';
 import ConfirmBlockModal from './ConfirmBlockModal.jsx';
+import AvaliarUsuarioModal from './AvaliarUsuarioModal.jsx';
 import {
   atualizarPerfilUsuarioAutenticado,
   excluirContaUsuarioAutenticado,
@@ -27,11 +28,16 @@ import {
 } from '../../services/profileService.js';
 import { getSession, logout } from '../../services/authService.js';
 import { listarVeiculos } from '../../services/vehicleService.js';
-import { listarAvaliacoesRecebidas } from '../../services/avaliacaoService.js';
+import { criarAvaliacao, listarAvaliacoesRecebidas } from '../../services/avaliacaoService.js';
 import { bloquearUsuario } from '../../services/blockUserService.js';
 import { listarNotificacoes } from '../../services/notificationService.js';
 import Logo from '../../components/common/Logo.jsx';
 import './style.css';
+
+// TODO temporário: alvo fixo usado apenas para exercitar o POST /avaliacoes.
+// Remover quando o modal for acionado a partir de uma carona concluída, com
+// caronaId/avaliadoId reais (ver README > "Avaliação de usuário (temporário)").
+const AVALIAR_TESTE = { nome: 'Marina Souza', caronaId: 10, avaliadoId: 5 };
 
 function Perfil() {
   const navigate = useNavigate();
@@ -48,6 +54,8 @@ function Perfil() {
   const [modalSairAberto, setModalSairAberto] = useState(false);
   const [modalExcluirAberto, setModalExcluirAberto] = useState(false);
   const [modalBloquearAberto, setModalBloquearAberto] = useState(false);
+  const [modalAvaliarAberto, setModalAvaliarAberto] = useState(false);
+  const [enviandoAvaliacao, setEnviandoAvaliacao] = useState(false);
   const [excluindoConta, setExcluindoConta] = useState(false);
   const [bloqueandoUsuario, setBloqueandoUsuario] = useState(false);
   const [totalVeiculos, setTotalVeiculos] = useState(null);
@@ -171,6 +179,30 @@ function Perfil() {
       setErro(getMensagemErroBloqueio(error));
     } finally {
       setBloqueandoUsuario(false);
+    }
+  }
+
+  // TODO temporário: acionado pelo botão de teste na tela de perfil.
+  async function enviarAvaliacaoTeste({ nota, comentario }) {
+    try {
+      setEnviandoAvaliacao(true);
+      setErro('');
+      setMensagemSucesso('');
+
+      await criarAvaliacao({
+        caronaId: AVALIAR_TESTE.caronaId,
+        avaliadoId: AVALIAR_TESTE.avaliadoId,
+        nota,
+        comentario,
+      });
+
+      setModalAvaliarAberto(false);
+      setMensagemSucesso('Avaliação enviada com sucesso.');
+    } catch (error) {
+      setModalAvaliarAberto(false);
+      setErro(error.message || 'Não foi possível enviar a avaliação.');
+    } finally {
+      setEnviandoAvaliacao(false);
     }
   }
 
@@ -302,6 +334,13 @@ function Perfil() {
             onClick={() => navigate('/central-ajuda')}
           />
           <ProfileRow icon={Shield} label="Preferências de notificação" />
+          {/* TODO temporário: gatilho de teste do POST /avaliacoes. Remover quando o
+              modal for acionado a partir de uma carona concluída (ver README). */}
+          <ProfileRow
+            icon={Star}
+            label="Avaliar usuário (temporário)"
+            onClick={() => setModalAvaliarAberto(true)}
+          />
         </section>
 
         <section className="perfil-account-menu" aria-label="Conta">
@@ -351,6 +390,16 @@ function Perfil() {
         onConfirm={confirmarBloqueioUsuario}
         onCancel={() => setModalBloquearAberto(false)}
       />
+
+      {/* TODO temporário: modal de avaliação acionado pelo botão de teste. */}
+      {modalAvaliarAberto && (
+        <AvaliarUsuarioModal
+          userName={AVALIAR_TESTE.nome}
+          loading={enviandoAvaliacao}
+          onSubmit={enviarAvaliacaoTeste}
+          onClose={() => setModalAvaliarAberto(false)}
+        />
+      )}
 
       {editando && (
         <div className="perfil-modal-overlay" onClick={() => setEditando(false)}>

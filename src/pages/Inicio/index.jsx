@@ -82,7 +82,9 @@ function Inicio() {
       <section className="inicio-shell">
         <div className="inicio-greeting">
           <span>Olá,</span>
-          <h1>{nome} <span aria-hidden="true">👋</span></h1>
+          <h1>
+            {nome}
+          </h1>
         </div>
 
         {erro && (

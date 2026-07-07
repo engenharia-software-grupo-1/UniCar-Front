@@ -27,12 +27,12 @@
 }
 
 .perfil-logo img {
-  width: 220px;
+  width: auto;
   max-width: none;
-  height: auto;
+  height: 78px;
   object-fit: contain;
   object-position: left center;
-  transform: translateY(4px) scale(1.08);
+  transform: none;
   transform-origin: left center;
 }
 

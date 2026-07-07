@@ -1,12 +1,12 @@
 import { Link } from 'react-router-dom';
-import logoAsset from '../../assets/unicar-logo-transparent.png';
+import Logo from '../common/Logo.jsx';
 
 export default function Footer() {
   return (
     <footer className="unicar-footer">
       <div className="unicar-container unicar-footer__inner">
         <Link to="/home" className="unicar-brand" aria-label="UniCar">
-          <img src={logoAsset} alt="UniCar" />
+          <Logo />
         </Link>
 
         <div className="unicar-footer__links">

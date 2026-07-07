@@ -26,9 +26,9 @@
 }
 
 .detalhe-carona-logo img {
-  width: 42px;
+  width: auto;
   max-width: none;
-  height: auto;
+  height: 42px;
   object-fit: contain;
   object-position: left center;
   transform: none;

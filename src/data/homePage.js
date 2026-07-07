@@ -8,9 +8,9 @@ export const itensDeRecursos = [
 ];
 
 export const exemplosDeCaronas = [
-  { motorista: 'Marina S.', curso: 'Engenharia - UFRJ', origem: 'Tijuca', destino: 'Fundão', horario: '07:20', vagas: 3, preco: 'R$ 8' },
-  { motorista: 'Lucas P.', curso: 'Direito - PUC-Rio', origem: 'Botafogo', destino: 'Gávea', horario: '08:00', vagas: 2, preco: 'R$ 6' },
-  { motorista: 'Ana C.', curso: 'Medicina - UERJ', origem: 'Méier', destino: 'Vila Isabel', horario: '06:45', vagas: 1, preco: 'R$ 7' },
+  { motorista: 'Marina S.', curso: 'Ciência da Computação - UFCG', origem: 'Catolé', destino: 'Campus Sede', horario: '07:20', vagas: 3, preco: 'R$ 6' },
+  { motorista: 'Lucas P.', curso: 'Medicina - UFCG', origem: 'Centro', destino: 'HU Alcides Carneiro', horario: '08:00', vagas: 2, preco: 'R$ 5' },
+  { motorista: 'Ana C.', curso: 'Enfermagem - UFCG', origem: 'Malvinas', destino: 'CCBS', horario: '06:45', vagas: 1, preco: 'R$ 6' },
 ];
 
 export const passosComoFunciona = [
@@ -20,7 +20,7 @@ export const passosComoFunciona = [
 ];
 
 export const depoimentos = [
-  { etiqueta: 'Recomendado', frase: 'Economizo R$ 200 por mês indo pra faculdade.', autor: 'Pedro Alencar', curso: 'Engenharia - UFRJ' },
-  { etiqueta: 'Aprovado', frase: 'Fiz amizades incríveis no caminho pro campus.', autor: 'Júlia Martins', curso: 'Direito - PUC-Rio' },
-  { etiqueta: 'Feito pra você', frase: 'Caronas seguras, só com gente da minha universidade.', autor: 'Marcos Ribeiro', curso: 'Medicina - UERJ' },
+  { etiqueta: 'Recomendado', frase: 'Economizo todo mês indo do Catolé para o Campus Sede.', autor: 'Pedro Alencar', curso: 'Ciência da Computação - UFCG' },
+  { etiqueta: 'Aprovado', frase: 'Ficou muito mais fácil chegar no HU para as aulas práticas.', autor: 'Júlia Martins', curso: 'Medicina - UFCG' },
+  { etiqueta: 'Feito pra você', frase: 'Encontro caronas seguras entre as Malvinas e o CCBS.', autor: 'Marcos Ribeiro', curso: 'Enfermagem - UFCG' },
 ];

@@ -3,14 +3,16 @@
   background-color: #eef6ff;
   display: flex;
   justify-content: center;
-  align-items: flex-start;
+  align-items: center;
   position: relative;
-  padding: 20px 24px 18px;
+  padding: 32px 24px;
 }
 
 .login-container {
   width: 100%;
   max-width: 560px;
+  display: grid;
+  justify-items: center;
 }
 
 .login-back {
@@ -22,20 +24,21 @@
 }
 
 .login-logo {
+  width: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 150px;
-  margin-bottom: 10px;
+  height: 108px;
+  margin-bottom: 14px;
 }
 
 .login-logo img {
-  width: 320px;
-  height: auto;
+  width: auto;
+  height: 104px;
   max-height: none;
   object-fit: contain;
   display: block;
-  transform: translateX(14px);
+  transform: none;
 }
 
 .login-card {
@@ -193,9 +196,20 @@
 }
 
 .login-footer {
-  margin: 20px 0 0;
+  width: 100%;
+  margin: 22px auto 0;
   color: #536d96;
   font-size: 16px;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  line-height: 1.35;
+}
+
+.login-footer span:last-child {
+  display: inline-block;
   text-align: center;
 }
 
@@ -208,6 +222,7 @@
 @media (max-width: 620px) {
   .login-page {
     padding: 18px 16px 20px;
+    align-items: flex-start;
   }
 
   .login-back {
@@ -217,13 +232,14 @@
   }
 
   .login-logo {
-    height: 118px;
-    margin-bottom: 8px;
+    height: 92px;
+    margin-bottom: 10px;
   }
 
   .login-logo img {
-    width: 240px;
-    transform: translateX(10px);
+    width: auto;
+    height: 88px;
+    transform: none;
   }
 
   .login-card {
@@ -250,5 +266,9 @@
 
   .login-submit {
     height: 56px;
+  }
+
+  .login-footer {
+    font-size: 14px;
   }
 }

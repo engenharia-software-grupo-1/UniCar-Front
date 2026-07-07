@@ -123,7 +123,8 @@ function Login() {
         </div>
 
         <p className="login-footer">
-          🔒 Apenas estudantes com vínculo ativo na UFCG
+          <span aria-hidden="true">🔒</span>
+          <span>Apenas estudantes com vínculo ativo na UFCG</span>
         </p>
       </section>
     </main>

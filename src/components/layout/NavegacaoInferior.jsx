@@ -1,9 +1,9 @@
 import { NavLink } from 'react-router-dom';
-import { Car, Home, PlusCircle, Search, User } from 'lucide-react';
+import { Home, PlusCircle, Route, Search, User } from 'lucide-react';
 import './NavegacaoInferior.css';
 
 // Barra de navegação inferior compartilhada por todo o fluxo autenticado.
-// O item "Minhas" leva sempre para a listagem de caronas do motorista.
+// O item "Caronas" leva sempre para a listagem de caronas do motorista.
 export default function NavegacaoInferior() {
   return (
     <nav className="nav-inferior" aria-label="Navegação principal">
@@ -25,8 +25,8 @@ export default function NavegacaoInferior() {
       </NavLink>
 
       <NavLink to="/minhas-caronas">
-        <Car size={24} />
-        Minhas
+        <Route size={24} />
+        Caronas
       </NavLink>
 
       <NavLink to="/perfil">

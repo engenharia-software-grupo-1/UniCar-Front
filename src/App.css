@@ -53,7 +53,7 @@
 .cabecalho {
   position: sticky;
   top: 0;
-  z-index: 20;
+  z-index: 50;
   background: oklch(0.985 0.005 250 / 82%);
   border-bottom: 1px solid var(--line);
   backdrop-filter: blur(16px);
@@ -65,7 +65,7 @@
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
   column-gap: 36px;
-  min-height: 100px;
+  min-height: 64px;
 }
 
 .marcaCabecalho {
@@ -74,27 +74,27 @@
   justify-self: start;
   color: var(--navy);
   width: 220px;
-  height: 96px;
+  height: 64px;
   overflow: visible;
 }
 
 .marcaCabecalho img {
-  width: 220px;
+  width: auto;
   max-width: none;
-  height: auto;
+  height: 52px;
   object-fit: contain;
   object-position: left center;
-  transform: translateY(4px) scale(1.08);
+  transform: none;
   transform-origin: left center;
 }
 
 .navegacao {
   display: flex;
   align-items: center;
-  gap: 40px;
+  gap: 32px;
   color: #64708a;
-  font-size: 16px;
-  font-weight: 500;
+  font-size: 0.92rem;
+  font-weight: 700;
   font-family: var(--fonte-prototipo);
 }
 
@@ -128,13 +128,13 @@
 }
 
 .botaoCadastro {
-  min-width: 124px;
-  min-height: 45px;
-  padding-inline: 20px;
-  border-radius: 18px;
+  min-width: 96px;
+  min-height: 40px;
+  padding-inline: 16px;
+  border-radius: 10px;
   background: var(--navy-ink);
   color: oklch(0.985 0.005 250) !important;
-  font-size: 16px;
+  font-size: 0.9rem;
   font-weight: 700;
   font-family: var(--fonte-prototipo);
 }
@@ -164,6 +164,18 @@
   box-shadow: 0 12px 24px oklch(0.18 0.06 265 / 18%);
 }
 
+.acoesCabecalho .botaoCadastro {
+  border: 1px solid rgba(7, 19, 43, 0.12);
+  background: #07132b;
+  color: #ffffff !important;
+  box-shadow: none;
+}
+
+.acoesCabecalho .botaoCadastro:hover {
+  background: #0b1f3b;
+  color: #ffffff !important;
+}
+
 .unicar-button--small,
 .botaoPequeno {
   min-height: 40px;
@@ -190,21 +202,49 @@
 }
 
 .unicar-hero {
+  position: relative;
   overflow: hidden;
   background:
-    radial-gradient(circle at 16% 10%, oklch(0.35 0.15 265 / 75%), transparent 24rem),
-    radial-gradient(circle at 75% 42%, oklch(0.7 0.16 50 / 8%), transparent 20rem),
-    linear-gradient(115deg, oklch(0.25 0.13 265) 0%, oklch(0.18 0.1 265) 46%, oklch(0.12 0.06 265) 100%);
+    radial-gradient(circle at 92% 102%, rgba(244, 122, 34, 0.16), transparent 28rem),
+    radial-gradient(circle at -4% -10%, rgba(255, 255, 255, 0.08), transparent 24rem),
+    linear-gradient(115deg, var(--navy) 0%, var(--navy-deep) 52%, var(--navy-ink) 100%);
   color: oklch(0.985 0.005 250);
 }
 
+.unicar-hero::before,
+.unicar-hero::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+}
+
+.unicar-hero::before {
+  top: 0;
+  right: 0;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(270deg, rgba(255, 255, 255, 0.055), transparent);
+}
+
+.unicar-hero::after {
+  width: 28rem;
+  height: 28rem;
+  right: -6rem;
+  bottom: -6rem;
+  border-radius: 50%;
+  background: rgba(244, 122, 34, 0.15);
+  filter: blur(64px);
+}
+
 .unicar-hero__grid {
+  position: relative;
+  z-index: 1;
   display: grid;
-  grid-template-columns: minmax(500px, 0.9fr) minmax(550px, 1.1fr);
+  grid-template-columns: minmax(500px, 1fr) minmax(480px, 1fr);
   align-items: center;
-  gap: 48px;
-  min-height: 810px;
-  padding: 86px 0 106px;
+  gap: 64px;
+  min-height: 760px;
+  padding: 96px 0 118px;
 }
 
 .unicar-hero__copy {
@@ -216,13 +256,15 @@
   align-items: center;
   gap: 8px;
   margin-bottom: 28px;
-  padding: 6px 13px;
+  padding: 7px 13px;
   border: 1px solid rgba(255, 255, 255, 0.22);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.86);
+  background: rgba(255, 255, 255, 0.055);
+  color: #f47a22;
   font-size: 0.76rem;
-  font-weight: 600;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 .unicar-hero h1,
@@ -237,9 +279,9 @@
 }
 
 .unicar-hero h1 {
-  max-width: 560px;
-  font-size: clamp(3.25rem, 4.35vw, 3.75rem);
-  line-height: 1.06;
+  max-width: 620px;
+  font-size: clamp(3.4rem, 5vw, 4.55rem);
+  line-height: 1.08;
 }
 
 .unicar-hero h1 .unicar-highlight {
@@ -252,10 +294,10 @@
 
 .unicar-hero__copy > p {
   max-width: 560px;
-  margin: 26px 0 34px;
-  color: oklch(1 0 0 / 72%);
-  font-size: 1.14rem;
-  line-height: 1.55;
+  margin: 28px 0 34px;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 1.12rem;
+  line-height: 1.65;
   letter-spacing: 0.01em;
 }
 
@@ -264,17 +306,18 @@
 }
 
 .unicar-actions .unicar-button {
-  min-width: 228px;
-  min-height: 62px;
+  min-width: 214px;
+  min-height: 52px;
   padding-inline: 28px;
-  border-radius: 16px;
-  font-size: 1.02rem;
+  border-radius: 10px;
+  font-size: 1rem;
   font-weight: 800;
 }
 
 .unicar-actions .unicar-button--orange {
   background: #f47a22;
   color: #07132b;
+  box-shadow: 0 18px 36px rgba(244, 122, 34, 0.2);
 }
 
 .unicar-actions .unicar-button--orange:hover {
@@ -283,230 +326,204 @@
 
 .unicar-actions .unicar-button--ghost {
   min-width: 210px;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.055);
   color: #ffffff;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+  box-shadow: none;
 }
 
 .unicar-stats {
-  flex-wrap: wrap;
-  gap: 18px 24px;
-  max-width: 470px;
-  margin-top: 40px;
-  color: oklch(1 0 0 / 60%);
-  font-size: 0.88rem;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  max-width: 560px;
+  margin-top: 44px;
+  padding-top: 28px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.52);
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
 .unicar-stats span {
-  flex: 0 0 auto;
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  padding-right: 20px;
+  margin-right: 20px;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  overflow-wrap: anywhere;
+}
+
+.unicar-stats span:last-child {
+  padding-right: 0;
+  margin-right: 0;
+  border-right: 0;
 }
 
 .unicar-stats strong {
-  display: inline;
-  margin-right: 4px;
-  color: oklch(1 0 0);
-  font-size: 1.25rem;
-  font-weight: 800;
+  display: block;
+  margin-right: 0;
+  color: #ffffff;
+  font-size: 1.55rem;
+  font-weight: 900;
+  letter-spacing: 0;
+  line-height: 1;
 }
 
 .unicar-hero__visual {
   position: relative;
   display: grid;
   place-items: center;
-  min-height: 620px;
+  min-height: 560px;
   isolation: isolate;
-  transform: translateX(18px);
-}
-
-.unicar-hero__visual::before {
-  content: "";
-  position: absolute;
-  width: 548px;
-  height: 548px;
-  border-radius: 50%;
-  background:
-    radial-gradient(circle, oklch(1 0 0 / 2%) 0 52%, transparent 53%),
-    radial-gradient(circle, oklch(1 0 0 / 12%) 0 1px, transparent 1px);
-  background-size: auto, 28px 28px;
-  opacity: 0.18;
-  z-index: -1;
-}
-
-.unicar-orbit {
-  position: absolute;
-  border-radius: 50%;
-}
-
-.unicar-orbit--outer {
-  width: 548px;
-  height: 548px;
-  border: 1px solid oklch(1 0 0 / 7%);
-}
-
-.unicar-orbit--inner {
-  width: 448px;
-  height: 448px;
-  border: 1px dashed oklch(1 0 0 / 10%);
-  animation: unicar-spin 60s linear infinite;
-}
-
-.unicar-logo-orb {
-  position: relative;
-  z-index: 1;
-  display: grid;
-  place-items: center;
-  width: 506px;
-  height: 506px;
-  border: 0;
-  border-radius: 50%;
-  background: oklch(1 0 0);
-  box-shadow:
-    0 34px 94px oklch(0 0 0 / 32%),
-    0 0 0 1px oklch(1 0 0 / 18%);
   transform: none;
 }
 
-.unicar-logo-orb::before {
-  content: "";
-  position: absolute;
-  inset: -52px;
-  z-index: -1;
-  border-radius: 50%;
-  background: radial-gradient(circle, oklch(0.7 0.16 50 / 18%), transparent 64%);
-  filter: blur(28px);
-}
-
-.unicar-logo-orb::after {
-  content: none;
-}
-
-.unicar-logo-orb img {
+.unicar-visual-card {
   position: relative;
-  z-index: 1;
-  width: 304px;
-  height: auto;
-  object-fit: contain;
-  filter: drop-shadow(0 14px 24px oklch(0.18 0.06 265 / 16%));
-}
-
-.unicar-info-badge {
-  position: absolute;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  width: 200px;
-  min-height: 68px;
-  padding: 12px 16px;
-  border: 0;
-  border-radius: 16px;
-  background: oklch(1 0 0);
-  color: var(--navy);
-  box-shadow: 0 20px 42px oklch(0 0 0 / 20%);
-}
-
-.unicar-info-badge__mark {
+  width: 100%;
+  aspect-ratio: 1;
   display: grid;
   place-items: center;
-  flex: 0 0 auto;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  background: var(--gold);
-  color: var(--navy);
-  font-size: 0.88rem;
-  font-weight: 800;
 }
 
-.unicar-info-badge span {
-  display: block;
-  color: var(--muted);
-  font-size: 0.63rem;
-  font-weight: 800;
-  letter-spacing: 0.07em;
+.unicar-visual-card__tilt {
+  position: absolute;
+  inset: 0;
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.055);
+  transform: rotate(3deg) scale(0.95);
+}
+
+.unicar-visual-card__surface {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: 28px;
+  background: #ffffff;
+  color: #07132b;
+  box-shadow:
+    0 32px 90px rgba(0, 0, 0, 0.28),
+    0 1px 0 rgba(255, 255, 255, 0.8) inset;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px;
+}
+
+.unicar-visual-card__surface::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 50% 42%, rgba(7, 19, 43, 0.045), transparent 32%),
+    radial-gradient(circle at 76% 20%, rgba(244, 122, 34, 0.08), transparent 28%);
+  pointer-events: none;
+}
+
+.unicar-brand-mark {
+  position: relative;
+  z-index: 2;
+  width: 112px;
+  height: 112px;
+  margin-bottom: 30px;
+  display: grid;
+  place-items: center;
+}
+
+.unicar-brand-mark__circle,
+.unicar-brand-mark__pulse {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+}
+
+.unicar-brand-mark__pulse {
+  background: #f47a22;
+  opacity: 0.18;
+  animation: unicar-pulse 2.4s ease-out infinite;
+}
+
+.unicar-brand-mark__circle {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  background: #07132b;
+  box-shadow: 0 24px 56px rgba(7, 19, 43, 0.28);
+}
+
+.unicar-brand-mark__circle .icone {
+  width: 48px;
+  height: 48px;
+  color: #f47a22;
+}
+
+.unicar-visual-card__title {
+  position: relative;
+  z-index: 2;
+  color: #07132b;
+  font-size: 3.2rem;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+.unicar-visual-card__title span {
+  color: #f47a22;
+}
+
+.unicar-visual-card__surface > p {
+  position: relative;
+  z-index: 2;
+  margin: 10px 0 0;
+  color: #64748b;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
 }
 
-.unicar-info-badge strong {
-  display: block;
-  margin-top: 2px;
+.unicar-availability-card {
+  position: absolute;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  left: 32px;
+  bottom: 32px;
+  gap: 10px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: #ffffff;
+  border: 1px solid #eef2f7;
+  color: #1f2937;
+  box-shadow: 0 18px 42px rgba(7, 19, 43, 0.16);
+}
+
+.unicar-availability-card span {
+  position: relative;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: #22c55e;
+}
+
+.unicar-availability-card span::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: inherit;
+  animation: unicar-ping 1.6s ease-out infinite;
+}
+
+.unicar-availability-card strong {
   font-size: 0.78rem;
   font-weight: 800;
-  line-height: 1.25;
-}
-
-.unicar-badge--left {
-  top: 110px;
-  left: 10px;
-  width: 202px;
-  transform: rotate(-8deg);
-}
-
-.unicar-badge--right {
-  top: 300px;
-  right: 0;
-  width: 146px;
-  min-height: 84px;
-  gap: 4px;
-  padding: 11px 14px 10px;
-  transform: rotate(5deg);
-}
-
-.unicar-badge--right .unicar-info-badge__mark {
-  display: block;
-  width: auto;
-  height: auto;
-  background: transparent;
-  color: var(--navy);
-  font-size: 1.5rem;
-  line-height: 1;
-  font-weight: 800;
-}
-
-.unicar-badge--right span {
-  margin-top: 5px;
-  font-size: 0.56rem;
-  line-height: 1.1;
-}
-
-.unicar-badge--right strong {
-  margin-top: 2px;
-  font-size: 0.66rem;
-  line-height: 1.1;
-}
-
-.unicar-badge--bottom {
-  bottom: 54px;
-  left: 34px;
-  width: 238px;
-  min-height: 68px;
-  align-items: center;
-  padding: 12px 16px 12px 18px;
-  border-radius: 18px;
-  transform: rotate(-3deg);
-}
-
-.unicar-badge--bottom .unicar-info-badge__mark {
-  background: var(--navy);
-  color: var(--gold);
-}
-
-.unicar-badge--bottom > div:last-child {
-  display: grid;
-  gap: 3px;
-}
-
-.unicar-badge--bottom span {
-  max-width: none;
-  font-size: 0.57rem;
-  line-height: 1.2;
-  white-space: nowrap;
-}
-
-.unicar-badge--bottom strong {
-  max-width: none;
-  font-size: 0.7rem;
 }
 
 .unicar-section {
@@ -1056,45 +1073,47 @@
 .unicar-cta {
   display: grid;
   justify-items: center;
-  gap: 20px;
-  padding: 78px 32px 84px;
-  border-radius: 28px;
+  gap: 14px;
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 46px 28px 52px;
+  border-radius: 22px;
   background: linear-gradient(110deg, #172b91 0%, #03072e 72%);
   color: #ffffff;
   text-align: center;
 }
 
 .unicar-cta h2 {
-  max-width: 980px;
+  max-width: 760px;
   color: #ffffff;
-  font-size: clamp(2.35rem, 4.5vw, 4rem);
+  font-size: clamp(2rem, 3.4vw, 3rem);
   line-height: 1.08;
   font-weight: 900;
 }
 
 .unicar-cta p {
-  max-width: 630px;
+  max-width: 560px;
   margin: 0;
   color: rgba(255, 255, 255, 0.7);
-  font-size: 1.1rem;
+  font-size: 1rem;
   line-height: 1.45;
   font-weight: 700;
 }
 
 .unicar-cta .iconeGrande {
-  width: 44px;
-  height: 44px;
+  width: 82px;
+  height: 82px;
   color: #f47a22;
 }
 
 .unicar-cta .unicar-button {
-  min-width: 250px;
-  min-height: 64px;
-  margin-top: 16px;
-  border-radius: 16px;
+  min-width: 200px;
+  min-height: 52px;
+  margin-top: 10px;
+  border-radius: 12px;
   background: #f47a22;
   color: #07132b;
-  font-size: 1.05rem;
+  font-size: 0.98rem;
   font-weight: 900;
 }
 
@@ -1122,12 +1141,12 @@
 }
 
 .marcaRodape img {
-  width: 220px;
+  width: auto;
   max-width: none;
-  height: auto;
+  height: 76px;
   object-fit: contain;
   object-position: left center;
-  transform: translateY(4px) scale(1.08);
+  transform: none;
   transform-origin: left center;
 }
 
@@ -1157,6 +1176,32 @@
 @keyframes unicar-spin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+@keyframes unicar-pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.22;
+  }
+
+  70%,
+  100% {
+    transform: scale(1.34);
+    opacity: 0;
+  }
+}
+
+@keyframes unicar-ping {
+  0% {
+    transform: scale(1);
+    opacity: 0.65;
+  }
+
+  80%,
+  100% {
+    transform: scale(2.25);
+    opacity: 0;
   }
 }
 
@@ -1208,8 +1253,8 @@
   }
 
   .marcaCabecalho img {
-    width: 180px;
-    height: auto;
+    width: auto;
+    height: 62px;
   }
 
   .acoesCabecalho {

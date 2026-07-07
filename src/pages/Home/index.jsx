@@ -6,7 +6,6 @@ import {
   GraduationCap,
   MapPin,
   Search,
-  Shield,
 } from '../../components/common/Icone.jsx';
 import TituloSecao from '../../components/common/TituloSecao.jsx';
 import Rodape from '../../components/layout/Rodape.jsx';
@@ -14,7 +13,6 @@ import Cabecalho from '../../components/layout/Cabecalho.jsx';
 import promoImg from '../../assets/promo-1.webp';
 import promoImgTwo from '../../assets/promo-3.webp';
 import promoImgThree from '../../assets/promo-4.webp';
-import Logo from '../../components/common/Logo.jsx';
 import {
   depoimentos,
   exemplosDeCaronas,
@@ -76,31 +74,30 @@ function Hero() {
           </div>
         </div>
         <div className="unicar-hero__visual" aria-hidden="true">
-          <div className="unicar-orbit unicar-orbit--outer" />
-          <div className="unicar-orbit unicar-orbit--inner" />
-          <div className="unicar-logo-orb">
-            <Logo alt="" />
+          <div className="unicar-visual-card">
+            <div className="unicar-visual-card__tilt" />
+            <div className="unicar-visual-card__surface">
+              <div className="unicar-brand-mark">
+                <div className="unicar-brand-mark__pulse" />
+                <div className="unicar-brand-mark__circle">
+                  <Car className="icone" />
+                </div>
+              </div>
+
+              <div className="unicar-visual-card__title">
+                Uni<span>Car</span>
+              </div>
+              <p>Campus Connect</p>
+
+              <div className="unicar-availability-card">
+                <span />
+                <strong>1 vaga disponível às 18h</strong>
+              </div>
+            </div>
           </div>
-          <InfoBadge className="unicar-badge--left" value="178" title="Pesquisa real" text="Estudantes ouvidos" />
-          <InfoBadge className="unicar-badge--right" value="80%" title="Interesse de uso" text="Querem usar o app" />
-          <InfoBadge className="unicar-badge--bottom" icon={Shield} title="Validação institucional" text="100% perfis validados" />
         </div>
       </div>
     </section>
-  );
-}
-
-function InfoBadge({ className = '', value, title, text, icon: BadgeIcon }) {
-  return (
-    <div className={`unicar-info-badge ${className}`}>
-      <div className="unicar-info-badge__mark">
-        {BadgeIcon ? <BadgeIcon className="icone" /> : value}
-      </div>
-      <div>
-        <span>{title}</span>
-        <strong>{text}</strong>
-      </div>
-    </div>
   );
 }
 
@@ -132,8 +129,8 @@ function SearchPreview() {
         <div>
           <TituloSecao title="Encontre a carona ideal" text="Filtre por campus, horário e disponibilidade de vagas." />
           <form className="unicar-form">
-            <Campo label="De onde" placeholder="Seu bairro" icon={MapPin} />
-            <Campo label="Para onde" placeholder="Campus / faculdade" icon={GraduationCap} />
+            <Campo label="De onde" placeholder="Catolé, Centro, Malvinas..." icon={MapPin} />
+            <Campo label="Para onde" placeholder="Campus Sede, HU, CCBS..." icon={GraduationCap} />
             <div className="unicar-form__row">
               <Campo label="Data" placeholder="Hoje" />
               <Campo label="Horário" placeholder="07:00" />

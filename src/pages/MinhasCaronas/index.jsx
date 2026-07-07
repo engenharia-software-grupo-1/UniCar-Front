@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { ArrowRight, Bell, Pencil, Play, X } from 'lucide-react';
+import { ArrowRight, Bell, Pencil, Play, X, Square} from 'lucide-react';
 import Logo from '../../components/common/Logo.jsx';
 import NavegacaoInferior from '../../components/layout/NavegacaoInferior.jsx';
 import Confirmacao from '../../components/common/Confirmacao.jsx';
-import { cancelarCarona, iniciarCarona, listarMinhasCaronas } from '../../services/caronaService.js';
+import { cancelarCarona, iniciarCarona, finalizarCarona, listarMinhasCaronas } from '../../services/caronaService.js';
 import './style.css';
 
 const STATUS = {
@@ -61,6 +61,8 @@ function MinhasCaronas() {
   const [cancelando, setCancelando] = useState(false);
   const [caronaParaIniciar, setCaronaParaIniciar] = useState(null);
   const [iniciando, setIniciando] = useState(false);
+  const [caronaParaFinalizar, setCaronaParaFinalizar] = useState(null);
+  const [finalizando, setFinalizando] = useState(false);
   // Feedback vindo de outra tela (ex.: publicação de carona na página "Ofertar
   // carona"), lido do state de navegação já no primeiro render.
   const [mensagemSucesso, setMensagemSucesso] = useState(
@@ -140,7 +142,12 @@ function MinhasCaronas() {
   function confirmaIniciarCarona(carona) {
     setMensagemSucesso('');
     setCaronaParaIniciar(carona);
-}
+  }
+
+  function confirmaFinalizarCarona(carona) {
+    setMensagemSucesso('');
+    setCaronaParaFinalizar(carona);
+  }
 
   async function confirmarCancelamento() {
     if (!caronaParaCancelar) {
@@ -201,7 +208,37 @@ function MinhasCaronas() {
     } finally {
         setIniciando(false);
     }
-}
+  }
+
+  // TODO (para quando o Histórico for implementado)
+  // Após a implementação da tela de Histórico, redirecionar o motorista
+  // para avaliar os passageiros.
+  async function confirmarFinalizacao() {
+    if (!caronaParaFinalizar) return;
+
+    try {
+        setFinalizando(true);
+        setErro('');
+
+        const atualizada = await finalizarCarona(caronaParaFinalizar.id);
+
+        setCaronas(prev =>
+            prev.map(carona =>
+                carona.id === caronaParaFinalizar.id
+                    ? { ...carona, status: atualizada.status }
+                    : carona
+            )
+        );
+
+        setMensagemSucesso('Carona finalizada com sucesso. Para fazer suas avaliações, siga para Histórico de Caronas.');
+
+        setCaronaParaFinalizar(null);
+    } catch (error) {
+        setErro(error.message || 'Não foi possível finalizar a carona.');
+    } finally {
+        setFinalizando(false);
+    }
+  }
 
   return (
     <main className="caronas-page">
@@ -255,6 +292,7 @@ function MinhasCaronas() {
             onTentarNovamente={carregar}
             onCancelar={iniciarCancelamento}
             onIniciar={confirmaIniciarCarona}
+            onFinalizar={confirmaFinalizarCarona}
           />
         ) : (
           <div className="caronas-vazio">
@@ -298,12 +336,29 @@ function MinhasCaronas() {
         onCancel={() => setCaronaParaIniciar(null)}
       />
 
+      <Confirmacao
+        open={Boolean(caronaParaFinalizar)}
+        title="Finalizar carona"
+        message={
+          caronaParaFinalizar
+            ? `<strong>Deseja confirmar o fim da viagem de ${caronaParaFinalizar.origem} para ${caronaParaFinalizar.destino}?</strong>
+              Após finalizar, será possível realizar as avaliações.`
+            : ''
+        }
+        confirmLabel="Finalizar carona"
+        cancelLabel="Cancelar"
+        loadingLabel="Finalizando..."
+        loading={finalizando}
+        onConfirm={confirmarFinalizacao}
+        onCancel={() => setCaronaParaFinalizar(null)}
+      />
+
       <NavegacaoInferior />
     </main>
   );
 }
 
-function ConteudoMotorista({ carregando, erro, caronas, onTentarNovamente, onCancelar, onIniciar }) {
+function ConteudoMotorista({ carregando, erro, caronas, onTentarNovamente, onCancelar, onIniciar, onFinalizar }) {
   if (carregando) {
     return <p className="caronas-loading">Carregando suas caronas...</p>;
   }
@@ -332,14 +387,14 @@ function ConteudoMotorista({ carregando, erro, caronas, onTentarNovamente, onCan
     <ul className="caronas-lista">
       {caronas.map((carona) => (
         <li key={carona.id}>
-          <CaronaCard carona={carona} onCancelar={onCancelar} onIniciar={onIniciar} />
+          <CaronaCard carona={carona} onCancelar={onCancelar} onIniciar={onIniciar} onFinalizar={onFinalizar} />
         </li>
       ))}
     </ul>
   );
 }
 
-function CaronaCard({ carona, onCancelar, onIniciar }) {
+function CaronaCard({ carona, onCancelar, onIniciar, onFinalizar }) {
   const status = STATUS[carona.status] || {
     rotulo: carona.status || 'Carona',
     classe: 'aguardando',
@@ -349,8 +404,8 @@ function CaronaCard({ carona, onCancelar, onIniciar }) {
     carona.passageirosConfirmados !== null && carona.quantidadeVagas !== null;
 
   const podeCancelar = carona.status === 'CRIADA';
-
   const podeIniciar = carona.status === 'CRIADA';
+  const podeFinalizar = carona.status === 'EM_ANDAMENTO';
 
   return (
     <article className="carona-card">
@@ -374,40 +429,56 @@ function CaronaCard({ carona, onCancelar, onIniciar }) {
       )}
 
       <div className="carona-card__acoes">
-        <button
+        {podeIniciar && (
+          <button
             type="button"
             className="carona-card__iniciar"
-            disabled={!podeIniciar}
-            onClick={podeIniciar ? () => onIniciar(carona) : undefined}
-        >
-            <Play size={18}/>
+            onClick={() => onIniciar(carona)}
+          >
+            <Play size={18} />
             Iniciar
-        </button>
+          </button>
+        )}
 
-        <Link
-          to={`/minhas-caronas/${carona.id}/editar`}
-          className={`carona-card__editar ${podeCancelar ? '' : 'is-disabled'}`}
-          aria-disabled={!podeCancelar}
-          tabIndex={podeCancelar ? undefined : -1}
-          onClick={(event) => {
-            if (!podeCancelar) {
-              event.preventDefault();
-            }
-          }}
-          aria-label="Editar carona"
-        >
-          <Pencil size={18} aria-hidden="true" />
-        </Link>
+        {podeFinalizar && (
+          <button
+            type="button"
+            className="carona-card__finalizar"
+            onClick={() => onFinalizar(carona)}
+          >
+            <Square size={18} />
+            Finalizar carona
+          </button>
+        )}
 
-        <button
-          type="button"
-          className="carona-card__cancelar"
-          disabled={!podeCancelar}
-          aria-label="Cancelar carona"
-          onClick={podeCancelar ? () => onCancelar(carona) : undefined}
-        >
-          <X size={18} aria-hidden="true" />
-        </button>
+      {podeCancelar && (
+        <>
+          <Link
+            to={`/minhas-caronas/${carona.id}/editar`}
+            className={`carona-card__editar ${podeCancelar ? '' : 'is-disabled'}`}
+            aria-disabled={!podeCancelar}
+            tabIndex={podeCancelar ? undefined : -1}
+            onClick={(event) => {
+              if (!podeCancelar) {
+                event.preventDefault();
+              }
+            }}
+            aria-label="Editar carona"
+          >
+            <Pencil size={18} aria-hidden="true" />
+          </Link>
+
+          <button
+            type="button"
+            className="carona-card__cancelar"
+            disabled={!podeCancelar}
+            aria-label="Cancelar carona"
+            onClick={podeCancelar ? () => onCancelar(carona) : undefined}
+          >
+            <X size={18} aria-hidden="true" />
+          </button>
+        </>
+      )}
       </div>
 
       <Link to={`/minhas-caronas/${carona.id}`} className="carona-card__detalhes">

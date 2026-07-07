@@ -144,7 +144,7 @@ export async function cancelarCarona(id) {
 }
 
 // Inicia uma carona do motorista (PATCH /caronas/{id}/iniciar) — contrato
-// US7-BACK-08. Sem corpo; devolve { id, status: 'EM ANDAMENTO' }.
+// US7-BACK-08. Sem corpo; devolve { id, status: 'EM_ANDAMENTO' }.
 export async function iniciarCarona(id) {
   if (shouldUseLocalDataMocks()) {
     const caronas = carregarCaronasMock();
@@ -159,6 +159,29 @@ export async function iniciarCarona(id) {
   }
 
   return apiRequest(`/caronas/${id}/iniciar`, {
+    method: 'PATCH',
+  });
+}
+
+// Inicia uma carona do motorista (PATCH /caronas/{id}/finalizar) — contrato
+// US7-BACK-09. Sem corpo; devolve { id, status: 'FINALIZADA' }.
+export async function finalizarCarona(id) {
+  if (shouldUseLocalDataMocks()) {
+    const caronas = carregarCaronasMock();
+    const carona = caronas.find((item) => item.id === Number(id));
+
+    if (carona) {
+      carona.status = 'FINALIZADA';
+      salvarCaronasMock(caronas);
+    }
+
+    return {
+      id: Number(id),
+      status: 'FINALIZADA',
+    };
+  }
+
+  return apiRequest(`/caronas/${id}/finalizar`, {
     method: 'PATCH',
   });
 }

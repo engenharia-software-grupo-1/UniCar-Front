@@ -205,6 +205,26 @@
   cursor: pointer;
 }
 
+.carona-card__finalizar {
+  flex: 1;
+  min-height: 52px;
+  border: 0;
+  border-radius: 14px;
+  background: #E67E22;
+  color: #0b1531;
+  font-size: 16px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.carona-card__finalizar:hover {
+  background: #c1900e;
+}
+
 .carona-card__cancelar {
   width: 52px;
   min-height: 52px;

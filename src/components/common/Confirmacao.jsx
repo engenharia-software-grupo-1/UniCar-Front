@@ -1,4 +1,5 @@
 import './Confirmacao.css';
+import { Play } from 'lucide-react';
 
 export default function Confirmacao({
   open,
@@ -12,9 +13,7 @@ export default function Confirmacao({
   loading = false,
   danger = false,
 }) {
-  if (!open) {
-    return null;
-  }
+  if (!open) return null;
 
   return (
     <div
@@ -27,8 +26,21 @@ export default function Confirmacao({
         aria-modal="true"
         onClick={(event) => event.stopPropagation()}
       >
-        {title && <h2>{title}</h2>}
-        {message && <p>{message}</p>}
+        {!danger && (
+          <div className="confirmacaoTitulo">
+            <Play size={18} />
+            <h2>{title}</h2>
+          </div>
+        )}
+
+        {danger && <h2>{title}</h2>}
+
+        {message && (
+          <p
+            className="confirmacaoMensagem"
+            dangerouslySetInnerHTML={{ __html: message }}
+          />
+        )}
 
         <div className="confirmacaoBotoes">
           <button

@@ -4,7 +4,7 @@ import { ArrowRight, Bell, Pencil, Play, X } from 'lucide-react';
 import Logo from '../../components/common/Logo.jsx';
 import NavegacaoInferior from '../../components/layout/NavegacaoInferior.jsx';
 import Confirmacao from '../../components/common/Confirmacao.jsx';
-import { cancelarCarona, listarMinhasCaronas } from '../../services/caronaService.js';
+import { cancelarCarona, iniciarCarona, listarMinhasCaronas } from '../../services/caronaService.js';
 import './style.css';
 
 const STATUS = {
@@ -59,6 +59,8 @@ function MinhasCaronas() {
   const [erro, setErro] = useState('');
   const [caronaParaCancelar, setCaronaParaCancelar] = useState(null);
   const [cancelando, setCancelando] = useState(false);
+  const [caronaParaIniciar, setCaronaParaIniciar] = useState(null);
+  const [iniciando, setIniciando] = useState(false);
   // Feedback vindo de outra tela (ex.: publicação de carona na página "Ofertar
   // carona"), lido do state de navegação já no primeiro render.
   const [mensagemSucesso, setMensagemSucesso] = useState(
@@ -135,6 +137,11 @@ function MinhasCaronas() {
     setCaronaParaCancelar(carona);
   }
 
+  function confirmaIniciarCarona(carona) {
+    setMensagemSucesso('');
+    setCaronaParaIniciar(carona);
+}
+
   async function confirmarCancelamento() {
     if (!caronaParaCancelar) {
       return;
@@ -163,6 +170,38 @@ function MinhasCaronas() {
       setCancelando(false);
     }
   }
+
+  async function confirmarInicio() {
+    if (!caronaParaIniciar) {
+        return;
+    }
+
+    try {
+        setIniciando(true);
+        setErro('');
+
+        const atualizada = await iniciarCarona(caronaParaIniciar.id);
+
+        setCaronas((prev) =>
+            prev.map((carona) =>
+                carona.id === caronaParaIniciar.id
+                    ? {
+                          ...carona,
+                          status: atualizada.status,
+                      }
+                    : carona,
+            ),
+        );
+
+        setMensagemSucesso('Carona iniciada com sucesso.');
+
+        setCaronaParaIniciar(null);
+    } catch (error) {
+        setErro(error.message || 'Não foi possível iniciar a carona.');
+    } finally {
+        setIniciando(false);
+    }
+}
 
   return (
     <main className="caronas-page">
@@ -215,6 +254,7 @@ function MinhasCaronas() {
             caronas={caronasVisiveis(caronas)}
             onTentarNovamente={carregar}
             onCancelar={iniciarCancelamento}
+            onIniciar={confirmaIniciarCarona}
           />
         ) : (
           <div className="caronas-vazio">
@@ -241,12 +281,29 @@ function MinhasCaronas() {
         onCancel={() => setCaronaParaCancelar(null)}
       />
 
+      <Confirmacao
+        open={Boolean(caronaParaIniciar)}
+        title="Iniciar carona"
+        message={
+          caronaParaIniciar
+            ? `<strong>Deseja confirmar o início da viagem de ${caronaParaIniciar.origem} para ${caronaParaIniciar.destino}?</strong>
+              Os passageiros serão notificados e o status será atualizado para "Em andamento".`
+            : ''
+        }
+        confirmLabel="Confirmar início"
+        cancelLabel="Cancelar"
+        loadingLabel="Iniciando..."
+        loading={iniciando}
+        onConfirm={confirmarInicio}
+        onCancel={() => setCaronaParaIniciar(null)}
+      />
+
       <NavegacaoInferior />
     </main>
   );
 }
 
-function ConteudoMotorista({ carregando, erro, caronas, onTentarNovamente, onCancelar }) {
+function ConteudoMotorista({ carregando, erro, caronas, onTentarNovamente, onCancelar, onIniciar }) {
   if (carregando) {
     return <p className="caronas-loading">Carregando suas caronas...</p>;
   }
@@ -275,14 +332,14 @@ function ConteudoMotorista({ carregando, erro, caronas, onTentarNovamente, onCan
     <ul className="caronas-lista">
       {caronas.map((carona) => (
         <li key={carona.id}>
-          <CaronaCard carona={carona} onCancelar={onCancelar} />
+          <CaronaCard carona={carona} onCancelar={onCancelar} onIniciar={onIniciar} />
         </li>
       ))}
     </ul>
   );
 }
 
-function CaronaCard({ carona, onCancelar }) {
+function CaronaCard({ carona, onCancelar, onIniciar }) {
   const status = STATUS[carona.status] || {
     rotulo: carona.status || 'Carona',
     classe: 'aguardando',
@@ -292,6 +349,8 @@ function CaronaCard({ carona, onCancelar }) {
     carona.passageirosConfirmados !== null && carona.quantidadeVagas !== null;
 
   const podeCancelar = carona.status === 'CRIADA';
+
+  const podeIniciar = carona.status === 'CRIADA';
 
   return (
     <article className="carona-card">
@@ -315,9 +374,14 @@ function CaronaCard({ carona, onCancelar }) {
       )}
 
       <div className="carona-card__acoes">
-        <button type="button" className="carona-card__iniciar" disabled>
-          <Play size={18} aria-hidden="true" />
-          Iniciar
+        <button
+            type="button"
+            className="carona-card__iniciar"
+            disabled={!podeIniciar}
+            onClick={podeIniciar ? () => onIniciar(carona) : undefined}
+        >
+            <Play size={18}/>
+            Iniciar
         </button>
 
         <Link

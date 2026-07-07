@@ -2,83 +2,133 @@
   position: fixed;
   inset: 0;
   z-index: 50;
-  background-color: rgba(15, 23, 42, 0.5);
+  background: rgba(0, 0, 0, .45);
+
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center;
+
   padding: 20px;
+
+  font-family: "Poppins", system-ui, sans-serif;
 }
 
 .confirmacaoCaixa {
   width: 100%;
-  max-width: 440px;
-  background-color: #ffffff;
-  border-radius: 18px;
-  padding: 28px;
-  box-shadow: 0 18px 45px rgba(15, 61, 94, 0.25);
+  max-width: 390px;
+
+  background: #fff;
+  border-radius: 22px;
+
+  padding: 24px;
+
+  box-shadow: 0 18px 45px rgba(15, 61, 94, .18);
 }
 
-.confirmacaoCaixa h2 {
-  margin: 0 0 10px;
+.confirmacaoTitulo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
   color: #0f3d5e;
-  font-size: 22px;
+
+  margin-bottom: 14px;
 }
 
-.confirmacaoCaixa p {
-  margin: 0 0 24px;
+.confirmacaoTitulo svg {
+  width: 18px;
+  height: 18px;
+}
+
+.confirmacaoTitulo h2,
+.confirmacaoCaixa h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.confirmacaoMensagem {
+  margin: 0;
+
   color: #475569;
-  line-height: 1.5;
+  line-height: 1.6;
+
+  font-size: 13px;
+  font-weight: 400;
+}
+
+.confirmacaoMensagem strong {
+  display: block;
+
+  font-size: 16px;
+  color: #1e293b;
+  font-weight: 600;
+
+  margin-bottom: 6px;
 }
 
 .confirmacaoBotoes {
+  margin-top: 24px;
+
   display: flex;
   gap: 12px;
-  justify-content: flex-end;
 }
 
 .confirmacaoBotoes button {
+  flex: 1;
+
   border: none;
-  border-radius: 10px;
-  padding: 12px 18px;
-  background-color: #0f3d5e;
-  color: #ffffff;
-  font-weight: 700;
+  border-radius: 12px;
+
+  padding: 12px 16px;
+
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+
   cursor: pointer;
-  transition: background-color 0.2s, opacity 0.2s;
 }
 
-.confirmacaoBotoes button:hover {
-  background-color: #0b2f49;
+.botaoSecundario {
+  background: white;
+  border: 1px solid #d6dce5 !important;
+  color: #334155;
 }
 
-.confirmacaoBotoes button:disabled {
-  opacity: 0.65;
-  cursor: not-allowed;
+.botaoSecundario:hover {
+  background: #f8fafc;
 }
 
-.confirmacaoBotoes .botaoSecundario {
-  background-color: #e2e8f0;
-  color: #1e293b;
+.confirmacaoBotoes button:not(.botaoSecundario):not(.botaoPerigo) {
+  background: #0f3d5e;
+  color: white;
 }
 
-.confirmacaoBotoes .botaoSecundario:hover {
-  background-color: #cbd5e1;
+.confirmacaoBotoes button:not(.botaoSecundario):not(.botaoPerigo):hover {
+  background: #0b2f49;
 }
 
-.confirmacaoBotoes .botaoPerigo {
-  background-color: #dc2626;
+.botaoPerigo {
+  background: #dc2626;
+  color: white;
 }
 
-.confirmacaoBotoes .botaoPerigo:hover {
-  background-color: #b91c1c;
+.botaoPerigo:hover {
+  background: #b91c1c;
 }
 
-@media (max-width: 700px) {
-  .confirmacaoBotoes {
-    flex-direction: column-reverse;
+@media (max-width:700px){
+
+  .confirmacaoCaixa{
+      border-radius:24px;
   }
 
-  .confirmacaoBotoes button {
-    width: 100%;
+  .confirmacaoBotoes{
+      flex-direction:column-reverse;
   }
+
+  .confirmacaoBotoes button{
+      width:100%;
+  }
+
 }

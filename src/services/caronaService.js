@@ -143,6 +143,26 @@ export async function cancelarCarona(id) {
   return apiRequest(`/caronas/${id}/cancelar`, { method: 'PATCH' });
 }
 
+// Inicia uma carona do motorista (PATCH /caronas/{id}/iniciar) — contrato
+// US7-BACK-08. Sem corpo; devolve { id, status: 'EM ANDAMENTO' }.
+export async function iniciarCarona(id) {
+  if (shouldUseLocalDataMocks()) {
+    const caronas = carregarCaronasMock();
+    const carona = caronas.find((item) => item.id === Number(id));
+
+    if (carona) {
+      carona.status = 'EM_ANDAMENTO';
+      salvarCaronasMock(caronas);
+    }
+
+    return { id: Number(id), status: 'EM_ANDAMENTO' };
+  }
+
+  return apiRequest(`/caronas/${id}/iniciar`, {
+    method: 'PATCH',
+  });
+}
+
 // Lista as caronas criadas pelo motorista autenticado. O GET /caronas/minhas
 // devolve poucos campos, então enriquecemos cada item com o GET /caronas/{id}
 // (em paralelo) para exibir ponto de encontro e contagem de passageiros.

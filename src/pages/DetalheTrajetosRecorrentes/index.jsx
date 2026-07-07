@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import Logo from '../../components/common/Logo';
 import {
+  ArrowLeft,
+  ArrowRight,
   MapPin,
   Clock,
   Users,
@@ -18,57 +18,45 @@ function DetalheTrajetoRecorrente() {
   const navigate = useNavigate();
   const { id } = useParams();
 
-  const [trajeto, setTrajeto] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    carregarTrajeto();
-  }, []);
-
-  function carregarTrajeto() {
-    const mock = {
-      id,
-      origem: 'Bodocongó',
-      enderecoOrigem: 'Rua Aprígio Veloso, Bodocongó - Campina Grande/PB',
-      destino: 'UFCG - Campus Sede',
-      enderecoDestino: 'Av. Aprígio Veloso, 882 - Universitário, Campina Grande/PB',
-      horario: '07:00',
-      vagas: 3,
-      preco: 5,
-      dias: ['Seg', 'Ter', 'Qua', 'Qui', 'Sex'],
-      quantidadeViagens: 42,
-      ultimaViagem: '02/07/2026',
-      historico: [
-        { id: 1, data: '02/07', horario: '07:02', passageiros: 3, status: 'Finalizada' },
-        { id: 2, data: '01/07', horario: '07:05', passageiros: 2, status: 'Finalizada' },
-        { id: 3, data: '27/06', horario: '07:10', passageiros: 1, status: 'Cancelada' },
-      ],
-    };
-
-    setTrajeto(mock);
-    setLoading(false);
-  }
-
-  if (loading) {
-    return (
-      <main className="detalhe-page">
-        <p>Carregando trajeto...</p>
-      </main>
-    );
-  }
+  const trajeto = {
+    id,
+    origem: 'Bodocongó',
+    enderecoOrigem: 'Rua Aprígio Veloso, Bodocongó - Campina Grande/PB',
+    destino: 'UFCG - Campus Sede',
+    enderecoDestino: 'Av. Aprígio Veloso, 882 - Universitário, Campina Grande/PB',
+    horario: '07:00',
+    vagas: 3,
+    preco: 5,
+    active: true,
+    dias: ['Seg', 'Ter', 'Qua', 'Qui', 'Sex'],
+    quantidadeViagens: 42,
+    ultimaViagem: '02/07/2026',
+    historico: [
+      { id: 1, data: '02/07', horario: '07:02', passageiros: 3, status: 'Finalizada' },
+      { id: 2, data: '01/07', horario: '07:05', passageiros: 2, status: 'Finalizada' },
+      { id: 3, data: '30/06', horario: '07:00', passageiros: 3, status: 'Finalizada' },
+      { id: 4, data: '27/06', horario: '07:10', passageiros: 1, status: 'Cancelada' },
+      { id: 5, data: '26/06', horario: '07:00', passageiros: 3, status: 'Finalizada' },
+      { id: 6, data: '25/06', horario: '07:04', passageiros: 2, status: 'Finalizada' },
+    ],
+  };
 
   return (
     <main className="detalhe-page">
       <header className="detalhe-header">
-        <Logo />
         <button className="voltar-btn" onClick={() => navigate('/trajetos-recorrentes')}>
-          ←
+          <ArrowLeft size={16} />
         </button>
 
-        <div>
+        <div className="detalhe-title">
           <h1>Detalhes da rota</h1>
-          <p>Rota #{trajeto.id}</p>
+          <p>Rota recorrente #{trajeto.id}</p>
         </div>
+
+        <span className={`badge-status ${trajeto.active ? 'ativo' : 'pausado'}`}>
+          <Repeat size={12} />
+          {trajeto.active ? 'Ativa' : 'Pausada'}
+        </span>
       </header>
 
       <section className="card-principal">
@@ -119,7 +107,8 @@ function DetalheTrajetoRecorrente() {
 
         <div className="metrica-card">
           <span><Calendar size={14} /> Última viagem</span>
-          <strong>{trajeto.ultimaViagem}</strong>
+          <strong>{trajeto.ultimaViagem.slice(0, 5)}</strong>
+          <small>{trajeto.ultimaViagem}</small>
         </div>
       </section>
 
@@ -131,7 +120,9 @@ function DetalheTrajetoRecorrente() {
           })
         }
       >
-        <RotateCcw size={14} /> Recriar viagem →
+        <RotateCcw size={16} />
+        Recriar viagem
+        <ArrowRight size={16} />
       </button>
 
       <section className="historico">
@@ -141,30 +132,32 @@ function DetalheTrajetoRecorrente() {
           <span>{trajeto.historico.length} registros</span>
         </div>
 
-        {trajeto.historico.map((v) => (
-          <div key={v.id} className="historico-item">
+        <div className="historico-lista">
+          {trajeto.historico.map((v) => (
+            <div key={v.id} className="historico-item">
 
-            <div className="historico-info">
-              <strong>
-                {v.data} • {v.horario}
-              </strong>
-              <p>
-                {v.status === 'Finalizada'
-                  ? `${v.passageiros} passageiro(s)`
-                  : 'Viagem cancelada'}
-              </p>
+              <div className={`historico-icon ${v.status === 'Finalizada' ? 'finalizada' : 'cancelada'}`}>
+                {v.status === 'Finalizada' ? <CheckCircle2 size={16} /> : <Repeat size={16} />}
+              </div>
+
+              <div className="historico-info">
+                <strong>
+                  {v.data} • {v.horario}
+                </strong>
+                <p>
+                  {v.status === 'Finalizada'
+                    ? `${v.passageiros} passageiro(s)`
+                    : 'Cancelada'}
+                </p>
+              </div>
+
+              <span className={`status ${v.status === 'Finalizada' ? 'finalizada' : 'cancelada'}`}>
+                {v.status.toLowerCase()}
+              </span>
+
             </div>
-
-            <span className={`status ${v.status === 'Finalizada' ? 'finalizada' : 'cancelada'}`}>
-              {v.status === 'Finalizada' ? (
-                <><CheckCircle2 size={12} /> Finalizada</>
-              ) : (
-                <><Repeat size={12} /> Cancelada</>
-              )}
-            </span>
-
-          </div>
-        ))}
+          ))}
+        </div>
 
       </section>
 

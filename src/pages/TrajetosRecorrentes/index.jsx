@@ -1,15 +1,24 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Logo from '../../components/common/Logo';
 import './style.css';
 import { listarTrajetosRecorrentes } from '../../services/caronaService';
-import { Plus, Pause, Play, Trash2, Repeat } from "lucide-react";
+import { ArrowRight, Plus, Pause, Play, Trash2, Repeat } from "lucide-react";
+import Confirmacao from '../../components/common/Confirmacao.jsx';
+
+const defaultsPorTrajeto = {
+  1: { horario: '07:00', dias: ['Seg', 'Ter', 'Qua', 'Qui', 'Sex'], vagas: 3, preco: 5 },
+  2: { horario: '18:30', dias: ['Seg', 'Qua'], vagas: 2, preco: 6 },
+  3: { horario: '13:00', dias: ['Ter', 'Qui'], vagas: 4, preco: 7 },
+};
+
+const fallbackTrajeto = { horario: '07:00', dias: ['Seg', 'Ter', 'Qua', 'Qui', 'Sex'], vagas: 3, preco: 5 };
 
 function TrajetosRecorrentes() {
   const navigate = useNavigate();
 
   const [trajetos, setTrajetos] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [trajetoParaExcluir, setTrajetoParaExcluir] = useState(null);
 
   const toggleAtivo = (id) => {
     setTrajetos((prev) =>
@@ -19,30 +28,47 @@ function TrajetosRecorrentes() {
     );
   };
 
-  const deletar = (id) => {
-    setTrajetos((prev) => prev.filter((t) => t.id !== id));
+  const confirmarExclusao = () => {
+    if (!trajetoParaExcluir) return;
+
+    setTrajetos((prev) => prev.filter((t) => t.id !== trajetoParaExcluir.id));
+    setTrajetoParaExcluir(null);
   };
 
   useEffect(() => {
-    carregarTrajetos();
-  }, []);
+    let ativo = true;
 
-  async function carregarTrajetos() {
-    try {
-      const dados = await listarTrajetosRecorrentes();
+    async function carregarTrajetos() {
+      try {
+        const dados = await listarTrajetosRecorrentes();
 
-      setTrajetos(
-        dados.map((t) => ({
-          ...t,
-          active: t.active ?? true,
-        }))
-      );
-    } catch (error) {
-      console.error('Erro ao carregar trajetos');
-    } finally {
-      setLoading(false);
+        if (!ativo) return;
+
+        setTrajetos(
+          dados.map((t) => ({
+            ...fallbackTrajeto,
+            ...defaultsPorTrajeto[t.id],
+            ...t,
+            preco: t.preco ?? t.price ?? t.valorContribuicao ?? defaultsPorTrajeto[t.id]?.preco ?? fallbackTrajeto.preco,
+            vagas: t.vagas ?? t.seats ?? t.quantidadeVagas ?? defaultsPorTrajeto[t.id]?.vagas ?? fallbackTrajeto.vagas,
+            active: t.active ?? true,
+          }))
+        );
+      } catch {
+        console.error('Erro ao carregar trajetos');
+      } finally {
+        if (ativo) {
+          setLoading(false);
+        }
+      }
     }
-  }
+
+    carregarTrajetos();
+
+    return () => {
+      ativo = false;
+    };
+  }, []);
 
   if (loading) {
     return (
@@ -55,11 +81,9 @@ function TrajetosRecorrentes() {
   return (
     <main className="trajetos-page">
       <header className="trajetos-header">
-        <Logo />
-
-        <div>
+        <div className="trajetos-title">
           <h1>Caronas recorrentes</h1>
-          <h3>Publicadas automaticamente nos dias selecionados</h3>
+          <p>Publicadas automaticamente nos dias selecionados</p>
         </div>
 
         <button
@@ -83,9 +107,18 @@ function TrajetosRecorrentes() {
 
               <div
                 className="trajeto-click-area"
+                role="link"
+                tabIndex={0}
+                aria-label={`Ver detalhes da rota ${trajeto.origem} para ${trajeto.destino}`}
                 onClick={() =>
                   navigate(`/trajetos-recorrentes/${trajeto.id}`)
                 }
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    navigate(`/trajetos-recorrentes/${trajeto.id}`);
+                  }
+                }}
               >
 
                 <div className="trajeto-card-topo">
@@ -101,16 +134,16 @@ function TrajetosRecorrentes() {
 
                 <div className="trajeto-rota">
                   <span>{trajeto.origem}</span>
-                  <span>→</span>
+                  <ArrowRight size={12} />
                   <span>{trajeto.destino}</span>
                 </div>
 
                 <div className="trajeto-info">
-                  07:00 • 3 vagas
+                  {trajeto.horario} • {trajeto.vagas} vagas
                 </div>
 
                 <div className="trajeto-days">
-                  {["Seg", "Ter", "Qua", "Qui", "Sex"].map((d) => (
+                  {trajeto.dias.map((d) => (
                     <span key={d} className="day-chip">{d}</span>
                   ))}
                 </div>
@@ -142,9 +175,10 @@ function TrajetosRecorrentes() {
 
                 <button
                   className="trajeto-btn-danger"
+                  aria-label={`Excluir carona recorrente de ${trajeto.origem} para ${trajeto.destino}`}
                   onClick={(e) => {
                     e.stopPropagation();
-                    deletar(trajeto.id);
+                    setTrajetoParaExcluir(trajeto);
                   }}
                 >
                   <Trash2 size={14} />
@@ -157,6 +191,21 @@ function TrajetosRecorrentes() {
 
         </section>
       )}
+
+      <Confirmacao
+        open={Boolean(trajetoParaExcluir)}
+        title="Excluir carona recorrente"
+        message={
+          trajetoParaExcluir
+            ? `Deseja mesmo excluir a carona recorrente ${trajetoParaExcluir.origem} → ${trajetoParaExcluir.destino}? Esta ação não pode ser desfeita.`
+            : ''
+        }
+        confirmLabel="Excluir"
+        cancelLabel="Cancelar"
+        danger
+        onConfirm={confirmarExclusao}
+        onCancel={() => setTrajetoParaExcluir(null)}
+      />
     </main>
   );
 }

@@ -12,7 +12,11 @@ export async function getPerfilUsuarioAutenticado() {
     throw new Error('Usuário não autenticado.');
   }
 
-  const usuario = normalizeUsuario(await apiRequest('/usuarios/me'));
+  const usuarioApi = normalizeUsuario(await apiRequest('/usuarios/me'));
+  const usuario = {
+    ...usuarioApi,
+    fotoUrl: getFotoPerfil(usuarioApi) || getFotoPerfil(session.usuario),
+  };
 
   salvarSessaoAtualizada({
     ...session,
@@ -38,6 +42,7 @@ function toPerfil(usuario) {
     avaliacao: usuario.avaliacao ?? usuario.rating ?? '',
     totalCaronas: usuario.totalCaronas ?? usuario.ridesCount ?? usuario.quantidadeCaronas ?? '',
     isBlocked: usuario.isBlocked ?? usuario.bloqueado ?? usuario.blocked ?? false,
+    fotoUrl: getFotoPerfil(usuario),
   };
 }
 
@@ -48,7 +53,7 @@ export async function atualizarPerfilUsuarioAutenticado(dadosAtualizados) {
     throw new Error('Usuário não autenticado.');
   }
 
-  const usuarioAtualizado = normalizeUsuario(await apiRequest('/usuarios/me', {
+  const usuarioApi = normalizeUsuario(await apiRequest('/usuarios/me', {
     method: 'PATCH',
     body: JSON.stringify({
       genero: toGeneroApiValue(dadosAtualizados.genero),
@@ -56,6 +61,13 @@ export async function atualizarPerfilUsuarioAutenticado(dadosAtualizados) {
       curso: dadosAtualizados.curso,
     }),
   }));
+  const usuarioAtualizado = {
+    ...usuarioApi,
+    fotoUrl:
+      dadosAtualizados.fotoUrl !== undefined
+        ? dadosAtualizados.fotoUrl
+        : getFotoPerfil(usuarioApi) || getFotoPerfil(session.usuario),
+  };
 
   const novaSessao = {
     ...session,
@@ -105,4 +117,22 @@ function toGeneroApiValue(genero) {
   };
 
   return values[genero] || 'NAO_INFORMADO';
+}
+
+function getFotoPerfil(usuario = {}) {
+  const foto = (
+    usuario.fotoUrl ||
+    usuario.fotoPerfil ||
+    usuario.avatarUrl ||
+    usuario.avatar ||
+    usuario.imagemPerfil ||
+    usuario.profileImage ||
+    ''
+  );
+
+  return isImagemPerfilValida(foto) ? foto : '';
+}
+
+function isImagemPerfilValida(foto) {
+  return /^data:image\/|^https?:\/\//i.test(String(foto || ''));
 }

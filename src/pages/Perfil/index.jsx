@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   Bell,
+  Camera,
   Car,
   ChevronRight,
   CircleHelp,
@@ -38,6 +39,7 @@ import './style.css';
 // Remover quando o modal for acionado a partir de uma carona concluída, com
 // caronaId/avaliadoId reais (ver README > "Avaliação de usuário (temporário)").
 const AVALIAR_TESTE = { nome: 'Marina Souza', caronaId: 10, avaliadoId: 5 };
+const FOTO_PERFIL_TAMANHO_MAXIMO = 2 * 1024 * 1024;
 
 function Perfil() {
   const navigate = useNavigate();
@@ -51,6 +53,7 @@ function Perfil() {
   const [mensagemSucesso, setMensagemSucesso] = useState('');
   const [telefone, setTelefone] = useState(perfil.telefone);
   const [curso, setCurso] = useState(perfil.curso);
+  const [fotoPreview, setFotoPreview] = useState(perfil.fotoUrl || '');
   const [modalSairAberto, setModalSairAberto] = useState(false);
   const [modalExcluirAberto, setModalExcluirAberto] = useState(false);
   const [modalBloquearAberto, setModalBloquearAberto] = useState(false);
@@ -89,6 +92,7 @@ function Perfil() {
         setRecebeEmails(dados.recebeEmails);
         setTelefone(dados.telefone);
         setCurso(dados.curso);
+        setFotoPreview(dados.fotoUrl || '');
         setTotalVeiculos(Array.isArray(veiculos) ? veiculos.length : null);
         setResumoAvaliacoes(calcularResumoAvaliacoes(avaliacoes, dados.avaliacao));
         setTemNotificacaoNaoLida(
@@ -127,9 +131,16 @@ function Perfil() {
         genero,
         recebeEmails,
         curso,
+        fotoUrl: fotoPreview,
       });
 
-      setPerfil((perfilAtual) => ({ ...perfilAtual, ...perfilAtualizado, telefone, curso }));
+      setPerfil((perfilAtual) => ({
+        ...perfilAtual,
+        ...perfilAtualizado,
+        telefone,
+        curso,
+        fotoUrl: fotoPreview,
+      }));
       setMensagemSucesso('Perfil atualizado com sucesso.');
       setEditando(false);
     } catch (error) {
@@ -139,9 +150,48 @@ function Perfil() {
     }
   }
 
+  function alterarFotoPerfil(event) {
+    const arquivo = event.target.files?.[0];
+
+    if (!arquivo) {
+      return;
+    }
+
+    if (!arquivo.type.startsWith('image/')) {
+      setErro('Selecione um arquivo de imagem para a foto do perfil.');
+      event.target.value = '';
+      return;
+    }
+
+    if (arquivo.size > FOTO_PERFIL_TAMANHO_MAXIMO) {
+      setErro('A foto deve ter no máximo 2 MB.');
+      event.target.value = '';
+      return;
+    }
+
+    const leitor = new FileReader();
+
+    leitor.onload = () => {
+      setFotoPreview(String(leitor.result || ''));
+      setErro('');
+      setMensagemSucesso('');
+    };
+
+    leitor.onerror = () => {
+      setErro('Não foi possível carregar a foto selecionada.');
+    };
+
+    leitor.readAsDataURL(arquivo);
+  }
+
   async function sairDaConta() {
     await logout();
     navigate('/login', { replace: true });
+  }
+
+  function fecharEdicaoPerfil() {
+    setEditando(false);
+    setFotoPreview(perfil.fotoUrl || '');
   }
 
   async function confirmarExclusaoConta() {
@@ -226,7 +276,13 @@ function Perfil() {
 
       <section className="perfil-shell">
         <section className="perfil-hero">
-          <div className="perfil-avatar">{getInitials(perfil.nomeCompleto)}</div>
+          <div className="perfil-avatar">
+            {perfil.fotoUrl ? (
+              <img src={perfil.fotoUrl} alt={`Foto de ${formatarNome(perfil.nomeCompleto) || 'perfil'}`} />
+            ) : (
+              getInitials(perfil.nomeCompleto)
+            )}
+          </div>
 
           <div className="perfil-hero-main">
             <h1>
@@ -268,7 +324,10 @@ function Perfil() {
               type="button"
               className="perfil-edit-button"
               aria-label="Editar perfil"
-              onClick={() => setEditando((estadoAtual) => !estadoAtual)}
+              onClick={() => {
+                setFotoPreview(perfil.fotoUrl || '');
+                setEditando((estadoAtual) => !estadoAtual);
+              }}
             >
               <Edit3 size={25} />
             </button>
@@ -402,9 +461,43 @@ function Perfil() {
       )}
 
       {editando && (
-        <div className="perfil-modal-overlay" onClick={() => setEditando(false)}>
+        <div className="perfil-modal-overlay" onClick={fecharEdicaoPerfil}>
           <form className="perfil-modal" onSubmit={salvarAlteracoes} onClick={(event) => event.stopPropagation()}>
             <h2>Editar perfil</h2>
+
+            <div className="perfil-photo-field">
+              <div className="perfil-photo-preview">
+                {fotoPreview ? (
+                  <img src={fotoPreview} alt={`Foto de ${formatarNome(perfil.nomeCompleto) || 'perfil'}`} />
+                ) : (
+                  getInitials(perfil.nomeCompleto)
+                )}
+              </div>
+
+              <div className="perfil-photo-actions">
+                <label className="perfil-photo-button">
+                  <Camera size={18} />
+                  <span>Adicionar foto</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    disabled={salvando}
+                    onChange={alterarFotoPerfil}
+                  />
+                </label>
+
+                {fotoPreview && (
+                  <button
+                    type="button"
+                    className="perfil-photo-remove"
+                    disabled={salvando}
+                    onClick={() => setFotoPreview('')}
+                  >
+                    Remover foto
+                  </button>
+                )}
+              </div>
+            </div>
 
             <label className="perfil-modal-field">
               <span>Nome</span>
@@ -466,7 +559,7 @@ function Perfil() {
             </label>
 
             <div className="perfil-modal-actions">
-              <button type="button" onClick={() => setEditando(false)} disabled={salvando}>
+              <button type="button" onClick={fecharEdicaoPerfil} disabled={salvando}>
                 Cancelar
               </button>
               <button type="submit" disabled={salvando}>
@@ -524,6 +617,7 @@ function toPerfilFromSession() {
     avaliacao: usuario.avaliacao ?? usuario.rating ?? '',
     totalCaronas: usuario.totalCaronas ?? usuario.ridesCount ?? usuario.quantidadeCaronas ?? '',
     isBlocked: usuario.isBlocked ?? usuario.bloqueado ?? usuario.blocked ?? false,
+    fotoUrl: getFotoPerfil(usuario),
   };
 }
 
@@ -537,6 +631,24 @@ function getInitials(nome) {
   }
 
   return nome.trim()[0]?.toUpperCase() || 'U';
+}
+
+function getFotoPerfil(usuario = {}) {
+  const foto = (
+    usuario.fotoUrl ||
+    usuario.fotoPerfil ||
+    usuario.avatarUrl ||
+    usuario.avatar ||
+    usuario.imagemPerfil ||
+    usuario.profileImage ||
+    ''
+  );
+
+  return isImagemPerfilValida(foto) ? foto : '';
+}
+
+function isImagemPerfilValida(foto) {
+  return /^data:image\/|^https?:\/\//i.test(String(foto || ''));
 }
 
 function formatarNome(nome = '') {

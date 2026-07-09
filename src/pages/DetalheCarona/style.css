@@ -463,7 +463,7 @@
 .detalhe-passenger {
   padding: 14px;
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: auto 1fr auto auto;
   align-items: center;
   gap: 11px;
 }
@@ -496,6 +496,35 @@
 .detalhe-passenger em.is-confirmed {
   background: #dcfce7;
   color: #166534;
+}
+
+.detalhe-empty-passengers {
+  padding: 22px 18px;
+  color: #5a7398;
+  font-size: 14px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.detalhe-remove-reservation {
+  min-height: 34px;
+  border: 1px solid #fecaca;
+  border-radius: 12px;
+  background: #fff7f7;
+  color: #b91c1c;
+  padding: 0 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.detalhe-remove-reservation:hover {
+  background: #fee2e2;
 }
 
 .detalhe-chat-card {
@@ -621,16 +650,20 @@
   z-index: 30;
   background: rgba(7, 19, 43, 0.42);
   display: grid;
-  place-items: end center;
-  padding: 18px;
+  place-items: center;
+  padding: 24px 18px 112px;
+  overflow-y: auto;
 }
 
 .detalhe-modal {
   width: min(430px, 100%);
+  max-height: calc(100vh - 136px);
   border-radius: 20px;
   background: #ffffff;
   padding: 18px;
+  overflow-y: auto;
   box-shadow: 0 18px 44px rgba(7, 19, 43, 0.24);
+  transform: translateY(-18px);
 }
 
 .detalhe-modal header {
@@ -709,7 +742,8 @@
   gap: 14px;
 }
 
-.detalhe-block-modal p {
+.detalhe-block-modal p,
+.detalhe-remove-modal p {
   margin: 0;
   color: #5a7398;
   font-size: 14px;
@@ -717,7 +751,45 @@
   line-height: 1.4;
 }
 
-.detalhe-block-modal button:disabled {
+.detalhe-remove-modal {
+  display: grid;
+  gap: 16px;
+}
+
+.detalhe-remove-modal strong {
+  color: #07132b;
+}
+
+.detalhe-remove-modal div {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.detalhe-remove-modal button {
+  min-height: 44px;
+  border-radius: 14px;
+  padding: 0 14px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.detalhe-remove-modal__cancel {
+  border: 1px solid #dce7f3;
+  background: #ffffff;
+  color: #07132b;
+}
+
+.detalhe-remove-modal__confirm {
+  border: 0;
+  background: #b91c1c;
+  color: #ffffff;
+}
+
+.detalhe-block-modal button:disabled,
+.detalhe-remove-modal button:disabled {
   background: #94a3b8;
   cursor: wait;
 }
@@ -780,5 +852,18 @@
 
   .detalhe-carona-notification {
     grid-column: 3;
+  }
+
+  .detalhe-passenger {
+    grid-template-columns: auto 1fr auto;
+  }
+
+  .detalhe-remove-reservation {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .detalhe-remove-modal div {
+    grid-template-columns: 1fr;
   }
 }

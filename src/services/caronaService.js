@@ -186,6 +186,49 @@ export async function finalizarCarona(id) {
   });
 }
 
+// Remove uma reserva aceita da carona do motorista
+// (DELETE /caronas/{id}/reservas/{reservaId}) — contrato US7-BACK-07.
+export async function removerReservaCarona(caronaId, reservaId) {
+  if (!caronaId || !reservaId) {
+    throw new Error('Reserva inválida.');
+  }
+
+  if (shouldUseLocalDataMocks()) {
+    const caronas = carregarCaronasMock();
+    const carona = caronas.find((item) => item.id === Number(caronaId));
+
+    if (!carona) {
+      throw new Error('Carona não encontrada.');
+    }
+
+    const passageiros = Array.isArray(carona.passageiros) ? carona.passageiros : [];
+    const indice = passageiros.findIndex((passageiro) =>
+      String(getReservaId(passageiro)) === String(reservaId),
+    );
+
+    if (indice === -1) {
+      throw new Error('Reserva não encontrada.');
+    }
+
+    const [removida] = passageiros.splice(indice, 1);
+
+    if (isReservaConfirmada(removida)) {
+      carona.vagasDisponiveis = Math.min(
+        Number(carona.quantidadeVagas ?? carona.vagasDisponiveis ?? 0),
+        Number(carona.vagasDisponiveis ?? 0) + 1,
+      );
+    }
+
+    salvarCaronasMock(caronas);
+
+    return { id: Number(reservaId), status: 'REMOVIDA' };
+  }
+
+  return apiRequest(`/caronas/${caronaId}/reservas/${reservaId}`, {
+    method: 'DELETE',
+  });
+}
+
 // Lista as caronas criadas pelo motorista autenticado. O GET /caronas/minhas
 // devolve poucos campos, então enriquecemos cada item com o GET /caronas/{id}
 // (em paralelo) para exibir ponto de encontro e contagem de passageiros.
@@ -226,6 +269,24 @@ function caronasSemente() {
       status: 'CRIADA',
       motorista: { id: 1, nome: 'Estudante UniCar', avaliacao: 4.8 },
       veiculo: { id: 1, modelo: 'Onix', cor: 'Prata', tipo: 'carro' },
+      passageiros: [
+        {
+          id: 1,
+          reservaId: 101,
+          nome: 'Ana Clara',
+          curso: 'Ciência da Computação',
+          avaliacao: 4.9,
+          status: 'Confirmado',
+        },
+        {
+          id: 2,
+          reservaId: 102,
+          nome: 'Rafael Lima',
+          curso: 'Design',
+          avaliacao: 4.7,
+          status: 'Pendente',
+        },
+      ],
     },
     {
       id: 11,
@@ -302,8 +363,9 @@ function ajustarCaronaMotorista(carona = {}) {
       : null;
   const motorista = carona.motorista || carona.driver || carona.usuario || {};
   const veiculo = carona.veiculo || carona.vehicle || {};
+  const passageiros = normalizarPassageiros(carona.passageiros || carona.reservas);
 
-  return {
+  const caronaNormalizada = {
     id: carona.id,
     status: carona.status || 'CRIADA',
     dataHoraSaida: carona.dataHoraSaida || carona.dataHora || '',
@@ -327,6 +389,54 @@ function ajustarCaronaMotorista(carona = {}) {
       placa: veiculo.placa || '',
     },
   };
+
+  if (passageiros.length > 0) {
+    caronaNormalizada.passageiros = passageiros;
+  }
+
+  return caronaNormalizada;
+}
+
+function normalizarPassageiros(passageiros) {
+  if (!Array.isArray(passageiros)) {
+    return [];
+  }
+
+  return passageiros.map((passageiro, index) => ({
+    id: passageiro.id ?? passageiro.usuarioId ?? passageiro.userId ?? index,
+    reservaId: getReservaId(passageiro),
+    nome: passageiro.nome || passageiro.nomeCompleto || passageiro.name || 'Passageiro',
+    curso: passageiro.curso || passageiro.nomeCurso || passageiro.course || 'Comunidade UFCG',
+    avaliacao: passageiro.avaliacao ?? passageiro.rating ?? 4.8,
+    status: normalizarStatusReserva(passageiro.status || passageiro.situacao),
+  }));
+}
+
+function getReservaId(passageiro = {}) {
+  return (
+    passageiro.reservaId ??
+    passageiro.idReserva ??
+    passageiro.reservationId ??
+    passageiro.id
+  );
+}
+
+function normalizarStatusReserva(status = '') {
+  const statusNormalizado = String(status).toUpperCase();
+
+  if (statusNormalizado === 'ACEITA' || statusNormalizado === 'ACEITO' || statusNormalizado === 'CONFIRMADA') {
+    return 'Confirmado';
+  }
+
+  if (statusNormalizado === 'PENDENTE') {
+    return 'Pendente';
+  }
+
+  return status || 'Confirmado';
+}
+
+function isReservaConfirmada(reserva = {}) {
+  return /confirmad|aceit/i.test(String(reserva.status || reserva.situacao || ''));
 }
 
 function descricaoLocal(local) {
@@ -408,4 +518,3 @@ export async function obterTrajetoRecorrente(id) {
 
   return apiRequest(`/trajetos-recorrentes/${id}`);
 }
-

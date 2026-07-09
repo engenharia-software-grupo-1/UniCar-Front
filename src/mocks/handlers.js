@@ -62,6 +62,24 @@ const caronasIniciais = () => [
     status: 'CRIADA',
     motorista: { id: 1, nome: 'Estudante UniCar' },
     veiculo: { id: 1, modelo: 'Onix', cor: 'Prata', tipo: 'carro' },
+    passageiros: [
+      {
+        id: 1,
+        reservaId: 101,
+        nome: 'Ana Clara',
+        curso: 'Ciência da Computação',
+        avaliacao: 4.9,
+        status: 'Confirmado',
+      },
+      {
+        id: 2,
+        reservaId: 102,
+        nome: 'Rafael Lima',
+        curso: 'Design',
+        avaliacao: 4.7,
+        status: 'Pendente',
+      },
+    ],
   },
   {
     id: 11,
@@ -202,6 +220,38 @@ export const handlers = [
 
     carona.status = 'CANCELADA'; // resetStore() restaura o estado entre os testes
     return HttpResponse.json({ id: carona.id, status: carona.status }, { status: 200 });
+  }),
+
+  // DELETE /caronas/{id}/reservas/{reservaId} — remove reserva aceita da carona.
+  http.delete(`${API_BASE_URL}/caronas/:id/reservas/:reservaId`, ({ request, params }) => {
+    const negado = exigirAutorizacao(request);
+    if (negado) return negado;
+
+    const carona = caronas.find((item) => item.id === Number(params.id));
+
+    if (!carona) {
+      return HttpResponse.json({ message: 'Carona não encontrada' }, { status: 404 });
+    }
+
+    const passageiros = Array.isArray(carona.passageiros) ? carona.passageiros : [];
+    const indice = passageiros.findIndex((passageiro) =>
+      String(passageiro.reservaId ?? passageiro.id) === String(params.reservaId),
+    );
+
+    if (indice === -1) {
+      return HttpResponse.json({ message: 'Reserva não encontrada' }, { status: 404 });
+    }
+
+    const [removida] = passageiros.splice(indice, 1);
+
+    if (/confirmad|aceit/i.test(String(removida.status || ''))) {
+      carona.vagasDisponiveis = Math.min(
+        Number(carona.quantidadeVagas ?? carona.vagasDisponiveis ?? 0),
+        Number(carona.vagasDisponiveis ?? 0) + 1,
+      );
+    }
+
+    return HttpResponse.json({ id: Number(params.reservaId), status: 'REMOVIDA' }, { status: 200 });
   }),
 
   // GET /veiculos — lista os veículos do usuário autenticado.

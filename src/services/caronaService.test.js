@@ -294,6 +294,49 @@ describe('cancelarCarona', () => {
   });
 });
 
+describe('removerReservaCarona', () => {
+  it('faz DELETE /caronas/{id}/reservas/{reservaId} com o token e sem corpo', async () => {
+    fetch.mockResolvedValue(respostaJson({ id: 101, status: 'REMOVIDA' }));
+
+    const { removerReservaCarona } = await importarService();
+    const resultado = await removerReservaCarona(10, 101);
+
+    const [url, opcoes] = fetch.mock.calls[0];
+    expect(url).toBe(`${BASE_URL}/caronas/10/reservas/101`);
+    expect(opcoes.method).toBe('DELETE');
+    expect(opcoes.headers.Authorization).toBe(`Bearer ${TOKEN}`);
+    expect(opcoes.body).toBeUndefined();
+    expect(resultado).toEqual({ id: 101, status: 'REMOVIDA' });
+  });
+
+  it('propaga erro quando o backend recusa a remoção da reserva', async () => {
+    fetch.mockResolvedValue(
+      respostaJson({ message: 'Reserva não encontrada' }, { ok: false, status: 404 }),
+    );
+
+    const { removerReservaCarona } = await importarService();
+
+    await expect(removerReservaCarona(10, 999)).rejects.toThrow('Reserva não encontrada');
+  });
+
+  it('no modo mock remove a reserva e libera a vaga confirmada', async () => {
+    vi.stubEnv('VITE_ENABLE_MOCKS', 'true');
+
+    const { obterCarona, removerReservaCarona } = await importarService();
+
+    await expect(removerReservaCarona(10, 101)).resolves.toEqual({
+      id: 101,
+      status: 'REMOVIDA',
+    });
+
+    const carona = await obterCarona(10);
+
+    expect(fetch).not.toHaveBeenCalled();
+    expect(carona.passageiros.some((passageiro) => passageiro.reservaId === 101)).toBe(false);
+    expect(carona.vagasDisponiveis).toBe(2);
+  });
+});
+
 describe('obterCarona', () => {
   it('faz GET /caronas/{id} e normaliza o detalhe', async () => {
     fetch.mockResolvedValue(respostaJson(DETALHE_10));

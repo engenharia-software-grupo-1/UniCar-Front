@@ -14,11 +14,12 @@ import {
   Send,
   Shield,
   Star,
+  UserMinus,
   Users,
 } from 'lucide-react';
 import Logo from '../../components/common/Logo.jsx';
 import NavegacaoInferior from '../../components/layout/NavegacaoInferior.jsx';
-import { obterCarona } from '../../services/caronaService.js';
+import { obterCarona, removerReservaCarona } from '../../services/caronaService.js';
 import './style.css';
 
 const STATUS = {
@@ -29,8 +30,8 @@ const STATUS = {
 };
 
 const PASSAGEIROS_MOCKADOS = [
-  { id: 1, nome: 'Ana Clara', curso: 'Ciência da Computação', avaliacao: 4.9, status: 'Confirmado' },
-  { id: 2, nome: 'Rafael Lima', curso: 'Design', avaliacao: 4.7, status: 'Pendente' },
+  { id: 1, reservaId: 101, nome: 'Ana Clara', curso: 'Ciência da Computação', avaliacao: 4.9, status: 'Confirmado' },
+  { id: 2, reservaId: 102, nome: 'Rafael Lima', curso: 'Design', avaliacao: 4.7, status: 'Pendente' },
 ];
 
 const MENSAGENS_INICIAIS = [
@@ -65,6 +66,8 @@ function DetalheCarona() {
   const [mensagens, setMensagens] = useState(MENSAGENS_INICIAIS);
   const [textoMensagem, setTextoMensagem] = useState('');
   const [feedback, setFeedback] = useState(location.state?.mensagem || '');
+  const [reservaParaRemover, setReservaParaRemover] = useState(null);
+  const [removendoReserva, setRemovendoReserva] = useState(false);
 
   useEffect(() => {
     if (location.state?.mensagem) {
@@ -180,6 +183,29 @@ function DetalheCarona() {
       setModalBloqueioAberto(false);
       setFeedback('Usuário bloqueado com sucesso.');
     }, 450);
+  }
+
+  async function confirmarRemocaoReserva() {
+    if (!reservaParaRemover || !carona?.id) {
+      return;
+    }
+
+    try {
+      setRemovendoReserva(true);
+      setErro('');
+      setFeedback('');
+
+      await removerReservaCarona(carona.id, reservaParaRemover.reservaId);
+
+      setCarona((caronaAtual) => removerPassageiroDaCarona(caronaAtual, reservaParaRemover));
+      setReservaParaRemover(null);
+      setFeedback(`Reserva de ${reservaParaRemover.nome} removida com sucesso.`);
+    } catch (error) {
+      setFeedback('');
+      setErro(error.message || 'Não foi possível remover a reserva.');
+    } finally {
+      setRemovendoReserva(false);
+    }
   }
 
   return (
@@ -336,7 +362,11 @@ function DetalheCarona() {
 
             {abaAtiva === 'passageiros' && (
               <section className="detalhe-passenger-list" aria-label="Passageiros">
-                {passageiros.map((passageiro) => (
+                {passageiros.length === 0 ? (
+                  <div className="detalhe-card detalhe-empty-passengers">
+                    Nenhuma reserva aceita nesta carona.
+                  </div>
+                ) : passageiros.map((passageiro) => (
                   <article className="detalhe-card detalhe-passenger" key={passageiro.id}>
                     <div className="detalhe-avatar detalhe-avatar--small">{getInitial(passageiro.nome)}</div>
                     <div>
@@ -350,6 +380,16 @@ function DetalheCarona() {
                     <em className={passageiro.status === 'Confirmado' ? 'is-confirmed' : ''}>
                       {passageiro.status}
                     </em>
+                    {isMinhaCarona && passageiro.status === 'Confirmado' && (
+                      <button
+                        type="button"
+                        className="detalhe-remove-reservation"
+                        onClick={() => setReservaParaRemover(passageiro)}
+                      >
+                        <UserMinus size={16} />
+                        Remover Reserva
+                      </button>
+                    )}
                   </article>
                 ))}
               </section>
@@ -439,6 +479,42 @@ function DetalheCarona() {
         </Modal>
       )}
 
+      {reservaParaRemover && (
+        <Modal
+          title="Remover reserva"
+          onClose={() => {
+            if (!removendoReserva) {
+              setReservaParaRemover(null);
+            }
+          }}
+        >
+          <div className="detalhe-remove-modal">
+            <p>
+              Tem certeza que deseja remover a reserva de{' '}
+              <strong>{reservaParaRemover.nome}</strong> desta carona?
+            </p>
+            <div>
+              <button
+                type="button"
+                className="detalhe-remove-modal__cancel"
+                onClick={() => setReservaParaRemover(null)}
+                disabled={removendoReserva}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className="detalhe-remove-modal__confirm"
+                onClick={confirmarRemocaoReserva}
+                disabled={removendoReserva}
+              >
+                {removendoReserva ? 'Removendo...' : 'Remover Reserva'}
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
       <NavegacaoInferior />
     </main>
   );
@@ -489,17 +565,43 @@ function Modal({ title, children, onClose }) {
 }
 
 function montarPassageiros(carona) {
-  if (!carona?.passageiros?.length) {
+  if (!carona || !Array.isArray(carona.passageiros)) {
     return PASSAGEIROS_MOCKADOS;
   }
 
   return carona.passageiros.map((passageiro, index) => ({
     id: passageiro.id || index,
+    reservaId: passageiro.reservaId || passageiro.idReserva || passageiro.reservationId || passageiro.id || index,
     nome: passageiro.nome || passageiro.nomeCompleto || 'Passageiro',
     curso: passageiro.curso || 'Comunidade UFCG',
     avaliacao: passageiro.avaliacao || 4.8,
     status: passageiro.status || 'Confirmado',
   }));
+}
+
+function removerPassageiroDaCarona(carona, passageiroRemovido) {
+  if (!carona) {
+    return carona;
+  }
+
+  const passageirosAtuais = Array.isArray(carona.passageiros)
+    ? carona.passageiros
+    : PASSAGEIROS_MOCKADOS;
+  const passageiros = passageirosAtuais.filter((passageiro) =>
+    String(passageiro.reservaId || passageiro.id) !== String(passageiroRemovido.reservaId),
+  );
+  const vagasDisponiveis = passageiroRemovido.status === 'Confirmado'
+    ? Math.min(
+        Number(carona.quantidadeVagas ?? carona.vagasDisponiveis ?? 0),
+        Number(carona.vagasDisponiveis ?? 0) + 1,
+      )
+    : carona.vagasDisponiveis;
+
+  return {
+    ...carona,
+    passageiros,
+    vagasDisponiveis,
+  };
 }
 
 function getStatus(status) {

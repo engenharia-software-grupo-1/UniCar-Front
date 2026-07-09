@@ -1,5 +1,11 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { cancelarCarona, criarCarona, listarMinhasCaronas } from './caronaService.js';
+import {
+  cancelarCarona,
+  criarCarona,
+  listarMinhasCaronas,
+  obterCarona,
+  removerReservaCarona,
+} from './caronaService.js';
 
 beforeEach(() => {
   localStorage.setItem(
@@ -76,5 +82,32 @@ describe('PATCH /caronas/{id}/cancelar', () => {
     localStorage.clear();
 
     await expect(cancelarCarona(10)).rejects.toThrow('Acesso negado');
+  });
+});
+
+describe('DELETE /caronas/{id}/reservas/{reservaId}', () => {
+  it('remove reserva com 200 e devolve { id, status: REMOVIDA }', async () => {
+    const resultado = await removerReservaCarona(10, 101);
+
+    expect(resultado).toEqual({ id: 101, status: 'REMOVIDA' });
+  });
+
+  it('reflete a lista de reservas atualizada ao consultar a carona', async () => {
+    await removerReservaCarona(10, 101);
+
+    const carona = await obterCarona(10);
+
+    expect(carona.passageiros.some((passageiro) => passageiro.reservaId === 101)).toBe(false);
+    expect(carona.vagasDisponiveis).toBe(2);
+  });
+
+  it('rejeita reserva inexistente com 404 "Reserva não encontrada"', async () => {
+    await expect(removerReservaCarona(10, 9999)).rejects.toThrow('Reserva não encontrada');
+  });
+
+  it('rejeita com 403 "Acesso negado" quando não há sessão', async () => {
+    localStorage.clear();
+
+    await expect(removerReservaCarona(10, 101)).rejects.toThrow('Acesso negado');
   });
 });

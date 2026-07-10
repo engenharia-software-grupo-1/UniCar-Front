@@ -1,6 +1,8 @@
 import { getSession, normalizeUsuario } from './authService.js';
 import { apiRequest } from './api.js';
 
+const PROFILE_PHOTO_KEY_PREFIX = 'unicar.profile.photo.';
+
 function salvarSessaoAtualizada(session) {
   localStorage.setItem('unicar.session', JSON.stringify(session));
 }
@@ -15,7 +17,10 @@ export async function getPerfilUsuarioAutenticado() {
   const usuarioApi = normalizeUsuario(await apiRequest('/usuarios/me'));
   const usuario = {
     ...usuarioApi,
-    fotoUrl: getFotoPerfil(usuarioApi) || getFotoPerfil(session.usuario),
+    fotoUrl:
+      getFotoPerfil(usuarioApi) ||
+      getFotoPerfilSalva(usuarioApi, session.usuario) ||
+      getFotoPerfil(session.usuario),
   };
 
   salvarSessaoAtualizada({
@@ -69,6 +74,8 @@ export async function atualizarPerfilUsuarioAutenticado(dadosAtualizados) {
         : getFotoPerfil(usuarioApi) || getFotoPerfil(session.usuario),
   };
 
+  salvarFotoPerfil(usuarioAtualizado, session.usuario, dadosAtualizados.fotoUrl);
+
   const novaSessao = {
     ...session,
     usuario: usuarioAtualizado,
@@ -89,6 +96,8 @@ export async function excluirContaUsuarioAutenticado() {
   await apiRequest('/usuarios/me', {
     method: 'DELETE',
   });
+
+  removerFotoPerfil(session.usuario);
 
   localStorage.removeItem('unicar.session');
   localStorage.removeItem('unicar.terms.acceptance');
@@ -131,6 +140,38 @@ function getFotoPerfil(usuario = {}) {
   );
 
   return isImagemPerfilValida(foto) ? foto : '';
+}
+
+function getFotoPerfilSalva(...usuarios) {
+  for (const usuario of usuarios) {
+    const identificador = getIdentificadorFoto(usuario);
+    const foto = identificador ? localStorage.getItem(`${PROFILE_PHOTO_KEY_PREFIX}${identificador}`) : '';
+
+    if (isImagemPerfilValida(foto)) return foto;
+  }
+
+  return '';
+}
+
+function salvarFotoPerfil(usuarioAtualizado, usuarioSessao, fotoUrl) {
+  const identificador = getIdentificadorFoto(usuarioAtualizado) || getIdentificadorFoto(usuarioSessao);
+
+  if (!identificador) return;
+
+  const chave = `${PROFILE_PHOTO_KEY_PREFIX}${identificador}`;
+  if (isImagemPerfilValida(fotoUrl)) localStorage.setItem(chave, fotoUrl);
+  else localStorage.removeItem(chave);
+}
+
+function removerFotoPerfil(usuario) {
+  const identificador = getIdentificadorFoto(usuario);
+  if (identificador) localStorage.removeItem(`${PROFILE_PHOTO_KEY_PREFIX}${identificador}`);
+}
+
+function getIdentificadorFoto(usuario = {}) {
+  return String(
+    usuario.id ?? usuario.usuarioId ?? usuario.userId ?? usuario.matricula ?? usuario.emailInstitucional ?? '',
+  ).trim();
 }
 
 function isImagemPerfilValida(foto) {

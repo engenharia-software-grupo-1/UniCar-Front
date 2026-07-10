@@ -3,10 +3,13 @@ import { Link } from 'react-router-dom';
 import {
   ArrowRight,
   Bell,
+  CalendarX,
   CalendarDays,
+  CarFront,
   MapPin,
   Sparkles,
   Star,
+  UserRound,
 } from 'lucide-react';
 import Logo from '../../components/common/Logo.jsx';
 import NavegacaoInferior from '../../components/layout/NavegacaoInferior.jsx';
@@ -94,25 +97,32 @@ function Inicio() {
           </div>
         )}
 
-        <section className="inicio-next-ride" aria-labelledby="proxima-carona">
+        <section className={`inicio-next-ride ${proximaCarona ? '' : 'inicio-next-ride--empty'}`} aria-labelledby="proxima-carona">
           {proximaCarona ? (
-            <>
-              <div>
+            <Link to={`/minhas-caronas/${proximaCarona.id}`} className="inicio-next-card-link">
+              <div className="inicio-next-heading">
                 <p id="proxima-carona" className="inicio-card-label">
                   <Sparkles size={18} />
                   Próxima carona
                 </p>
-
-                <strong className="inicio-next-time">{formatarHorario(proximaCarona.horario)}</strong>
-                <p className="inicio-next-route">{proximaCarona.rota}</p>
-                {proximaCarona.papel && (
-                  <span className="inicio-next-role">
-                    Você vai como {proximaCarona.papel === 'MOTORISTA' ? 'motorista' : 'passageiro'}
-                  </span>
-                )}
+                <span className="inicio-next-role">
+                  {proximaCarona.papel === 'MOTORISTA' ? <CarFront size={14} /> : <UserRound size={14} />}
+                  Você é {proximaCarona.papel === 'MOTORISTA' ? 'motorista' : 'passageiro'}
+                </span>
               </div>
 
-              <div className="inicio-driver">
+              <div className="inicio-next-content">
+                <div>
+                  <div className="inicio-next-schedule">
+                    <strong className="inicio-next-time">{formatarHorario(proximaCarona.horario)}</strong>
+                    <span className="inicio-next-date"><CalendarDays size={14} />{formatarData(proximaCarona.horario)}</span>
+                  </div>
+                <div className="inicio-next-route">
+                    {proximaCarona.origem || 'Origem não informada'} → {proximaCarona.destino || 'Destino não informado'}
+                </div>
+                </div>
+
+                {proximaCarona.papel !== 'MOTORISTA' && <div className="inicio-driver">
                 <div className="inicio-driver-avatar" aria-label={`Motorista: ${motoristaExibido.nome}`}>
                   {motoristaExibido.fotoUrl ? (
                     <img src={motoristaExibido.fotoUrl} alt={`Foto de ${motoristaExibido.nome}`} />
@@ -127,25 +137,27 @@ function Inicio() {
                     {motoristaExibido.avaliacao}
                   </span>
                 )}
+                </div>}
               </div>
 
-              <Link to={`/minhas-caronas/${proximaCarona.id}`} className="inicio-details">
-                Ver detalhes
+              <div className="inicio-details">
+                {proximaCarona.papel === 'MOTORISTA' ? 'Gerenciar carona' : 'Ver detalhes'}
                 <ArrowRight size={21} />
-              </Link>
-            </>
+              </div>
+            </Link>
           ) : (
             <div className="inicio-empty-ride">
-              <p id="proxima-carona" className="inicio-card-label">
-                <Sparkles size={18} />
-                Próxima carona
-              </p>
-              <strong>{carregando ? 'Carregando...' : 'Nenhuma carona agendada'}</strong>
+              <div className="inicio-empty-icon"><CalendarX size={24} /></div>
+              <strong id="proxima-carona">{carregando ? 'Carregando...' : 'Nenhuma carona futura'}</strong>
               <span>
                 {carregando
                   ? 'Buscando suas informações no backend.'
-                  : 'Quando você tiver uma carona marcada, ela aparecerá aqui.'}
+                  : 'Você ainda não tem caronas agendadas. Que tal buscar ou ofertar uma agora?'}
               </span>
+              {!carregando && <div className="inicio-empty-actions">
+                <Link to="/inicio">Buscar carona</Link>
+                <Link to="/ofertar-carona">Ofertar carona</Link>
+              </div>}
             </div>
           )}
         </section>
@@ -260,6 +272,24 @@ function formatarHorario(valor) {
   return data.toLocaleTimeString('pt-BR', {
     hour: '2-digit',
     minute: '2-digit',
+  });
+}
+
+function formatarData(valor) {
+  if (!valor || /^\d{2}:\d{2}/.test(valor)) {
+    return 'Data não informada';
+  }
+
+  const data = new Date(valor);
+
+  if (Number.isNaN(data.getTime())) {
+    return 'Data não informada';
+  }
+
+  return data.toLocaleDateString('pt-BR', {
+    weekday: 'long',
+    day: '2-digit',
+    month: 'long',
   });
 }
 

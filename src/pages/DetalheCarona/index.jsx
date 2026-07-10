@@ -20,6 +20,7 @@ import {
 import Logo from '../../components/common/Logo.jsx';
 import NavegacaoInferior from '../../components/layout/NavegacaoInferior.jsx';
 import { obterCarona, removerReservaCarona } from '../../services/caronaService.js';
+import { getPerfilUsuarioAutenticado } from '../../services/profileService.js';
 import './style.css';
 
 const STATUS = {
@@ -51,6 +52,7 @@ function DetalheCarona() {
   const location = useLocation();
   const navigate = useNavigate();
   const [carona, setCarona] = useState(null);
+  const [perfil, setPerfil] = useState(null);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState('');
   const [abaAtiva, setAbaAtiva] = useState('info');
@@ -95,13 +97,17 @@ function DetalheCarona() {
 
     async function carregarInicial() {
       try {
-        const detalhe = await obterCarona(id);
+        const [detalhe, perfilAutenticado] = await Promise.all([
+          obterCarona(id),
+          getPerfilUsuarioAutenticado().catch(() => null),
+        ]);
 
         if (!ativo) {
           return;
         }
 
         setCarona(detalhe);
+        setPerfil(perfilAutenticado);
         setErro('');
       } catch (error) {
         if (ativo) {
@@ -123,8 +129,20 @@ function DetalheCarona() {
 
   const status = getStatus(carona?.status);
   const passageiros = useMemo(() => montarPassageiros(carona), [carona]);
-  const isMinhaCarona = true;
-  const motorista = carona?.motorista || {};
+  const motoristaDaCarona = carona?.motorista || {};
+  const isMinhaCarona = Boolean(
+    perfil && (!motoristaDaCarona.id || String(motoristaDaCarona.id) === String(perfil.id)),
+  );
+  const motorista = isMinhaCarona
+    ? {
+        ...motoristaDaCarona,
+        nome: perfil.nomeCompleto || motoristaDaCarona.nome,
+        curso: perfil.curso,
+        avaliacao: perfil.avaliacao,
+        fotoUrl: perfil.fotoUrl,
+        verificado: perfil.motoristaVerificado,
+      }
+    : motoristaDaCarona;
   const veiculo = carona?.veiculo || {};
   const destino = carona?.destino || 'Destino não informado';
   const destinoExibido = formatarDestino(destino, carona?.pontoEncontro);
@@ -249,22 +267,30 @@ function DetalheCarona() {
             <section className="detalhe-card detalhe-main-card">
               <div className="detalhe-driver-header">
                 <div className="detalhe-avatar-wrap">
-                  <div className="detalhe-avatar">{getInitial(motorista.nome)}</div>
-                  <span className="detalhe-verified">
-                    <CheckCircle size={14} />
-                  </span>
+                  <div className="detalhe-avatar">
+                    {motorista.fotoUrl ? (
+                      <img src={motorista.fotoUrl} alt={`Foto de ${motorista.nome || 'motorista'}`} />
+                    ) : getInitial(motorista.nome)}
+                  </div>
+                  {motorista.verificado && (
+                    <span className="detalhe-verified">
+                      <CheckCircle size={14} />
+                    </span>
+                  )}
                 </div>
 
                 <div className="detalhe-driver-info">
                   <div className="detalhe-driver-title">
                     <h1>{isMinhaCarona ? 'Você (motorista)' : motorista.nome || 'Motorista'}</h1>
-                    <span className="detalhe-driver-badge">Verificado</span>
+                    {motorista.verificado && <span className="detalhe-driver-badge">Verificado</span>}
                   </div>
-                  <p>Eng. Elétrica • UFCG</p>
-                  <span>
-                    <Star size={14} fill="currentColor" />
-                    {formatarAvaliacao(motorista.avaliacao || 4.8)}
-                  </span>
+                  <p>{motorista.curso || 'Curso não informado'} • UFCG</p>
+                  {motorista.avaliacao !== '' && motorista.avaliacao != null && (
+                    <span>
+                      <Star size={14} fill="currentColor" />
+                      {formatarAvaliacao(motorista.avaliacao)}
+                    </span>
+                  )}
                 </div>
 
                 {!isMinhaCarona && (

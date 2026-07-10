@@ -26,6 +26,7 @@ function Inicio() {
   const [erro, setErro] = useState('');
 
   const nome = getPrimeiroNome(usuario.nomeCompleto || usuario.nome);
+  const motoristaExibido = getMotoristaExibido(proximaCarona, usuario);
 
   useEffect(() => {
     let ativo = true;
@@ -104,21 +105,31 @@ function Inicio() {
 
                 <strong className="inicio-next-time">{formatarHorario(proximaCarona.horario)}</strong>
                 <p className="inicio-next-route">{proximaCarona.rota}</p>
-              </div>
-
-              <div className="inicio-driver">
-                <div className="inicio-driver-avatar">
-                  {proximaCarona.motorista.avatar || 'U'}
-                </div>
-                {proximaCarona.motorista.avaliacao && (
-                  <span>
-                    <Star size={16} fill="currentColor" />
-                    {proximaCarona.motorista.avaliacao}
+                {proximaCarona.papel && (
+                  <span className="inicio-next-role">
+                    Você vai como {proximaCarona.papel === 'MOTORISTA' ? 'motorista' : 'passageiro'}
                   </span>
                 )}
               </div>
 
-              <Link to="/inicio" className="inicio-details">
+              <div className="inicio-driver">
+                <div className="inicio-driver-avatar" aria-label={`Motorista: ${motoristaExibido.nome}`}>
+                  {motoristaExibido.fotoUrl ? (
+                    <img src={motoristaExibido.fotoUrl} alt={`Foto de ${motoristaExibido.nome}`} />
+                  ) : (
+                    motoristaExibido.avatar
+                  )}
+                </div>
+                <strong className="inicio-driver-name">{motoristaExibido.nome}</strong>
+                {motoristaExibido.avaliacao !== '' && (
+                  <span>
+                    <Star size={16} fill="currentColor" />
+                    {motoristaExibido.avaliacao}
+                  </span>
+                )}
+              </div>
+
+              <Link to={`/minhas-caronas/${proximaCarona.id}`} className="inicio-details">
                 Ver detalhes
                 <ArrowRight size={21} />
               </Link>
@@ -202,6 +213,33 @@ function getPrimeiroNome(nome = '') {
   const primeiroNome = nome.trim().split(' ')[0];
 
   return primeiroNome || 'Usuário';
+}
+
+function getMotoristaExibido(carona, usuario = {}) {
+  const ehUsuarioLogado = carona?.papel === 'MOTORISTA';
+  const nome = ehUsuarioLogado
+    ? usuario.nomeCompleto || usuario.nome || 'Você'
+    : carona?.motorista?.nome || 'Motorista';
+
+  return {
+    nome,
+    fotoUrl: ehUsuarioLogado ? usuario.fotoUrl || '' : '',
+    avatar: ehUsuarioLogado
+      ? getIniciais(nome)
+      : carona?.motorista?.avatar || getIniciais(nome),
+    avaliacao: ehUsuarioLogado
+      ? usuario.avaliacao ?? ''
+      : carona?.motorista?.avaliacao ?? '',
+  };
+}
+
+function getIniciais(nome = '') {
+  return nome
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((parte) => parte[0]?.toUpperCase())
+    .join('') || 'U';
 }
 
 function formatarHorario(valor) {

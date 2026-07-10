@@ -2,6 +2,16 @@ import { apiRequest } from './api.js';
 import { shouldUseLocalDataMocks } from './apiConfig.js';
 
 export async function buscarProximaCarona() {
+  if (shouldUseLocalDataMocks()) {
+    const agora = Date.now();
+    const proxima = carregarCaronasMock()
+      .filter((carona) => !['CANCELADA', 'FINALIZADA'].includes(carona.status))
+      .filter((carona) => new Date(carona.dataHoraSaida).getTime() >= agora)
+      .sort((a, b) => new Date(a.dataHoraSaida) - new Date(b.dataHoraSaida))[0];
+
+    return proxima ? ajustarCarona({ ...proxima, papel: 'MOTORISTA' }) : null;
+  }
+
   const carona = await apiRequest('/caronas/proxima');
 
   return carona ? ajustarCarona(carona) : null;
@@ -449,22 +459,31 @@ function descricaoLocal(local) {
 
 function ajustarCarona(carona = {}) {
   const motorista = carona.motorista || carona.driver || carona.usuario || {};
-  const origem = carona.origem || carona.from || carona.pontoOrigem || '';
-  const destino = carona.destino || carona.to || carona.pontoDestino || '';
+  const origem = descricaoLocal(carona.origem || carona.from || carona.pontoOrigem);
+  const destino = descricaoLocal(carona.destino || carona.to || carona.pontoDestino);
 
   return {
     id: carona.id,
-    horario: carona.horario || carona.time || carona.dataHora || '',
+    horario: carona.dataHoraSaida || carona.horario || carona.time || carona.dataHora || '',
     origem,
     destino,
     rota: carona.rota || montarRota(origem, destino),
     preco: carona.preco || carona.price || carona.valor || '',
+    papel: normalizarPapelNaCarona(carona),
     motorista: {
       nome: motorista.nomeCompleto || motorista.nome || motorista.name || '',
       avatar: motorista.avatar || primeiraLetra(motorista.nomeCompleto || motorista.nome || motorista.name),
       avaliacao: motorista.avaliacao || motorista.rating || '',
     },
   };
+}
+
+function normalizarPapelNaCarona(carona = {}) {
+  const papel = String(carona.papel || carona.tipoParticipacao || carona.role || '').toUpperCase();
+
+  if (papel.includes('MOTORISTA') || papel === 'DRIVER') return 'MOTORISTA';
+  if (papel.includes('PASSAGEIRO') || papel === 'PASSENGER') return 'PASSAGEIRO';
+  return '';
 }
 
 function montarRota(origem, destino) {

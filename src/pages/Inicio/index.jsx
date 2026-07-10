@@ -286,10 +286,17 @@ function formatarData(valor) {
     return 'Data não informada';
   }
 
+  const hoje = new Date();
+  const inicioHoje = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+  const inicioData = new Date(data.getFullYear(), data.getMonth(), data.getDate());
+  const diferencaDias = Math.round((inicioData - inicioHoje) / 86400000);
+
+  if (diferencaDias === 0) return 'Hoje';
+  if (diferencaDias === 1) return 'Amanhã';
+
   return data.toLocaleDateString('pt-BR', {
-    weekday: 'long',
     day: '2-digit',
-    month: 'long',
+    month: 'short',
   });
 }
 

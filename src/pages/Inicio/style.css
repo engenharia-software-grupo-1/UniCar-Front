@@ -253,6 +253,30 @@
 .inicio-empty-actions a { border: 1px solid #cfdaea; border-radius: 999px; color: #061235; padding: 9px 16px; font-size: 13px; font-weight: 800; text-decoration: none; }
 .inicio-empty-actions a:first-child { border-color: #172b91; background: #172b91; color: #fff; }
 
+/* Proporções finais equivalentes ao protótipo. */
+.inicio-next-ride:not(.inicio-next-ride--empty) {
+  min-height: 194px;
+  border-radius: 22px;
+  background: radial-gradient(ellipse at top left, #173391 0%, #09134f 60%, #03072e 100%);
+  box-shadow: 0 10px 18px rgba(3, 8, 41, 0.2);
+}
+
+.inicio-next-card-link { padding: 20px 24px 16px; }
+.inicio-card-label { margin-bottom: 14px; font-size: 13px; gap: 7px; }
+.inicio-card-label svg { width: 14px; height: 14px; }
+.inicio-next-role { margin-bottom: 14px; padding: 4px 9px; font-size: 11px; }
+.inicio-next-time { margin: 0; font-size: 24px; line-height: 1.1; }
+.inicio-next-date { font-size: 12px; }
+.inicio-next-date svg { width: 12px; height: 12px; }
+.inicio-next-route { margin-top: 7px; font-size: 14px; font-weight: 500; }
+.inicio-driver { align-self: start; gap: 5px; }
+.inicio-driver-avatar { width: 48px; height: 48px; font-size: 16px; }
+.inicio-driver-name { display: none; }
+.inicio-driver span { font-size: 12px; gap: 4px; }
+.inicio-driver span svg { width: 13px; height: 13px; }
+.inicio-details { margin-top: 20px; padding-top: 14px; font-size: 14px; font-weight: 500; }
+.inicio-details svg { width: 17px; height: 17px; }
+
 .inicio-section {
   margin-top: 32px;
 }

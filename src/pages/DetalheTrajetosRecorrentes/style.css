@@ -15,6 +15,14 @@ body {
   box-sizing: border-box;
 }
 
+/* Carregando / erro — o trajeto agora vem do serviço, não do componente. */
+.detalhe-estado {
+  margin: 40px 0 0;
+  color: #5b6472;
+  font-size: 14px;
+  text-align: center;
+}
+
 .detalhe-header,
 .card-principal,
 .metricas,

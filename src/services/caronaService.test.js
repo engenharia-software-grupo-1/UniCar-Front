@@ -187,7 +187,14 @@ describe('mock local (dev / VITE_ENABLE_MOCKS)', () => {
     const resultado = await listarMinhasCaronas();
 
     expect(fetch).not.toHaveBeenCalled();
-    expect(resultado).toHaveLength(2);
+
+    // O serviço devolve o histórico inteiro — filtrar por status é papel da tela.
+    // A semente tem 2 caronas ativas e 3 finalizadas (o histórico de onde os
+    // trajetos recorrentes são derivados).
+    expect(resultado).toHaveLength(5);
+    expect(resultado.filter((carona) => carona.status === 'CRIADA')).toHaveLength(2);
+    expect(resultado.filter((carona) => carona.status === 'FINALIZADA')).toHaveLength(3);
+
     expect(resultado[0]).toMatchObject({
       origem: 'Bodocongó',
       destino: 'UFCG',
@@ -221,7 +228,7 @@ describe('mock local (dev / VITE_ENABLE_MOCKS)', () => {
 
     const { criarCarona, listarMinhasCaronas, obterCarona } = await importarService();
 
-    const { id } = await criarCarona({
+    const [{ id }] = await criarCarona({
       veiculoId: 1,
       origem: 'Centro',
       destino: 'UFCG',
@@ -457,7 +464,7 @@ describe('criarCarona', () => {
   };
 
   it('faz POST /caronas com o token e o corpo no formato do contrato', async () => {
-    fetch.mockResolvedValue(respostaJson({ id: 10, status: 'CRIADA' }, { status: 201 }));
+    fetch.mockResolvedValue(respostaJson([{ id: 10, status: 'CRIADA' }], { status: 201 }));
 
     const { criarCarona } = await importarService();
     const resultado = await criarCarona(DADOS);
@@ -466,20 +473,83 @@ describe('criarCarona', () => {
     expect(url).toBe(`${BASE_URL}/caronas`);
     expect(opcoes.method).toBe('POST');
     expect(opcoes.headers.Authorization).toBe(`Bearer ${TOKEN}`);
+
+    // Sem recorrência, `datas` tem só a data escolhida. Não existe mais
+    // `dataHoraSaida` (singular) nem os campos de recorrência no payload.
     expect(JSON.parse(opcoes.body)).toEqual({
       veiculoId: 1,
       origem: { descricao: 'Bodocongó', latitude: null, longitude: null },
       destino: { descricao: 'UFCG', latitude: null, longitude: null },
       pontoEncontro: 'Portão principal',
-      dataHoraSaida: '2026-08-25T07:00:00',
       quantidadeVagas: 4,
       valorContribuicao: 5,
+      datas: ['2026-08-25T07:00:00'],
     });
-    expect(resultado).toEqual({ id: 10, status: 'CRIADA' });
+    expect(resultado).toEqual([{ id: 10, status: 'CRIADA' }]);
+  });
+
+  // 25/08/2026 é uma terça. Marcando Ter/Qui/Sáb, a data escolhida entra e os
+  // outros dois dias geram as ocorrências seguintes, dentro da mesma semana.
+  it('expande os dias marcados em datas e envia todas em `datas`', async () => {
+    fetch.mockResolvedValue(
+      respostaJson(
+        [
+          { id: 12, status: 'CRIADA' },
+          { id: 13, status: 'CRIADA' },
+          { id: 14, status: 'CRIADA' },
+        ],
+        { status: 201 },
+      ),
+    );
+
+    const { criarCarona } = await importarService();
+    const criadas = await criarCarona({
+      ...DADOS,
+      recorrente: true,
+      diasRecorrencia: ['Ter', 'Qui', 'Sáb'],
+    });
+
+    expect(JSON.parse(fetch.mock.calls[0][1].body).datas).toEqual([
+      '2026-08-25T07:00:00', // Ter — a data escolhida, sem duplicar
+      '2026-08-27T07:00:00', // Qui
+      '2026-08-29T07:00:00', // Sáb
+    ]);
+    expect(criadas).toHaveLength(3);
+  });
+
+  it('no modo mock cria uma carona por data e todas aparecem na listagem', async () => {
+    vi.stubEnv('VITE_ENABLE_MOCKS', 'true');
+
+    const { criarCarona, listarMinhasCaronas } = await importarService();
+    const criadas = await criarCarona({
+      ...DADOS,
+      recorrente: true,
+      diasRecorrencia: ['Ter', 'Qui'],
+    });
+
+    expect(criadas).toHaveLength(2);
+    expect(fetch).not.toHaveBeenCalled();
+
+    const caronas = await listarMinhasCaronas();
+    const novas = criadas.map(({ id }) => caronas.find((carona) => carona.id === id));
+
+    expect(novas.map((carona) => carona.dataHoraSaida)).toEqual([
+      '2026-08-25T07:00:00',
+      '2026-08-27T07:00:00',
+    ]);
+    // Cada ocorrência é uma carona independente, com os mesmos dados de viagem.
+    novas.forEach((carona) => {
+      expect(carona).toMatchObject({
+        origem: 'Bodocongó',
+        destino: 'UFCG',
+        quantidadeVagas: 4,
+        status: 'CRIADA',
+      });
+    });
   });
 
   it('preserva latitude/longitude quando origem/destino vêm como objeto', async () => {
-    fetch.mockResolvedValue(respostaJson({ id: 11, status: 'CRIADA' }, { status: 201 }));
+    fetch.mockResolvedValue(respostaJson([{ id: 11, status: 'CRIADA' }], { status: 201 }));
 
     const { criarCarona } = await importarService();
     await criarCarona({
@@ -512,7 +582,189 @@ describe('criarCarona', () => {
     const resultado = await criarCarona(DADOS);
 
     expect(fetch).not.toHaveBeenCalled();
-    expect(resultado).toMatchObject({ status: 'CRIADA' });
-    expect(resultado.id).toEqual(expect.any(Number));
+    expect(resultado).toEqual([{ id: expect.any(Number), status: 'CRIADA' }]);
+  });
+});
+
+// Contrato US8. O endpoint ainda não existe no back, então estes testes fixam o
+// formato documentado — origem/destino como { descricao, latitude, longitude },
+// sem veículo, vagas nem contribuição (RN-TRJ-08).
+describe('trajetos recorrentes', () => {
+  const TRAJETO_CONTRATO = {
+    id: 1,
+    origem: { descricao: 'Bodocongó', latitude: -7.21456, longitude: -35.90872 },
+    destino: { descricao: 'UFCG', latitude: -7.2159, longitude: -35.9095 },
+    quantidadeViagens: 8,
+    primeiraUtilizacao: '2026-01-15T07:00:00',
+    ultimaUtilizacao: '2026-06-20T08:00:00',
+  };
+
+  it('faz GET /trajetos-recorrentes e normaliza os locais para texto', async () => {
+    fetch.mockResolvedValue(respostaJson([TRAJETO_CONTRATO]));
+
+    const { listarTrajetosRecorrentes } = await importarService();
+    const trajetos = await listarTrajetosRecorrentes();
+
+    const [url, opcoes] = fetch.mock.calls[0];
+    expect(url).toBe(`${BASE_URL}/trajetos-recorrentes`);
+    expect(opcoes.headers.Authorization).toBe(`Bearer ${TOKEN}`);
+    expect(trajetos).toEqual([
+      {
+        id: 1,
+        origem: 'Bodocongó',
+        destino: 'UFCG',
+        quantidadeViagens: 8,
+        primeiraUtilizacao: '2026-01-15T07:00:00',
+        ultimaUtilizacao: '2026-06-20T08:00:00',
+      },
+    ]);
+  });
+
+  it('faz GET /trajetos-recorrentes/{id} e normaliza o detalhe', async () => {
+    fetch.mockResolvedValue(respostaJson(TRAJETO_CONTRATO));
+
+    const { obterTrajetoRecorrente } = await importarService();
+    const trajeto = await obterTrajetoRecorrente(1);
+
+    expect(fetch.mock.calls[0][0]).toBe(`${BASE_URL}/trajetos-recorrentes/1`);
+    expect(trajeto.origem).toBe('Bodocongó');
+    expect(trajeto.destino).toBe('UFCG');
+
+    // O trajeto não carrega dados que variam a cada viagem.
+    expect(trajeto).not.toHaveProperty('veiculoId');
+    expect(trajeto).not.toHaveProperty('quantidadeVagas');
+    expect(trajeto).not.toHaveProperty('valorContribuicao');
+  });
+
+  it('no modo mock deriva os trajetos do histórico, sem chamar fetch', async () => {
+    vi.stubEnv('VITE_ENABLE_MOCKS', 'true');
+
+    const { listarTrajetosRecorrentes } = await importarService();
+    const trajetos = await listarTrajetosRecorrentes();
+
+    expect(fetch).not.toHaveBeenCalled();
+
+    // A semente tem 3 viagens Bodocongó→UFCG e 2 Catolé→UFCG; ambas passam do
+    // mínimo de duas (RN-TRJ-02) e vêm ordenadas pelas mais usadas (RN-TRJ-04).
+    expect(trajetos).toMatchObject([
+      { origem: 'Bodocongó', destino: 'UFCG', quantidadeViagens: 3 },
+      { origem: 'Catolé', destino: 'UFCG', quantidadeViagens: 2 },
+    ]);
+  });
+
+  it('no modo mock o trajeto é coerente com o histórico usado na sugestão', async () => {
+    vi.stubEnv('VITE_ENABLE_MOCKS', 'true');
+
+    const { obterTrajetoRecorrente, buscarUltimaCaronaDoTrajeto } =
+      await importarService();
+
+    // Regressão: os trajetos já foram dados inventados que não batiam com as
+    // caronas, e a sugestão de "recriar viagem" nunca encontrava histórico.
+    const trajeto = await obterTrajetoRecorrente(1);
+    const ultima = await buscarUltimaCaronaDoTrajeto(trajeto.origem, trajeto.destino);
+
+    expect(ultima).not.toBeNull();
+    expect(ultima.veiculo.id).toBeTruthy();
+  });
+
+  it('no modo mock rejeita um trajeto inexistente', async () => {
+    vi.stubEnv('VITE_ENABLE_MOCKS', 'true');
+
+    const { obterTrajetoRecorrente } = await importarService();
+
+    await expect(obterTrajetoRecorrente(999)).rejects.toThrow(
+      'Trajeto recorrente não encontrado.',
+    );
+  });
+});
+
+// Como o trajeto recorrente não carrega veículo/vagas/contribuição/ponto de
+// encontro, a sugestão de "recriar viagem" sai do histórico do motorista.
+describe('buscarUltimaCaronaDoTrajeto', () => {
+  const HISTORICO = [
+    {
+      id: 1,
+      status: 'FINALIZADA',
+      dataHoraSaida: '2026-06-01T07:00:00',
+      origem: { descricao: 'Bodocongó' },
+      destino: { descricao: 'UFCG' },
+      pontoEncontro: 'Portão velho',
+      quantidadeVagas: 2,
+      vagasDisponiveis: 0,
+      valorContribuicao: 6,
+      veiculo: { id: 1, tipo: 'carro', modelo: 'Onix' },
+    },
+    {
+      id: 2,
+      status: 'FINALIZADA',
+      dataHoraSaida: '2026-06-20T08:00:00', // mais recente no mesmo trajeto
+      origem: { descricao: 'Bodocongó' },
+      destino: { descricao: 'UFCG' },
+      pontoEncontro: 'Portão principal',
+      quantidadeVagas: 3,
+      vagasDisponiveis: 1,
+      valorContribuicao: 8,
+      veiculo: { id: 2, tipo: 'moto', modelo: 'CG 160' },
+    },
+    {
+      id: 3,
+      status: 'FINALIZADA',
+      dataHoraSaida: '2026-06-25T09:00:00', // mais recente, mas outro trajeto
+      origem: { descricao: 'Centro' },
+      destino: { descricao: 'UFCG' },
+      pontoEncontro: 'Praça',
+      quantidadeVagas: 4,
+      vagasDisponiveis: 4,
+      valorContribuicao: 10,
+      veiculo: { id: 1, tipo: 'carro', modelo: 'Onix' },
+    },
+  ];
+
+  // listarMinhasCaronas lista e depois detalha cada carona (GET /caronas/{id}),
+  // então o fetch precisa responder por URL.
+  function historicoNoBackend() {
+    fetch.mockImplementation(async (url) => {
+      const detalhe = HISTORICO.find((carona) =>
+        url.endsWith(`/caronas/${carona.id}`),
+      );
+
+      return respostaJson(detalhe || HISTORICO);
+    });
+  }
+
+  it('devolve a carona mais recente do mesmo par origem→destino', async () => {
+    historicoNoBackend();
+
+    const { buscarUltimaCaronaDoTrajeto } = await importarService();
+    const ultima = await buscarUltimaCaronaDoTrajeto('Bodocongó', 'UFCG');
+
+    expect(ultima.id).toBe(2);
+    expect(ultima.pontoEncontro).toBe('Portão principal');
+    expect(ultima.valorContribuicao).toBe(8);
+    expect(ultima.veiculo).toMatchObject({ id: 2, tipo: 'moto' });
+  });
+
+  it('ignora caixa e espaços ao agrupar o trajeto (RN-TRJ-03)', async () => {
+    historicoNoBackend();
+
+    const { buscarUltimaCaronaDoTrajeto } = await importarService();
+    const ultima = await buscarUltimaCaronaDoTrajeto('  bodocongó ', 'ufcg');
+
+    expect(ultima?.id).toBe(2);
+  });
+
+  it('devolve null quando o motorista nunca fez esse trajeto', async () => {
+    historicoNoBackend();
+
+    const { buscarUltimaCaronaDoTrajeto } = await importarService();
+
+    await expect(buscarUltimaCaronaDoTrajeto('Catolé', 'UFCG')).resolves.toBeNull();
+  });
+
+  it('devolve null sem consultar o histórico quando falta origem ou destino', async () => {
+    const { buscarUltimaCaronaDoTrajeto } = await importarService();
+
+    await expect(buscarUltimaCaronaDoTrajeto('', 'UFCG')).resolves.toBeNull();
+    expect(fetch).not.toHaveBeenCalled();
   });
 });

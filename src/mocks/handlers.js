@@ -154,16 +154,25 @@ export const handlers = [
     return HttpResponse.json(resumo, { status: 200 });
   }),
 
-  // POST /caronas — cria uma nova carona (contrato US7-BACK-01).
+  // POST /caronas — cria UMA carona por data recebida em `datas`. A recorrência
+  // não é um atributo da carona: o front expande os dias marcados em datas e o
+  // back materializa cada uma como uma carona independente.
   http.post(`${API_BASE_URL}/caronas`, async ({ request }) => {
     const negado = exigirAutorizacao(request);
     if (negado) return negado;
 
     const corpo = await request.json();
-    const { veiculoId, origem, destino, quantidadeVagas } = corpo;
+    const { veiculoId, origem, destino, quantidadeVagas, datas } = corpo;
 
     if (!veiculoId) {
       return HttpResponse.json({ message: 'Veículo é obrigatório' }, { status: 400 });
+    }
+
+    if (!Array.isArray(datas) || datas.length === 0) {
+      return HttpResponse.json(
+        { message: 'Informe ao menos uma data de saída' },
+        { status: 400 },
+      );
     }
 
     // RN-CAR-03: a quantidade de vagas deve ser maior que zero.
@@ -182,15 +191,24 @@ export const handlers = [
       );
     }
 
-    const novaCarona = {
-      id: proximaCaronaId,
-      ...corpo,
-      status: 'CRIADA',
-    };
-    proximaCaronaId += 1;
-    caronas.push(novaCarona);
+    const dadosDaCarona = { ...corpo };
+    delete dadosDaCarona.datas;
 
-    return HttpResponse.json({ id: novaCarona.id, status: novaCarona.status }, { status: 201 });
+    const novas = datas.map((dataHoraSaida) => {
+      const novaCarona = {
+        ...dadosDaCarona,
+        id: proximaCaronaId,
+        dataHoraSaida,
+        status: 'CRIADA',
+      };
+
+      proximaCaronaId += 1;
+      caronas.push(novaCarona);
+
+      return { id: novaCarona.id, status: novaCarona.status };
+    });
+
+    return HttpResponse.json(novas, { status: 201 });
   }),
 
   // GET /caronas/{id} — detalhe completo de uma carona.

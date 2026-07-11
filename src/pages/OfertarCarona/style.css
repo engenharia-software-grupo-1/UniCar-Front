@@ -312,6 +312,57 @@
   font-weight: 600;
 }
 
+/* Datas geradas pela recorrência na revisão: cada uma vira uma carona. */
+.ofertar-revisao-datas {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #e3e8ef;
+}
+
+.ofertar-revisao-datas-titulo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #33507a;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.ofertar-revisao-datas ul {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ofertar-revisao-datas li {
+  color: #5b6472;
+  font-size: 13px;
+}
+
+/* Sugestão vinda do histórico ao recriar uma viagem. Tom informativo (e não de
+   alerta, como .ofertar-aviso): os campos foram preenchidos, mas são editáveis. */
+.ofertar-sugestao {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0 0 18px;
+  padding: 12px 14px;
+  border: 1px solid #d7e3f4;
+  border-radius: 12px;
+  background: #f1f6fd;
+  color: #33507a;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.ofertar-sugestao svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
 /* Número de vagas — pills segmentadas, no mesmo padrão do toggle de tipo. */
 .ofertar-vagas {
   display: grid;

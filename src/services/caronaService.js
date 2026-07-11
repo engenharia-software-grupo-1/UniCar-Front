@@ -1,5 +1,6 @@
 import { apiRequest } from './api.js';
 import { shouldUseLocalDataMocks } from './apiConfig.js';
+import { expandirDatasDaRecorrencia } from '../utils/recorrencia.js';
 
 export async function buscarProximaCarona() {
   if (shouldUseLocalDataMocks()) {
@@ -41,37 +42,47 @@ export async function obterCarona(id) {
   return ajustarCaronaMotorista(carona);
 }
 
-// Cria uma nova carona (POST /caronas) — contrato US7-BACK-01. Recebe origem e
-// destino como texto (ou objeto) e devolve o payload no formato do contrato,
-// com origem/destino em { descricao, latitude, longitude }. Responde
-// { id, status: 'CRIADA' }.
+// Cria caronas (POST /caronas). A recorrência não é um atributo da carona: os
+// dias marcados pelo motorista viram uma lista de datas concretas e o back cria
+// UMA carona por data. Por isso o payload leva `datas` (plural) e a resposta é
+// a lista das caronas criadas: [{ id, status: 'CRIADA' }, ...].
 export async function criarCarona(dados) {
-  const payload = montarPayloadCarona(dados);
+  const datas = expandirDatasDaRecorrencia(dados);
+  const payload = { ...montarPayloadBase(dados), datas };
 
   if (shouldUseLocalDataMocks()) {
     const caronas = carregarCaronasMock();
+    let proximoId = Math.max(10, ...caronas.map((carona) => carona.id));
 
-    const novaCarona = {
-      id: Math.max(10, ...caronas.map((carona) => carona.id)) + 1,
-      ...payload,
-      vagasDisponiveis: payload.quantidadeVagas,
-      status: 'CRIADA',
-    };
+    const novas = datas.map((dataHoraSaida) => {
+      proximoId += 1;
 
-    salvarCaronasMock([...caronas, novaCarona]);
+      return {
+        ...montarPayloadBase(dados),
+        id: proximoId,
+        dataHoraSaida,
+        vagasDisponiveis: payload.quantidadeVagas,
+        status: 'CRIADA',
+      };
+    });
 
-    return { id: novaCarona.id, status: 'CRIADA' };
+    salvarCaronasMock([...caronas, ...novas]);
+
+    return novas.map((carona) => ({ id: carona.id, status: 'CRIADA' }));
   }
 
-  return apiRequest('/caronas', {
+  const criadas = await apiRequest('/caronas', {
     method: 'POST',
     body: JSON.stringify(payload),
   });
+
+  return Array.isArray(criadas) ? criadas : [criadas];
 }
 
-// Atualiza os dados editáveis de uma carona (PATCH /caronas/{id}).
+// Atualiza os dados editáveis de UMA carona (PATCH /caronas/{id}). Cada carona
+// é uma data só — não há recorrência a editar aqui.
 export async function editarCarona(id, dados) {
-  const payload = montarPayloadCarona(dados);
+  const payload = { ...montarPayloadBase(dados), dataHoraSaida: dados.dataHoraSaida };
 
   if (shouldUseLocalDataMocks()) {
     const caronas = carregarCaronasMock();
@@ -101,17 +112,20 @@ export async function editarCarona(id, dados) {
   return carona ? ajustarCaronaMotorista(carona) : { id: Number(id), status: 'ATUALIZADA' };
 }
 
-function montarPayloadCarona(dados = {}) {
+// Campos comuns a criar e editar. A data fica de fora porque as duas operações
+// a tratam de forma diferente: criar leva `datas` (lista), editar leva
+// `dataHoraSaida` (uma ocorrência).
+function montarPayloadBase(dados = {}) {
   return {
     veiculoId: Number(dados.veiculoId),
     origem: montarLocalContrato(dados.origem),
     destino: montarLocalContrato(dados.destino),
     pontoEncontro: dados.pontoEncontro ?? '',
-    dataHoraSaida: dados.dataHoraSaida,
     quantidadeVagas: Number(dados.quantidadeVagas),
     valorContribuicao: Number(dados.valorContribuicao),
   };
 }
+
 
 // O contrato exige origem/destino com descricao, latitude e longitude. A UI só
 // coleta texto, então preenchemos as coordenadas com null quando ausentes.
@@ -262,7 +276,8 @@ export async function listarMinhasCaronas() {
 // cancelamento seja refletido — assim como o mock de veículos.
 const MOCK_CARONAS_KEY = 'unicar.mock.caronas';
 const MOCK_CARONAS_VERSION_KEY = 'unicar.mock.caronas.version';
-const MOCK_CARONAS_VERSION = 'semente-v1';
+// Bump ao mudar a semente: invalida os stores já gravados no localStorage.
+const MOCK_CARONAS_VERSION = 'semente-v4';
 
 // Semente inicial. As datas são geradas na hora para caírem em "Hoje"/"Amanhã".
 function caronasSemente() {
@@ -308,6 +323,54 @@ function caronasSemente() {
       vagasDisponiveis: 4,
       valorContribuicao: 6,
       status: 'CRIADA',
+      motorista: { id: 1, nome: 'Estudante UniCar', avaliacao: 4.8 },
+      veiculo: { id: 1, modelo: 'Onix', cor: 'Prata', tipo: 'carro' },
+    },
+
+    // Viagens passadas. Não aparecem em "Minhas caronas" (que só lista CRIADA e
+    // EM_ANDAMENTO), mas são o histórico de onde os trajetos recorrentes são
+    // derivados — sem elas, nenhum trajeto atinge as duas viagens da RN-TRJ-02.
+    //
+    // Os offsets são propositalmente ímpares e distintos (-1, -3, -2): como a
+    // recorrência não é mais um campo da carona, os dias exibidos no trajeto são
+    // derivados do dia da semana em que as viagens caem. Offsets múltiplos de 7
+    // cairiam todos no mesmo dia da semana e a tela mostraria um chip só.
+    {
+      id: 12,
+      origem: { descricao: 'Bodocongó' },
+      destino: { descricao: 'UFCG' },
+      pontoEncontro: 'Campus Sede',
+      dataHoraSaida: saidaMockada(-1, 7, 10),
+      quantidadeVagas: 3,
+      vagasDisponiveis: 0,
+      valorContribuicao: 5,
+      status: 'FINALIZADA',
+      motorista: { id: 1, nome: 'Estudante UniCar', avaliacao: 4.8 },
+      veiculo: { id: 1, modelo: 'Onix', cor: 'Prata', tipo: 'carro' },
+    },
+    {
+      id: 13,
+      origem: { descricao: 'Bodocongó' },
+      destino: { descricao: 'UFCG' },
+      pontoEncontro: 'Campus Sede',
+      dataHoraSaida: saidaMockada(-3, 7, 5),
+      quantidadeVagas: 3,
+      vagasDisponiveis: 1,
+      valorContribuicao: 5,
+      status: 'FINALIZADA',
+      motorista: { id: 1, nome: 'Estudante UniCar', avaliacao: 4.8 },
+      veiculo: { id: 1, modelo: 'Onix', cor: 'Prata', tipo: 'carro' },
+    },
+    {
+      id: 14,
+      origem: { descricao: 'Catolé' },
+      destino: { descricao: 'UFCG' },
+      pontoEncontro: 'Portão principal',
+      dataHoraSaida: saidaMockada(-2, 7, 0),
+      quantidadeVagas: 4,
+      vagasDisponiveis: 2,
+      valorContribuicao: 6,
+      status: 'FINALIZADA',
       motorista: { id: 1, nome: 'Estudante UniCar', avaliacao: 4.8 },
       veiculo: { id: 1, modelo: 'Onix', cor: 'Prata', tipo: 'carro' },
     },
@@ -498,42 +561,131 @@ function primeiraLetra(nome = '') {
   return nome.trim()[0]?.toUpperCase() || '';
 }
 
-// TRAJETOS RECORRENTES 
-
-// versão provisória enquanto não temos essa parte 
-// do back devidamente implementada
+// TRAJETOS RECORRENTES (contrato US8)
+//
+// O back ainda não implementou /trajetos-recorrentes (a main da UniCar-API só
+// expõe /auth, /usuarios e /veiculos), então os dados abaixo são provisórios —
+// mas seguem o formato do contrato us8-trajetos-recorrentes.md, para que a
+// troca pelo endpoint real não exija mudar a UI.
+//
+// Um trajeto recorrente é derivado do histórico de caronas e descreve APENAS
+// origem e destino: veículo, horário, vagas, contribuição e ponto de encontro
+// variam entre viagens e não fazem parte do trajeto (RN-TRJ-08).
 export async function listarTrajetosRecorrentes() {
-  return [
-    {
-      id: 1,
-      origem: 'Bodocongó',
-      destino: 'UFCG - Campus Sede',
-      quantidadeViagens: 15,
-      active: true,
-    },
-    {
-      id: 2,
-      origem: 'Centro',
-      destino: 'UFCG - Campus Sede',
-      quantidadeViagens: 8,
-      active: true,
-    },
-  ];
-}
-
-// versão provisória enquanto não temos essa parte 
-// do back devidamente implementada
-export async function obterTrajetoRecorrente(id) {
   if (shouldUseLocalDataMocks()) {
-    return {
-      id,
-      origem: "Bodocongó",
-      destino: "UFCG - Campus Sede",
-      veiculoId: 1,
-      quantidadeVagas: 3,
-      valorContribuicao: 5,
-    };
+    return derivarTrajetosRecorrentes(carregarCaronasMock().map(ajustarCaronaMotorista));
   }
 
-  return apiRequest(`/trajetos-recorrentes/${id}`);
+  const trajetos = await apiRequest('/trajetos-recorrentes');
+
+  return (Array.isArray(trajetos) ? trajetos : []).map(ajustarTrajetoRecorrente);
+}
+
+export async function obterTrajetoRecorrente(id) {
+  if (shouldUseLocalDataMocks()) {
+    const trajetos = await listarTrajetosRecorrentes();
+    const trajeto = trajetos.find((item) => String(item.id) === String(id));
+
+    if (!trajeto) {
+      throw new Error('Trajeto recorrente não encontrado.');
+    }
+
+    return trajeto;
+  }
+
+  return ajustarTrajetoRecorrente(await apiRequest(`/trajetos-recorrentes/${id}`));
+}
+
+// Reproduz no mock a derivação que o back faz: agrupa o histórico por
+// origem+destino (RN-TRJ-03), mantém só quem tem duas ou mais viagens
+// (RN-TRJ-02) e ordena pelas mais utilizadas (RN-TRJ-04). Assim os trajetos
+// exibidos são sempre coerentes com as caronas do motorista — e a sugestão de
+// "recriar viagem" tem de fato um histórico para consultar.
+function derivarTrajetosRecorrentes(caronas) {
+  const grupos = new Map();
+
+  caronas.forEach((carona) => {
+    const chave = chaveDoTrajeto(carona.origem, carona.destino);
+
+    if (!chave) {
+      return;
+    }
+
+    const grupo = grupos.get(chave) || {
+      origem: carona.origem,
+      destino: carona.destino,
+      datas: [],
+    };
+
+    grupo.datas.push(carona.dataHoraSaida);
+    grupos.set(chave, grupo);
+  });
+
+  return [...grupos.values()]
+    .filter((grupo) => grupo.datas.length >= 2)
+    .sort((a, b) => b.datas.length - a.datas.length)
+    .map((grupo, indice) => {
+      const datas = [...grupo.datas].sort();
+
+      return {
+        // O trajeto não existe como entidade: o id é um substituto estável
+        // enquanto o store de caronas não muda. O back gera o seu próprio.
+        id: indice + 1,
+        origem: grupo.origem,
+        destino: grupo.destino,
+        quantidadeViagens: grupo.datas.length,
+        primeiraUtilizacao: datas[0] || '',
+        ultimaUtilizacao: datas[datas.length - 1] || '',
+      };
+    });
+}
+
+// Um trajeto recorrente carrega apenas origem e destino (RN-TRJ-08). Tudo o
+// mais que as telas mostram sobre ele — veículo, vagas, contribuição, ponto de
+// encontro, horários, histórico — vive nas caronas daquele par origem→destino,
+// a mesma fonte de onde o back deriva os trajetos.
+//
+// Devolve as caronas do trajeto, da mais recente para a mais antiga.
+export async function listarCaronasDoTrajeto(origem, destino) {
+  const alvo = chaveDoTrajeto(origem, destino);
+
+  if (!alvo) {
+    return [];
+  }
+
+  const caronas = await listarMinhasCaronas();
+
+  return caronas
+    .filter((carona) => chaveDoTrajeto(carona.origem, carona.destino) === alvo)
+    .sort((a, b) => new Date(b.dataHoraSaida || 0) - new Date(a.dataHoraSaida || 0));
+}
+
+// Última carona do trajeto, usada como sugestão editável ao recriar a viagem.
+// Devolve null quando não há histórico (ex.: primeira viagem).
+export async function buscarUltimaCaronaDoTrajeto(origem, destino) {
+  const caronas = await listarCaronasDoTrajeto(origem, destino);
+
+  return caronas[0] || null;
+}
+
+// Agrupa por origem+destino como manda a RN-TRJ-03, tolerando caixa e espaços.
+function chaveDoTrajeto(origem, destino) {
+  const partes = [origem, destino].map((local) =>
+    descricaoLocal(local).trim().toLowerCase(),
+  );
+
+  return partes.every(Boolean) ? partes.join('→') : '';
+}
+
+// O contrato entrega origem/destino como { descricao, latitude, longitude },
+// mas a UI trabalha com texto — mesma normalização feita em ajustarCarona().
+function ajustarTrajetoRecorrente(trajeto = {}) {
+  return {
+    id: trajeto.id,
+    origem: descricaoLocal(trajeto.origem),
+    destino: descricaoLocal(trajeto.destino),
+    quantidadeViagens: trajeto.quantidadeViagens ?? 0,
+    primeiraUtilizacao: trajeto.primeiraUtilizacao || '',
+    ultimaUtilizacao: trajeto.ultimaUtilizacao || '',
+  };
 }

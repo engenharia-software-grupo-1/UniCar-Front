@@ -15,16 +15,28 @@ vi.mock('../../services/vehicleService.js', () => ({
 }));
 
 vi.mock('../../services/caronaService.js', () => ({
+  buscarUltimaCaronaDoTrajeto: vi.fn(),
   criarCarona: vi.fn(),
+  listarTrajetosRecorrentes: vi.fn(),
+  obterTrajetoRecorrente: vi.fn(),
 }));
 
 import OfertarCarona from './index.jsx';
 import { listarVeiculos } from '../../services/vehicleService.js';
-import { criarCarona } from '../../services/caronaService.js';
+import {
+  buscarUltimaCaronaDoTrajeto,
+  criarCarona,
+  listarTrajetosRecorrentes,
+  obterTrajetoRecorrente,
+} from '../../services/caronaService.js';
 
 const VEICULOS = [
   { id: 1, modelo: 'Onix', cor: 'Prata', placa: 'ABC-1D23' }, // sem tipo → carro
   { id: 2, modelo: 'CG 160', cor: 'Preta', placa: 'MOT-9A11', tipo: 'moto' },
+];
+
+const TRAJETOS_RECORRENTES = [
+  { id: 1, origem: 'Bodocongó', destino: 'UFCG - Campus Sede', quantidadeViagens: 15 },
 ];
 
 // Datas relativas ao "agora" real para que a validação de data futura seja
@@ -40,9 +52,24 @@ const DATA_FUTURA = isoLocal(30);
 const DATA_FUTURA_BR = DATA_FUTURA.split('-').reverse().join('/');
 const DATA_PASSADA = isoLocal(-5);
 
-function renderPagina() {
+// A expansão da recorrência depende do dia da semana, e DATA_FUTURA é relativa
+// ao "agora" real. Em vez de fixar um calendário, derivamos o rótulo do dia.
+const DIAS_POR_INDICE = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+
+function rotuloDoDia(dataISO) {
+  const [ano, mes, dia] = dataISO.split('-').map(Number);
+  return DIAS_POR_INDICE[new Date(ano, mes - 1, dia).getDay()];
+}
+
+// Dois dias depois da data escolhida: cai na mesma janela de uma semana.
+const DATA_MAIS_2 = isoLocal(32);
+const DIA_MAIS_2 = rotuloDoDia(DATA_MAIS_2);
+
+// `state` simula a navegação vinda de "Recriar viagem" (detalhe do trajeto
+// recorrente), que entrega o trajetoId via location.state.
+function renderPagina(state) {
   return render(
-    <MemoryRouter>
+    <MemoryRouter initialEntries={[{ pathname: '/ofertar-carona', state }]}>
       <OfertarCarona />
     </MemoryRouter>,
   );
@@ -69,6 +96,9 @@ async function abrirDropdownVeiculo(user) {
 beforeEach(() => {
   vi.clearAllMocks();
   listarVeiculos.mockResolvedValue(VEICULOS);
+  listarTrajetosRecorrentes.mockResolvedValue(TRAJETOS_RECORRENTES);
+  // Sem histórico por padrão: quem exercita a sugestão sobrescreve.
+  buscarUltimaCaronaDoTrajeto.mockResolvedValue(null);
 });
 
 afterEach(() => {
@@ -300,7 +330,7 @@ describe('passo 3 — revisão e publicação', () => {
 
   it('publica a carona com o payload correto e navega para minhas caronas', async () => {
     const user = userEvent.setup();
-    criarCarona.mockResolvedValue({ id: 42, status: 'CRIADA' });
+    criarCarona.mockResolvedValue([{ id: 42, status: 'CRIADA' }]);
     renderPagina();
 
     await chegarNoResumo(user);
@@ -315,12 +345,33 @@ describe('passo 3 — revisão e publicação', () => {
         dataHoraSaida: `${DATA_FUTURA}T07:00:00`,
         quantidadeVagas: 1,
         valorContribuicao: 5,
+        recorrente: false,
+        diasRecorrencia: [],
       }),
     );
 
     expect(navigateMock).toHaveBeenCalledWith('/minhas-caronas', {
       state: { mensagem: 'Carona publicada com sucesso.' },
     });
+  });
+
+  it('avisa quantas caronas foram criadas quando havia recorrência', async () => {
+    const user = userEvent.setup();
+    criarCarona.mockResolvedValue([
+      { id: 42, status: 'CRIADA' },
+      { id: 43, status: 'CRIADA' },
+      { id: 44, status: 'CRIADA' },
+    ]);
+    renderPagina();
+
+    await chegarNoResumo(user);
+    await user.click(screen.getByRole('button', { name: 'Publicar carona' }));
+
+    await waitFor(() =>
+      expect(navigateMock).toHaveBeenCalledWith('/minhas-caronas', {
+        state: { mensagem: '3 caronas publicadas com sucesso.' },
+      }),
+    );
   });
 
   it('exibe erro quando a publicação falha', async () => {
@@ -335,5 +386,240 @@ describe('passo 3 — revisão e publicação', () => {
       await screen.findByText('Não foi possível publicar a carona.'),
     ).toBeInTheDocument();
     expect(navigateMock).not.toHaveBeenCalled();
+  });
+});
+
+describe('rotas frequentes', () => {
+  it('lista as rotas vindas do serviço e preenche origem e destino ao selecionar', async () => {
+    const user = userEvent.setup();
+    renderPagina();
+
+    const atalho = await screen.findByRole('button', {
+      name: /Bodocongó → UFCG - Campus Sede/,
+    });
+    expect(within(atalho).getByText('15x realizadas')).toBeInTheDocument();
+
+    await user.click(atalho);
+
+    expect(screen.getByPlaceholderText('De onde você sai')).toHaveValue('Bodocongó');
+    expect(screen.getByPlaceholderText('Para onde você vai')).toHaveValue(
+      'UFCG - Campus Sede',
+    );
+  });
+});
+
+describe('recriar viagem a partir de um trajeto recorrente', () => {
+  // Um trajeto recorrente descreve apenas origem e destino (contrato US8): o
+  // serviço já normaliza os locais do contrato para texto.
+  const TRAJETO = {
+    id: 7,
+    origem: 'Bodocongó',
+    destino: 'UFCG - Campus Sede',
+    quantidadeViagens: 15,
+  };
+
+  // O trajeto em si só entrega origem e destino; o resto é sugestão do histórico.
+  const ULTIMA_CARONA = {
+    id: 10,
+    status: 'FINALIZADA',
+    dataHoraSaida: '2026-06-20T08:00:00',
+    origem: 'Bodocongó',
+    destino: 'UFCG - Campus Sede',
+    pontoEncontro: 'Portão principal',
+    quantidadeVagas: 3,
+    valorContribuicao: 8,
+    veiculo: { id: 1, tipo: 'carro', modelo: 'Onix' },
+  };
+
+  it('pré-preenche origem e destino a partir do trajeto', async () => {
+    obterTrajetoRecorrente.mockResolvedValue(TRAJETO);
+
+    renderPagina({ trajetoId: 7 });
+
+    await waitFor(() =>
+      expect(screen.getByPlaceholderText('De onde você sai')).toHaveValue('Bodocongó'),
+    );
+    expect(obterTrajetoRecorrente).toHaveBeenCalledWith(7);
+    expect(screen.getByPlaceholderText('Para onde você vai')).toHaveValue(
+      'UFCG - Campus Sede',
+    );
+  });
+
+  it('sugere veículo, vagas, contribuição e ponto de encontro da última viagem', async () => {
+    const user = userEvent.setup();
+    obterTrajetoRecorrente.mockResolvedValue(TRAJETO);
+    buscarUltimaCaronaDoTrajeto.mockResolvedValue(ULTIMA_CARONA);
+
+    renderPagina({ trajetoId: 7 });
+
+    expect(await screen.findByText(/com base na sua última viagem/i)).toBeInTheDocument();
+    expect(buscarUltimaCaronaDoTrajeto).toHaveBeenCalledWith(
+      'Bodocongó',
+      'UFCG - Campus Sede',
+    );
+
+    expect(
+      screen.getByPlaceholderText('Onde os passageiros te encontram'),
+    ).toHaveValue('Portão principal');
+
+    // Data e horário nunca são sugeridos: a viagem nova exige uma data.
+    expect(screen.getByLabelText('Data')).toHaveValue('');
+    expect(screen.getByLabelText('Horário')).toHaveValue('');
+
+    fireEvent.change(screen.getByLabelText('Data'), { target: { value: DATA_FUTURA } });
+    fireEvent.change(screen.getByLabelText('Horário'), { target: { value: '07:00' } });
+    await user.click(screen.getByRole('button', { name: 'Continuar' }));
+
+    expect(
+      screen.getByRole('button', { name: /Onix • Prata • ABC-1D23/ }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '3', pressed: true })).toBeInTheDocument();
+    expect(screen.getByText('R$ 8')).toBeInTheDocument();
+  });
+
+  it('limita a sugestão a 1 vaga quando a última viagem foi de moto', async () => {
+    const user = userEvent.setup();
+    obterTrajetoRecorrente.mockResolvedValue(TRAJETO);
+    buscarUltimaCaronaDoTrajeto.mockResolvedValue({
+      ...ULTIMA_CARONA,
+      quantidadeVagas: 3,
+      veiculo: { id: 2, tipo: 'moto', modelo: 'CG 160' },
+    });
+
+    renderPagina({ trajetoId: 7 });
+
+    await screen.findByText(/com base na sua última viagem/i);
+
+    fireEvent.change(screen.getByLabelText('Data'), { target: { value: DATA_FUTURA } });
+    fireEvent.change(screen.getByLabelText('Horário'), { target: { value: '07:00' } });
+    await user.click(screen.getByRole('button', { name: 'Continuar' }));
+
+    expect(
+      screen.getByRole('button', { name: /CG 160 • Preta • MOT-9A11/ }),
+    ).toBeInTheDocument();
+    expect(screen.getByText('Motos comportam apenas 1 passageiro.')).toBeInTheDocument();
+  });
+
+  it('não sugere nada quando não há histórico no trajeto', async () => {
+    obterTrajetoRecorrente.mockResolvedValue(TRAJETO);
+    buscarUltimaCaronaDoTrajeto.mockResolvedValue(null);
+
+    renderPagina({ trajetoId: 7 });
+
+    await waitFor(() =>
+      expect(screen.getByPlaceholderText('De onde você sai')).toHaveValue('Bodocongó'),
+    );
+
+    expect(screen.queryByText(/com base na sua última viagem/i)).not.toBeInTheDocument();
+    expect(
+      screen.getByPlaceholderText('Onde os passageiros te encontram'),
+    ).toHaveValue('');
+  });
+
+  it('mantém o formulário utilizável quando o trajeto não pode ser carregado', async () => {
+    obterTrajetoRecorrente.mockRejectedValue(new Error('falhou'));
+
+    renderPagina({ trajetoId: 7 });
+
+    expect(await screen.findByText('Passo 1 de 3')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('De onde você sai')).toHaveValue('');
+    expect(screen.queryByText('falhou')).not.toBeInTheDocument();
+  });
+
+  it('não busca trajeto quando a navegação não traz trajetoId', async () => {
+    renderPagina();
+
+    expect(await screen.findByText('Passo 1 de 3')).toBeInTheDocument();
+    expect(obterTrajetoRecorrente).not.toHaveBeenCalled();
+  });
+});
+
+// A recorrência não vira um campo da carona: cada dia marcado gera uma data, e
+// cada data vira uma carona independente.
+describe('recorrência', () => {
+  async function preencherTrajeto(user) {
+    await user.type(screen.getByPlaceholderText('De onde você sai'), 'Bodocongó');
+    await user.type(screen.getByPlaceholderText('Para onde você vai'), 'UFCG');
+    fireEvent.change(screen.getByLabelText('Data'), { target: { value: DATA_FUTURA } });
+    fireEvent.change(screen.getByLabelText('Horário'), { target: { value: '07:00' } });
+    await user.type(
+      screen.getByPlaceholderText('Onde os passageiros te encontram'),
+      'Portão principal',
+    );
+  }
+
+  it('não deixa avançar com "Carona recorrente" marcada e nenhum dia escolhido', async () => {
+    const user = userEvent.setup();
+    renderPagina();
+
+    await preencherTrajeto(user);
+    await user.click(screen.getByRole('checkbox', { name: /carona recorrente/i }));
+    await user.click(screen.getByRole('button', { name: 'Continuar' }));
+
+    expect(
+      screen.getByText('Selecione ao menos um dia da recorrência.'),
+    ).toBeInTheDocument();
+    expect(screen.getByText('Passo 1 de 3')).toBeInTheDocument();
+  });
+
+  it('lista na revisão as datas que virarão caronas e as envia ao publicar', async () => {
+    const user = userEvent.setup();
+    criarCarona.mockResolvedValue([
+      { id: 42, status: 'CRIADA' },
+      { id: 43, status: 'CRIADA' },
+    ]);
+    renderPagina();
+
+    await preencherTrajeto(user);
+    await user.click(screen.getByRole('checkbox', { name: /carona recorrente/i }));
+    await user.click(screen.getByRole('button', { name: DIA_MAIS_2, pressed: false }));
+    await user.click(screen.getByRole('button', { name: 'Continuar' }));
+
+    await abrirDropdownVeiculo(user);
+    await user.click(screen.getByRole('option', { name: 'Onix • Prata • ABC-1D23' }));
+    await user.click(screen.getByRole('button', { name: 'Continuar' }));
+
+    // A data escolhida entra, e o dia marcado gera a ocorrência seguinte.
+    expect(screen.getByText('2 caronas serão criadas')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Publicar carona' }));
+
+    await waitFor(() =>
+      expect(criarCarona).toHaveBeenCalledWith(
+        expect.objectContaining({
+          dataHoraSaida: `${DATA_FUTURA}T07:00:00`,
+          recorrente: true,
+          diasRecorrencia: [DIA_MAIS_2],
+        }),
+      ),
+    );
+  });
+
+  it('não envia dias quando o motorista desmarca "Carona recorrente"', async () => {
+    const user = userEvent.setup();
+    criarCarona.mockResolvedValue([{ id: 42, status: 'CRIADA' }]);
+    renderPagina();
+
+    await preencherTrajeto(user);
+
+    // Marca a recorrência, escolhe um dia e muda de ideia.
+    await user.click(screen.getByRole('checkbox', { name: /carona recorrente/i }));
+    await user.click(screen.getByRole('button', { name: DIA_MAIS_2, pressed: false }));
+    await user.click(screen.getByRole('checkbox', { name: /carona recorrente/i }));
+
+    await user.click(screen.getByRole('button', { name: 'Continuar' }));
+    await abrirDropdownVeiculo(user);
+    await user.click(screen.getByRole('option', { name: 'Onix • Prata • ABC-1D23' }));
+    await user.click(screen.getByRole('button', { name: 'Continuar' }));
+
+    expect(screen.queryByText(/caronas serão criadas/)).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Publicar carona' }));
+
+    await waitFor(() =>
+      expect(criarCarona).toHaveBeenCalledWith(
+        expect.objectContaining({ recorrente: false, diasRecorrencia: [] }),
+      ),
+    );
   });
 });

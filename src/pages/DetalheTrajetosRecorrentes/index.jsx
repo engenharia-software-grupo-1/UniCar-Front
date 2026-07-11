@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -10,41 +11,122 @@ import {
   Calendar,
   CheckCircle2,
   RotateCcw,
-  Repeat
-} from "lucide-react";
+  Repeat,
+} from 'lucide-react';
+import {
+  listarCaronasDoTrajeto,
+  obterTrajetoRecorrente,
+} from '../../services/caronaService.js';
 import './style.css';
+
+// Indexado por Date#getDay() (0 = domingo).
+const DIAS_POR_INDICE = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+
+// Ordem de exibição, igual à do formulário de ofertar: a semana começa na segunda.
+const ORDEM_DA_SEMANA = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
+
+const STATUS = {
+  CRIADA: { rotulo: 'Aguardando', concluida: false },
+  EM_ANDAMENTO: { rotulo: 'Em andamento', concluida: false },
+  FINALIZADA: { rotulo: 'Finalizada', concluida: true },
+  CANCELADA: { rotulo: 'Cancelada', concluida: false },
+  EXPIRADA: { rotulo: 'Expirada', concluida: false },
+};
 
 function DetalheTrajetoRecorrente() {
   const navigate = useNavigate();
   const { id } = useParams();
 
-  const trajeto = {
-    id,
-    origem: 'Bodocongó',
-    enderecoOrigem: 'Rua Aprígio Veloso, Bodocongó - Campina Grande/PB',
-    destino: 'UFCG - Campus Sede',
-    enderecoDestino: 'Av. Aprígio Veloso, 882 - Universitário, Campina Grande/PB',
-    horario: '07:00',
-    vagas: 3,
-    preco: 5,
-    active: true,
-    dias: ['Seg', 'Ter', 'Qua', 'Qui', 'Sex'],
-    quantidadeViagens: 42,
-    ultimaViagem: '02/07/2026',
-    historico: [
-      { id: 1, data: '02/07', horario: '07:02', passageiros: 3, status: 'Finalizada' },
-      { id: 2, data: '01/07', horario: '07:05', passageiros: 2, status: 'Finalizada' },
-      { id: 3, data: '30/06', horario: '07:00', passageiros: 3, status: 'Finalizada' },
-      { id: 4, data: '27/06', horario: '07:10', passageiros: 1, status: 'Cancelada' },
-      { id: 5, data: '26/06', horario: '07:00', passageiros: 3, status: 'Finalizada' },
-      { id: 6, data: '25/06', horario: '07:04', passageiros: 2, status: 'Finalizada' },
-    ],
-  };
+  const [trajeto, setTrajeto] = useState(null);
+  const [viagens, setViagens] = useState([]);
+  const [carregando, setCarregando] = useState(true);
+  const [erro, setErro] = useState('');
+
+  useEffect(() => {
+    let ativo = true;
+
+    async function carregar() {
+      try {
+        setCarregando(true);
+        setErro('');
+
+        const recorrente = await obterTrajetoRecorrente(id);
+
+        if (!ativo) {
+          return;
+        }
+
+        // O trajeto só descreve origem e destino (RN-TRJ-08); horários, vagas,
+        // contribuição e histórico saem das caronas daquele par origem→destino.
+        const caronas = await listarCaronasDoTrajeto(
+          recorrente.origem,
+          recorrente.destino,
+        );
+
+        if (!ativo) {
+          return;
+        }
+
+        setTrajeto(recorrente);
+        setViagens(caronas);
+      } catch (error) {
+        if (ativo) {
+          setErro(error.message || 'Não foi possível carregar o trajeto.');
+        }
+      } finally {
+        if (ativo) {
+          setCarregando(false);
+        }
+      }
+    }
+
+    carregar();
+
+    return () => {
+      ativo = false;
+    };
+  }, [id]);
+
+  if (carregando) {
+    return (
+      <main className="detalhe-page">
+        <p className="detalhe-estado">Carregando o trajeto...</p>
+      </main>
+    );
+  }
+
+  if (erro || !trajeto) {
+    return (
+      <main className="detalhe-page">
+        <p className="detalhe-estado" role="alert">
+          {erro || 'Trajeto recorrente não encontrado.'}
+        </p>
+
+        <button
+          type="button"
+          className="recriar-btn"
+          onClick={() => navigate('/trajetos-recorrentes')}
+        >
+          Voltar para os trajetos
+        </button>
+      </main>
+    );
+  }
+
+  // A última viagem é a referência do trajeto: é dela que saem o horário, as
+  // vagas e a contribuição mostrados aqui — e é ela que o formulário sugere ao
+  // recriar. Esses valores variam entre viagens, então nunca são "do trajeto".
+  const ultima = viagens[0];
+  const diasUtilizados = diasDaSemanaDasViagens(viagens);
 
   return (
     <main className="detalhe-page">
       <header className="detalhe-header">
-        <button className="voltar-btn" onClick={() => navigate('/trajetos-recorrentes')}>
+        <button
+          className="voltar-btn"
+          onClick={() => navigate('/trajetos-recorrentes')}
+          aria-label="Voltar"
+        >
           <ArrowLeft size={16} />
         </button>
 
@@ -53,69 +135,79 @@ function DetalheTrajetoRecorrente() {
           <p>Rota recorrente #{trajeto.id}</p>
         </div>
 
-        <span className={`badge-status ${trajeto.active ? 'ativo' : 'pausado'}`}>
+        <span className="badge-status ativo">
           <Repeat size={12} />
-          {trajeto.active ? 'Ativa' : 'Pausada'}
+          {trajeto.quantidadeViagens}x
         </span>
       </header>
 
       <section className="card-principal">
-
         <div className="local-row">
-        <div className="icon">
+          <div className="icon">
             <MapPin size={14} />
-        </div>
+          </div>
 
-        <div className="text">
+          <div className="text">
             <h3>Origem</h3>
             <strong>{trajeto.origem}</strong>
-            <p>{trajeto.enderecoOrigem}</p>
-        </div>
+          </div>
         </div>
 
         <div className="linha"></div>
 
         <div className="local-row">
-        <div className="icon destination">
+          <div className="icon destination">
             <MapPin size={14} />
-        </div>
+          </div>
 
-        <div className="text">
+          <div className="text">
             <h3>Destino</h3>
             <strong>{trajeto.destino}</strong>
-            <p>{trajeto.enderecoDestino}</p>
-        </div>
-        </div>
-
-        <div className="info-viagem">
-          <span><Clock size={14} /> {trajeto.horario}</span>
-          <span><Users size={14} /> {trajeto.vagas} vagas</span>
-          <span><DollarSign size={14} /> R$ {trajeto.preco}</span>
-          {trajeto.dias.map((dia) => (
-            <span key={dia} className="dia-chip">{dia}</span>
-          ))}
+          </div>
         </div>
 
+        {ultima && (
+          <div className="info-viagem">
+            <span>
+              <Clock size={14} /> {formatarHorario(ultima.dataHoraSaida)}
+            </span>
+            <span>
+              <Users size={14} /> {ultima.quantidadeVagas} vagas
+            </span>
+            <span>
+              <DollarSign size={14} /> R$ {ultima.valorContribuicao}
+            </span>
+            {diasUtilizados.map((dia) => (
+              <span key={dia} className="dia-chip">
+                {dia}
+              </span>
+            ))}
+          </div>
+        )}
       </section>
 
       <section className="metricas">
         <div className="metrica-card">
-          <span><TrendingUp size={14} /> Total de viagens</span>
+          <span>
+            <TrendingUp size={14} /> Total de viagens
+          </span>
           <strong>{trajeto.quantidadeViagens}</strong>
           <small>realizadas nesse trajeto</small>
         </div>
 
         <div className="metrica-card">
-          <span><Calendar size={14} /> Última viagem</span>
-          <strong>{trajeto.ultimaViagem.slice(0, 5)}</strong>
-          <small>{trajeto.ultimaViagem}</small>
+          <span>
+            <Calendar size={14} /> Última viagem
+          </span>
+          <strong>{formatarData(trajeto.ultimaUtilizacao)}</strong>
+          <small>desde {formatarData(trajeto.primeiraUtilizacao)}</small>
         </div>
       </section>
 
       <button
         className="recriar-btn"
         onClick={() =>
-          navigate("/ofertar-carona", {
+          navigate('/ofertar-carona', {
             state: { trajetoId: trajeto.id },
           })
         }
@@ -126,43 +218,93 @@ function DetalheTrajetoRecorrente() {
       </button>
 
       <section className="historico">
-
         <div className="historico-topo">
           <h2>Histórico de viagens</h2>
-          <span>{trajeto.historico.length} registros</span>
+          <span>
+            {viagens.length} {viagens.length === 1 ? 'registro' : 'registros'}
+          </span>
         </div>
 
         <div className="historico-lista">
-          {trajeto.historico.map((v) => (
-            <div key={v.id} className="historico-item">
+          {viagens.map((viagem) => {
+            const status = STATUS[viagem.status] || {
+              rotulo: viagem.status,
+              concluida: false,
+            };
 
-              <div className={`historico-icon ${v.status === 'Finalizada' ? 'finalizada' : 'cancelada'}`}>
-                {v.status === 'Finalizada' ? <CheckCircle2 size={16} /> : <Repeat size={16} />}
+            return (
+              <div key={viagem.id} className="historico-item">
+                <div
+                  className={`historico-icon ${status.concluida ? 'finalizada' : 'cancelada'}`}
+                >
+                  {status.concluida ? <CheckCircle2 size={16} /> : <Repeat size={16} />}
+                </div>
+
+                <div className="historico-info">
+                  <strong>
+                    {formatarData(viagem.dataHoraSaida)} •{' '}
+                    {formatarHorario(viagem.dataHoraSaida)}
+                  </strong>
+                  <p>
+                    {status.concluida
+                      ? `${viagem.passageirosConfirmados ?? 0} passageiro(s)`
+                      : status.rotulo}
+                  </p>
+                </div>
+
+                <span
+                  className={`status ${status.concluida ? 'finalizada' : 'cancelada'}`}
+                >
+                  {status.rotulo.toLowerCase()}
+                </span>
               </div>
-
-              <div className="historico-info">
-                <strong>
-                  {v.data} • {v.horario}
-                </strong>
-                <p>
-                  {v.status === 'Finalizada'
-                    ? `${v.passageiros} passageiro(s)`
-                    : 'Cancelada'}
-                </p>
-              </div>
-
-              <span className={`status ${v.status === 'Finalizada' ? 'finalizada' : 'cancelada'}`}>
-                {v.status.toLowerCase()}
-              </span>
-
-            </div>
-          ))}
+            );
+          })}
         </div>
-
       </section>
-
     </main>
   );
+}
+
+// Dias em que o trajeto se repete, na ordem da semana. A recorrência não é um
+// campo da carona: ao ofertar, os dias marcados viram uma carona por data. Logo
+// os dias do trajeto são o dia da semana em que suas viagens de fato acontecem.
+function diasDaSemanaDasViagens(viagens) {
+  const observados = new Set();
+
+  viagens.forEach((viagem) => {
+    const data = new Date(viagem.dataHoraSaida);
+
+    if (!Number.isNaN(data.getTime())) {
+      observados.add(DIAS_POR_INDICE[data.getDay()]);
+    }
+  });
+
+  return ORDEM_DA_SEMANA.filter((dia) => observados.has(dia));
+}
+
+function formatarData(valor) {
+  const data = new Date(valor);
+
+  if (!valor || Number.isNaN(data.getTime())) {
+    return '—';
+  }
+
+  const pad = (n) => String(n).padStart(2, '0');
+
+  return `${pad(data.getDate())}/${pad(data.getMonth() + 1)}`;
+}
+
+function formatarHorario(valor) {
+  const data = new Date(valor);
+
+  if (!valor || Number.isNaN(data.getTime())) {
+    return '—';
+  }
+
+  const pad = (n) => String(n).padStart(2, '0');
+
+  return `${pad(data.getHours())}:${pad(data.getMinutes())}`;
 }
 
 export default DetalheTrajetoRecorrente;

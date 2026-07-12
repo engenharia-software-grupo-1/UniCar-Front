@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Bell, Star, Users } from 'lucide-react';
+import { ArrowRight, Bell, Inbox, Star, Users } from 'lucide-react';
 import Logo from '../../components/common/Logo.jsx';
 import NavegacaoInferior from '../../components/layout/NavegacaoInferior.jsx';
 import {
@@ -150,7 +150,8 @@ function HistoricoPassageiro({ carregando, erro, reservas }) {
 
   if (reservas.length === 0) {
     return (
-      <div className="historico-vazio">
+      <div className="historico-vazio historico-vazio--passageiro">
+        <Inbox size={32} aria-hidden="true" />
         <p>Você ainda não realizou nenhuma viagem como passageiro.</p>
       </div>
     );

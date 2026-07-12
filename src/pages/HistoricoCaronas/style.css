@@ -171,10 +171,11 @@
 }
 
 .historico-section-title {
-  margin: 0 0 18px;
-  color: #506a92;
-  font-size: 13px;
-  font-weight: 600;
+  margin: 0 0 12px;
+  color: #6b7280;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
   text-transform: uppercase;
 }
 
@@ -183,15 +184,15 @@
   margin: 0;
   padding: 0;
   display: grid;
-  gap: 12px;
+  gap: 8px;
 }
 
 .historico-card {
-  min-height: 158px;
-  border: 1px solid #d6e2f0;
-  border-radius: 20px;
+  min-height: 0;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
   background: #ffffff;
-  padding: 16px 20px;
+  padding: 16px;
 }
 
 .historico-card__topo {
@@ -203,20 +204,20 @@
 }
 
 .historico-card__topo time {
-  color: #506a92;
-  font-size: 14px;
-  font-weight: 500;
+  color: #6b7280;
+  font-size: 12px;
+  font-weight: 400;
 }
 
 .historico-status {
-  min-height: 26px;
+  min-height: 20px;
   border-radius: 999px;
-  padding: 3px 10px;
+  padding: 2px 8px;
   display: inline-flex;
   align-items: center;
   color: #075985;
   background: #dbeafe;
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 600;
 }
 
@@ -244,14 +245,14 @@
 .historico-motorista {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
   margin-bottom: 12px;
 }
 
 .historico-avatar {
-  width: 46px;
-  height: 46px;
-  min-width: 46px;
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
   border-radius: 50%;
   background: #e5e7eb;
   color: #00123f;
@@ -259,7 +260,7 @@
   align-items: center;
   justify-content: center;
   object-fit: cover;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 600;
   line-height: 1;
   text-align: center;
@@ -283,15 +284,15 @@
 }
 
 .historico-motorista strong {
-  color: #00123f;
-  font-size: 16px;
+  color: #172033;
+  font-size: 14px;
   font-weight: 600;
   line-height: 1.1;
 }
 
 .historico-motorista span {
-  color: #506a92;
-  font-size: 13px;
+  color: #6b7280;
+  font-size: 11px;
   font-weight: 400;
   display: inline-flex;
   align-items: center;
@@ -299,18 +300,20 @@
 }
 
 .historico-motorista svg {
-  color: #f97316;
+  width: 12px;
+  height: 12px;
+  color: #d99a2b;
 }
 
 .historico-rota {
   margin: 0 0 8px;
-  color: #00123f;
-  font-size: 16px;
-  font-weight: 600;
+  color: #27344b;
+  font-size: 14px;
+  font-weight: 500;
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 8px;
 }
 
 .historico-rota svg,
@@ -319,17 +322,33 @@
 }
 
 .historico-rota span {
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .historico-vagas {
   margin: 0;
-  color: #506a92;
-  font-size: 14px;
+  color: #6b7280;
+  font-size: 12px;
   font-weight: 400;
   display: flex;
   align-items: center;
+  gap: 6px;
+}
+
+.historico-vazio--passageiro {
+  padding: 32px;
+  border-radius: 16px;
+  text-align: center;
+  justify-items: center;
   gap: 8px;
+}
+
+.historico-vazio--passageiro svg { color: #7b8494; }
+
+.historico-vazio--passageiro p {
+  color: #6b7280;
+  font-size: 14px;
+  font-weight: 400;
 }
 
 .historico-loading,
@@ -386,16 +405,12 @@
     width: 100%;
   }
 
-  .historico-card {
-    padding: 20px;
-  }
+  .historico-card { padding: 16px; }
 
   .historico-card__topo {
     align-items: flex-start;
   }
 
-  .historico-card__topo time,
-  .historico-vagas {
-    font-size: 15px;
-  }
+  .historico-card__topo time { font-size: 12px; }
+  .historico-vagas { font-size: 12px; }
 }

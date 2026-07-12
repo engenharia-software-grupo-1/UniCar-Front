@@ -259,7 +259,11 @@ function Perfil() {
         </section>
 
         <section className="perfil-menu" aria-label="Opções do perfil">
-          <ProfileRow icon={History} label="Histórico de caronas" />
+          <ProfileRow
+            icon={History}
+            label="Histórico de caronas"
+            onClick={() => navigate('/historico-caronas')}
+          />
           <ProfileRow icon={RefreshCw} label="Caronas recorrentes" />
           <ProfileRow
             icon={StarIcon}

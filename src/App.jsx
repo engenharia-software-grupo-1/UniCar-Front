@@ -8,6 +8,8 @@ import Login from './pages/Login/index.jsx';
 import Perfil from './pages/Perfil/index.jsx';
 import MeusVeiculos from './pages/MeusVeiculos/index.jsx';
 import MinhasCaronas from './pages/MinhasCaronas/index.jsx';
+import HistoricoCaronas from './pages/HistoricoCaronas/index.jsx';
+import PerfilPublico from './pages/PerfilPublico/index.jsx';
 import AvaliacoesRecebidas from './pages/AvaliacoesRecebidas/index.jsx';
 import CentralAjuda from './pages/CentralAjuda/index.jsx';
 import UsuariosBloqueados from './pages/UsuariosBloqueados/index.jsx';
@@ -99,6 +101,24 @@ function App() {
           element={
             <RequireAuthAndTerms>
               <MinhasCaronas />
+            </RequireAuthAndTerms>
+          }
+        />
+
+        <Route
+          path="/historico-caronas"
+          element={
+            <RequireAuthAndTerms>
+              <HistoricoCaronas />
+            </RequireAuthAndTerms>
+          }
+        />
+
+        <Route
+          path="/usuarios/:usuarioId"
+          element={
+            <RequireAuthAndTerms>
+              <PerfilPublico />
             </RequireAuthAndTerms>
           }
         />

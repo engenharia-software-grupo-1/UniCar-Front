@@ -68,6 +68,30 @@ function obterToken() {
   }
 }
 
+// A API expõe o tipo como enum `tipoVeiculo` (CARRO | MOTO); a UI trabalha com
+// 'carro' | 'moto'. A tradução acontece só na borda do serviço.
+function paraPayloadApi({ modelo, placa, cor, tipo }) {
+  return {
+    modelo,
+    placa,
+    cor,
+    tipoVeiculo: tipo ? String(tipo).toUpperCase() : null,
+  };
+}
+
+function daRespostaApi(veiculo) {
+  if (!veiculo || typeof veiculo !== 'object') {
+    return veiculo;
+  }
+
+  const { tipoVeiculo, ...resto } = veiculo;
+
+  return {
+    ...resto,
+    tipo: tipoVeiculo ? String(tipoVeiculo).toLowerCase() : veiculo.tipo,
+  };
+}
+
 function montarHeaders(token, comCorpo = false) {
   const headers = {
     Authorization: `Bearer ${token}`,
@@ -93,15 +117,15 @@ export async function listarVeiculos() {
   );
 
   if (Array.isArray(dados)) {
-    return dados;
+    return dados.map(daRespostaApi);
   }
 
   if (Array.isArray(dados?.content)) {
-    return dados.content;
+    return dados.content.map(daRespostaApi);
   }
 
   if (Array.isArray(dados?.veiculos)) {
-    return dados.veiculos;
+    return dados.veiculos.map(daRespostaApi);
   }
 
   throw new Error('A resposta de veículos veio em um formato inesperado.');
@@ -120,11 +144,13 @@ export async function obterVeiculo(id) {
     return veiculo;
   }
 
-  return requisitarApi(
+  const veiculo = await requisitarApi(
     `${VEICULOS_ENDPOINT}/${id}`,
     { method: 'GET' },
     'Não foi possível carregar o veículo.',
   );
+
+  return daRespostaApi(veiculo);
 }
 
 export async function criarVeiculo({ modelo, placa, cor, tipo }) {
@@ -150,15 +176,17 @@ export async function criarVeiculo({ modelo, placa, cor, tipo }) {
     return novoVeiculo;
   }
 
-  return requisitarApi(
+  const criado = await requisitarApi(
     VEICULOS_ENDPOINT,
     {
       method: 'POST',
-      body: JSON.stringify({ modelo, placa, cor, tipo }),
+      body: JSON.stringify(paraPayloadApi({ modelo, placa, cor, tipo })),
       comCorpo: true,
     },
     'Não foi possível cadastrar o veículo.',
   );
+
+  return daRespostaApi(criado);
 }
 
 export async function atualizarVeiculo(id, { modelo, placa, cor, tipo }) {
@@ -184,15 +212,17 @@ export async function atualizarVeiculo(id, { modelo, placa, cor, tipo }) {
     return atualizado;
   }
 
-  return requisitarApi(
+  const atualizado = await requisitarApi(
     `${VEICULOS_ENDPOINT}/${id}`,
     {
       method: 'PUT',
-      body: JSON.stringify({ modelo, placa, cor, tipo }),
+      body: JSON.stringify(paraPayloadApi({ modelo, placa, cor, tipo })),
       comCorpo: true,
     },
     'Não foi possível atualizar o veículo.',
   );
+
+  return daRespostaApi(atualizado);
 }
 
 export async function deletarVeiculo(id) {
@@ -241,8 +271,10 @@ async function requisitarApi(url, opcoes, mensagemErroPadrao) {
     }
 
     if (!resposta.ok) {
+      const mensagem = dados?.message || mensagemErroPadrao;
+
       throw new Error(
-        dados?.message || mensagemErroPadrao,
+        dados?.detalhes ? `${mensagem} ${dados.detalhes}` : mensagem,
       );
     }
 

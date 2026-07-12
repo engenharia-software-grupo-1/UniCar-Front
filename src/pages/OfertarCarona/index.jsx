@@ -14,43 +14,22 @@ import {
 } from 'lucide-react';
 import NavegacaoInferior from '../../components/layout/NavegacaoInferior.jsx';
 import { listarVeiculos } from '../../services/vehicleService.js';
-import { criarCarona } from '../../services/caronaService.js';
-import { listarTrajetosRecorrentes } from '../../services/caronaService.js';
+import {
+  buscarUltimaCaronaDoTrajeto,
+  criarCarona,
+  listarTrajetosRecorrentes,
+  obterTrajetoRecorrente,
+} from '../../services/caronaService.js';
+import {
+  DIAS_SEMANA,
+  expandirDatasDaRecorrencia,
+  formatarDataHora,
+} from '../../utils/recorrencia.js';
 import './style.css';
 
 const TOTAL_PASSOS = 3;
-// dados mockados
-const TRAJETOS_FREQUENTES = [
-  {
-    id: 1,
-    origem: 'Bodocongó',
-    destino: 'UFCG • Campus Sede',
-    quantidade: 18,
-  },
-  {
-    id: 2,
-    origem: 'Centenário',
-    destino: 'UFCG • CCT',
-    quantidade: 9,
-  },
-  {
-    id: 3,
-    origem: 'Catolé',
-    destino: 'UFCG • Campus Sede',
-    quantidade: 6,
-  },
-];
 const VAGAS_CARRO = [1, 2, 3, 4];
 const CONTRIBUICAO_MAX = 20;
-const DIAS_SEMANA = [
-  'Seg',
-  'Ter',
-  'Qua',
-  'Qui',
-  'Sex',
-  'Sáb',
-  'Dom',
-];
 
 // Veículo pode ter um atributo `tipo` ('carro' ou 'moto'). Quando ausente,
 // tratamos como carro (regra da issue #31).
@@ -72,15 +51,11 @@ function OfertarCarona() {
 
   const location = useLocation();
 
+  // Definido quando o usuário chega por "Recriar viagem", vindo do detalhe de
+  // um trajeto recorrente: pré-preenche o formulário com os dados do trajeto.
   const trajetoId = location.state?.trajetoId;
 
-  const veioDeRecriar = Boolean(trajetoId);
-
   const [passo, setPasso] = useState(1);
-
-  // Passo 0 - reusar trajeto recorrente
-  const [usarTrajetoRecorrente, setUsarTrajetoRecorrente] = useState(false);
-  const [trajetoSelecionado, setTrajetoSelecionado] = useState('');
 
   // Passo 1 — trajeto e horário.
   const [origem, setOrigem] = useState('');
@@ -91,6 +66,10 @@ function OfertarCarona() {
   const [recorrente, setRecorrente] = useState(false);
   const [diasRecorrencia, setDiasRecorrencia] = useState([]);
   const [trajetosRecorrentes, setTrajetosRecorrentes] = useState([]);
+
+  // Sinaliza que veículo, vagas, contribuição e ponto de encontro vieram da
+  // última viagem do motorista nesse trajeto — são sugestão, não fato.
+  const [sugestaoDoHistorico, setSugestaoDoHistorico] = useState(false);
 
   // Passo 2 — veículo e vagas.
   const [tipoVeiculo, setTipoVeiculo] = useState('carro');
@@ -135,19 +114,101 @@ function OfertarCarona() {
     };
   }, []);
 
+  // "Recriar viagem": o trajeto recorrente só define origem e destino (RN-TRJ-08).
+  // Os demais campos vêm como sugestão editável, derivada da última carona do
+  // motorista nesse mesmo trajeto — o motorista revisa tudo antes de publicar.
+  // Data e horário ficam sempre em branco: a viagem nova precisa de uma data,
+  // e isso força uma parada consciente no formulário.
   useEffect(() => {
-    if (!trajetoId) return;
+    if (!trajetoId) {
+      return undefined;
+    }
 
-    setUsarTrajetoRecorrente(true);
-    setTrajetoSelecionado(trajetoId);
+    let ativo = true;
 
-    // ainda falta implementar a chamada à api
-    console.log("Trajeto recebido:", trajetoId);
+    async function preencherComTrajeto() {
+      const trajeto = await obterTrajetoRecorrente(trajetoId);
+
+      if (!ativo) {
+        return;
+      }
+
+      setOrigem(trajeto.origem);
+      setDestino(trajeto.destino);
+
+      const ultima = await buscarUltimaCaronaDoTrajeto(trajeto.origem, trajeto.destino);
+
+      if (!ativo || !ultima) {
+        return;
+      }
+
+      const tipo = tipoDoVeiculo(ultima.veiculo);
+
+      if (ultima.veiculo?.id) {
+        setTipoVeiculo(tipo);
+        setVeiculoId(ultima.veiculo.id);
+      }
+
+      if (ultima.pontoEncontro) {
+        setPontoEncontro(ultima.pontoEncontro);
+      }
+
+      // Moto só admite 1 vaga (regra da issue #31).
+      if (ultima.quantidadeVagas) {
+        setVagas(
+          tipo === 'moto'
+            ? 1
+            : Math.min(Number(ultima.quantidadeVagas), VAGAS_CARRO.length),
+        );
+      }
+
+      if (ultima.valorContribuicao != null) {
+        setContribuicao(
+          Math.min(Number(ultima.valorContribuicao), CONTRIBUICAO_MAX),
+        );
+      }
+
+      setSugestaoDoHistorico(true);
+    }
+
+    // Pré-preencher é conveniência: se falhar, o motorista preenche na mão.
+    preencherComTrajeto().catch(() => {});
+
+    return () => {
+      ativo = false;
+    };
   }, [trajetoId]);
 
   useEffect(() => {
-    setTrajetosRecorrentes(TRAJETOS_FREQUENTES);
+    let ativo = true;
+
+    listarTrajetosRecorrentes()
+      .then((lista) => {
+        if (ativo) {
+          setTrajetosRecorrentes(lista);
+        }
+      })
+      // A lista de rotas frequentes é um atalho opcional: se falhar, o usuário
+      // ainda preenche o trajeto na mão.
+      .catch(() => {});
+
+    return () => {
+      ativo = false;
+    };
   }, []);
+
+  // Datas que serão efetivamente criadas — uma carona por data.
+  const datasDaRecorrencia = useMemo(
+    () =>
+      data && horario
+        ? expandirDatasDaRecorrencia({
+            dataHoraSaida: `${data}T${horario}:00`,
+            recorrente,
+            diasRecorrencia,
+          })
+        : [],
+    [data, horario, recorrente, diasRecorrencia],
+  );
 
   const veiculosDoTipo = useMemo(
     () => veiculos.filter((veiculo) => tipoDoVeiculo(veiculo) === tipoVeiculo),
@@ -265,6 +326,12 @@ function OfertarCarona() {
       erros.pontoEncontro = 'Informe o ponto de encontro.';
     }
 
+    // Sem nenhum dia marcado a recorrência não geraria carona alguma além da
+    // data escolhida — marcar "recorrente" e não escolher dia não faz sentido.
+    if (recorrente && diasRecorrencia.length === 0) {
+      erros.diasRecorrencia = 'Selecione ao menos um dia da recorrência.';
+    }
+
     return erros;
   }
 
@@ -330,7 +397,9 @@ function OfertarCarona() {
       setPublicando(true);
       setErro('');
 
-      await criarCarona({
+      // A recorrência vira uma carona por data: o serviço expande os dias
+      // marcados e devolve a lista das caronas criadas.
+      const criadas = await criarCarona({
         veiculoId: veiculoSelecionado.id,
         origem: origem.trim(),
         destino: destino.trim(),
@@ -339,11 +408,18 @@ function OfertarCarona() {
         quantidadeVagas: vagas,
         valorContribuicao: contribuicao,
         recorrente,
-        diasRecorrencia,
+        diasRecorrencia: recorrente ? diasRecorrencia : [],
       });
 
+      const quantidade = criadas?.length ?? 1;
+
       navigate('/minhas-caronas', {
-        state: { mensagem: 'Carona publicada com sucesso.' },
+        state: {
+          mensagem:
+            quantidade > 1
+              ? `${quantidade} caronas publicadas com sucesso.`
+              : 'Carona publicada com sucesso.',
+        },
       });
     } catch (error) {
       setErro(error.message || 'Não foi possível publicar a carona.');
@@ -408,6 +484,14 @@ function OfertarCarona() {
           <div className="ofertar-card">
             <h2>Trajeto e horário</h2>
 
+            {sugestaoDoHistorico && (
+              <p className="ofertar-sugestao" role="status">
+                <History size={14} aria-hidden="true" />
+                Preenchemos veículo, vagas, contribuição e ponto de encontro com
+                base na sua última viagem nesse trajeto. Confira antes de publicar.
+              </p>
+            )}
+
             <div className="ofertar-trajetos-recorrentes">
               <span className="ofertar-campo-titulo">
                 <History size={14} />
@@ -430,7 +514,7 @@ function OfertarCarona() {
                     </strong>
 
                     <small>
-                      {trajeto.quantidade}x realizadas
+                      {trajeto.quantidadeViagens}x realizadas
                     </small>
                   </button>
                 ))}
@@ -541,22 +625,34 @@ function OfertarCarona() {
             </label>
 
             {recorrente && (
-              <div className="ofertar-dias-recorrencia">
-                {DIAS_SEMANA.map((dia) => (
-                  <button
-                    key={dia}
-                    type="button"
-                    className={
-                      diasRecorrencia.includes(dia)
-                        ? 'ofertar-dia ativo'
-                        : 'ofertar-dia'
-                    }
-                    onClick={() => alternarDia(dia)}
-                  >
-                    {dia}
-                  </button>
-                ))}
-              </div>
+              <>
+                <div className="ofertar-dias-recorrencia" aria-label="Dias da recorrência">
+                  {DIAS_SEMANA.map((dia) => (
+                    <button
+                      key={dia}
+                      type="button"
+                      aria-pressed={diasRecorrencia.includes(dia)}
+                      className={
+                        diasRecorrencia.includes(dia)
+                          ? 'ofertar-dia ativo'
+                          : 'ofertar-dia'
+                      }
+                      onClick={() => {
+                        alternarDia(dia);
+                        limparErro('diasRecorrencia');
+                      }}
+                    >
+                      {dia}
+                    </button>
+                  ))}
+                </div>
+
+                {errosCampos.diasRecorrencia && (
+                  <span className="ofertar-erro-campo">
+                    {errosCampos.diasRecorrencia}
+                  </span>
+                )}
+              </>
             )}
 
             {acoes}
@@ -727,8 +823,24 @@ function OfertarCarona() {
                 {tipoVeiculo === 'moto' ? <Bike size={15} /> : <Car size={15} />}
                 {tipoVeiculo === 'moto' ? 'Moto' : 'Carro'}
                 {veiculoSelecionado ? ` • ${descricaoVeiculo(veiculoSelecionado)}` : ''}
-                {recorrente && diasRecorrencia.length > 0 && (<> {' • '} <Repeat size={14} /> {diasRecorrencia.join(', ')}</>)}
               </p>
+
+              {/* Cada data vira uma carona separada — é a última chance de o
+                  motorista ver quantas ele está publicando. */}
+              {datasDaRecorrencia.length > 1 && (
+                <div className="ofertar-revisao-datas">
+                  <span className="ofertar-revisao-datas-titulo">
+                    <Repeat size={14} aria-hidden="true" />
+                    {datasDaRecorrencia.length} caronas serão criadas
+                  </span>
+
+                  <ul>
+                    {datasDaRecorrencia.map((dataHora) => (
+                      <li key={dataHora}>{formatarDataHora(dataHora)}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
 
             {acoes}

@@ -25,14 +25,42 @@ const CARONA_VALIDA = {
 };
 
 describe('POST /caronas', () => {
-  it('cria com 201 e devolve { id, status: CRIADA }', async () => {
+  it('cria com 201 e devolve a lista das caronas criadas', async () => {
     const resultado = await criarCarona(CARONA_VALIDA);
 
-    expect(resultado).toEqual({ id: expect.any(Number), status: 'CRIADA' });
+    expect(resultado).toEqual([{ id: expect.any(Number), status: 'CRIADA' }]);
+  });
+
+  // A recorrência não é um campo da carona: os dias marcados viram datas, e o
+  // back materializa uma carona independente por data. 25/08/2026 é uma terça.
+  it('cria uma carona por data quando há recorrência', async () => {
+    const resultado = await criarCarona({
+      ...CARONA_VALIDA,
+      recorrente: true,
+      diasRecorrencia: ['Ter', 'Qui'],
+    });
+
+    expect(resultado).toHaveLength(2);
+
+    const caronas = await listarMinhasCaronas();
+    const criadas = resultado.map(({ id }) =>
+      caronas.find((carona) => carona.id === id),
+    );
+
+    expect(criadas.map((carona) => carona.dataHoraSaida)).toEqual([
+      '2026-08-25T07:00:00',
+      '2026-08-27T07:00:00',
+    ]);
+  });
+
+  it('rejeita quando nenhuma data é informada', async () => {
+    await expect(
+      criarCarona({ ...CARONA_VALIDA, dataHoraSaida: '' }),
+    ).rejects.toThrow('Informe ao menos uma data de saída');
   });
 
   it('inclui a carona criada ao relistar as caronas do motorista', async () => {
-    const { id } = await criarCarona(CARONA_VALIDA);
+    const [{ id }] = await criarCarona(CARONA_VALIDA);
 
     const caronas = await listarMinhasCaronas();
 

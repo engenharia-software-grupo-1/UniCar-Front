@@ -55,13 +55,17 @@ export async function apiRequest(endpoint, options = {}) {
   }
 
   if (!response.ok) {
-    const error = new Error(
+    const mensagem =
       data?.message ||
       data?.erro ||
       data?.error ||
       data?.detail ||
       data?.title ||
-      'Erro ao comunicar com o servidor.'
+      'Erro ao comunicar com o servidor.';
+
+    // Erros de validação da API vêm como { message, detalhes: "campo: motivo" }.
+    const error = new Error(
+      data?.detalhes ? `${mensagem} ${data.detalhes}` : mensagem,
     );
 
     error.status = response.status;

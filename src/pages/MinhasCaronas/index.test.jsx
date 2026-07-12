@@ -92,12 +92,12 @@ describe('carregamento e listagem', () => {
     expect(screen.getByText('2 de 3 passageiros confirmados')).toBeInTheDocument();
   });
 
-  it('mantém "Iniciar" desabilitado e habilita "Editar", "Cancelar" e "Ver detalhes" para caronas CRIADA', async () => {
+  it('habilita "Iniciar", "Editar", "Cancelar" e "Ver detalhes" para caronas CRIADA', async () => {
     listarMinhasCaronas.mockResolvedValue(CARONAS);
 
     renderPagina();
 
-    expect(await screen.findByRole('button', { name: /iniciar/i })).toBeDisabled();
+    expect(await screen.findByRole('button', { name: /iniciar/i })).toBeEnabled();
     expect(screen.getByRole('button', { name: /cancelar carona/i })).toBeEnabled();
 
     const editar = screen.getByRole('link', { name: /editar carona/i });
@@ -109,13 +109,27 @@ describe('carregamento e listagem', () => {
     ).toHaveAttribute('href', '/minhas-caronas/10');
   });
 
-  it('desabilita "Cancelar" quando a carona não está CRIADA', async () => {
+  it('troca as ações por "Finalizar carona" quando a carona está EM_ANDAMENTO', async () => {
     listarMinhasCaronas.mockResolvedValue([{ ...CARONAS[0], status: 'EM_ANDAMENTO' }]);
 
     renderPagina();
 
     await screen.findByText('Em andamento');
-    expect(screen.getByRole('button', { name: /cancelar carona/i })).toBeDisabled();
+
+    expect(screen.getByRole('button', { name: /finalizar carona/i })).toBeEnabled();
+
+    // Uma carona já iniciada não pode mais ser iniciada, editada nem cancelada:
+    // as ações deixam de ser renderizadas.
+    expect(screen.queryByRole('button', { name: /iniciar/i })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: /cancelar carona/i }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /editar carona/i })).not.toBeInTheDocument();
+
+    // "Ver detalhes" continua acessível em qualquer status.
+    expect(
+      screen.getByRole('link', { name: /ver detalhes da carona/i }),
+    ).toBeInTheDocument();
   });
 });
 

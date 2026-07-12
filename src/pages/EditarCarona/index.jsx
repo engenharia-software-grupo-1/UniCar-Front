@@ -10,7 +10,6 @@ import {
   DollarSign,
   Loader2,
   MapPin,
-  Repeat,
   Users,
   X,
 } from 'lucide-react';
@@ -18,7 +17,6 @@ import NavegacaoInferior from '../../components/layout/NavegacaoInferior.jsx';
 import { editarCarona, obterCarona } from '../../services/caronaService.js';
 import './style.css';
 
-const DIAS_SEMANA = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
 const STATUS_BLOQUEADOS = ['EM_ANDAMENTO', 'FINALIZADA', 'CANCELADA'];
 const CONTRIBUICAO_MAX = 20;
 
@@ -32,8 +30,6 @@ const FORM_INICIAL = {
   veiculoId: '',
   quantidadeVagas: 1,
   valorContribuicao: 0,
-  recorrente: false,
-  dias: [],
   observacoes: '',
 };
 
@@ -128,15 +124,6 @@ function EditarCarona() {
       ...atual,
       tipoVeiculo: tipo,
       quantidadeVagas: tipo === 'moto' ? 1 : Math.max(atual.quantidadeVagas, minimoVagas),
-    }));
-  }
-
-  function alternarDia(dia) {
-    setForm((atual) => ({
-      ...atual,
-      dias: atual.dias.includes(dia)
-        ? atual.dias.filter((item) => item !== dia)
-        : [...atual.dias, dia],
     }));
   }
 
@@ -304,33 +291,6 @@ function EditarCarona() {
               onChange={(valor) => atualizar('pontoEncontro', valor)}
             />
 
-            <div className="editar-carona-recorrencia">
-              <label>
-                <input
-                  type="checkbox"
-                  checked={form.recorrente}
-                  onChange={(event) => atualizar('recorrente', event.target.checked)}
-                />
-                <Repeat size={16} />
-                Carona recorrente
-              </label>
-
-              {form.recorrente && (
-                <div className="editar-carona-dias" aria-label="Dias da recorrência">
-                  {DIAS_SEMANA.map((dia) => (
-                    <button
-                      type="button"
-                      key={dia}
-                      className={form.dias.includes(dia) ? 'ativo' : ''}
-                      aria-pressed={form.dias.includes(dia)}
-                      onClick={() => alternarDia(dia)}
-                    >
-                      {dia}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
           </section>
 
           <section className="editar-carona-card">
@@ -457,8 +417,6 @@ function toForm(carona) {
     veiculoId: carona.veiculo?.id || '',
     quantidadeVagas: carona.quantidadeVagas || 1,
     valorContribuicao: Number(carona.valorContribuicao ?? 0),
-    recorrente: false,
-    dias: [],
     observacoes: '',
   };
 }

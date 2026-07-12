@@ -125,9 +125,14 @@ describe('requests', () => {
     expect(resultado).toEqual(veiculo);
   });
 
-  it('criarVeiculo faz POST com Content-Type e body JSON', async () => {
+  it('criarVeiculo faz POST com Content-Type e body JSON, enviando tipoVeiculo', async () => {
     const dados = { modelo: 'Onix', placa: 'ABC1D23', cor: 'Prata', tipo: 'carro' };
-    fetch.mockResolvedValue(respostaJson({ id: 1, ...dados }, { status: 201 }));
+    fetch.mockResolvedValue(
+      respostaJson(
+        { id: 1, modelo: 'Onix', placa: 'ABC1D23', cor: 'Prata', tipoVeiculo: 'CARRO' },
+        { status: 201 },
+      ),
+    );
 
     const resultado = await criarVeiculo(dados);
 
@@ -135,13 +140,26 @@ describe('requests', () => {
     expect(url).toBe(`${BASE_URL}/veiculos`);
     expect(options.method).toBe('POST');
     expect(options.headers['Content-Type']).toBe('application/json');
-    expect(JSON.parse(options.body)).toEqual(dados);
+    expect(JSON.parse(options.body)).toEqual({
+      modelo: 'Onix',
+      placa: 'ABC1D23',
+      cor: 'Prata',
+      tipoVeiculo: 'CARRO',
+    });
     expect(resultado).toEqual({ id: 1, ...dados });
   });
 
-  it('atualizarVeiculo faz PUT /veiculos/{id} com body JSON', async () => {
+  it('atualizarVeiculo faz PUT /veiculos/{id} com body JSON, enviando tipoVeiculo', async () => {
     const dados = { modelo: 'Onix Plus', placa: 'ABC1D23', cor: 'Preto', tipo: 'moto' };
-    fetch.mockResolvedValue(respostaJson({ id: 1, ...dados }));
+    fetch.mockResolvedValue(
+      respostaJson({
+        id: 1,
+        modelo: 'Onix Plus',
+        placa: 'ABC1D23',
+        cor: 'Preto',
+        tipoVeiculo: 'MOTO',
+      }),
+    );
 
     const resultado = await atualizarVeiculo(1, dados);
 
@@ -149,7 +167,12 @@ describe('requests', () => {
     expect(url).toBe(`${BASE_URL}/veiculos/1`);
     expect(options.method).toBe('PUT');
     expect(options.headers['Content-Type']).toBe('application/json');
-    expect(JSON.parse(options.body)).toEqual(dados);
+    expect(JSON.parse(options.body)).toEqual({
+      modelo: 'Onix Plus',
+      placa: 'ABC1D23',
+      cor: 'Preto',
+      tipoVeiculo: 'MOTO',
+    });
     expect(resultado).toEqual({ id: 1, ...dados });
   });
 

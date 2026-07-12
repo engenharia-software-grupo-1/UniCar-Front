@@ -20,6 +20,7 @@ import TermosUso from './pages/TermosUso/index.jsx';
 import NaoEncontrada from './pages/NaoEncontrada/index.jsx';
 import TrajetosRecorrentes from './pages/TrajetosRecorrentes/index.jsx';
 import DetalheTrajetosRecorrentes from './pages/DetalheTrajetosRecorrentes/index.jsx';
+import BuscarCarona from './pages/BuscarCarona/index.jsx';
 
 import { isAuthenticated } from './services/authService.js';
 import { hasAcceptedTerms } from './services/termsService.js';
@@ -105,6 +106,15 @@ function App() {
           element={
             <RequireAuthAndTerms>
               <DetalheTrajetosRecorrentes />
+            </RequireAuthAndTerms>
+          }
+        />
+
+        <Route
+          path="/buscar-carona"
+          element={
+            <RequireAuthAndTerms>
+              <BuscarCarona />
             </RequireAuthAndTerms>
           }
         />

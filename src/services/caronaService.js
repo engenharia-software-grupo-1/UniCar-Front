@@ -101,6 +101,70 @@ export async function editarCarona(id, dados) {
   return carona ? ajustarCaronaMotorista(carona) : { id: Number(id), status: 'ATUALIZADA' };
 }
 
+
+// Busca uma carona via endpoint GET /caronas
+export async function buscarCaronas(filtros = {}) {
+  const params = new URLSearchParams();
+
+  if (filtros.origem) {
+    params.append('origem', filtros.origem);
+  }
+
+  if (filtros.destino) {
+    params.append('destino', filtros.destino);
+  }
+
+  if (filtros.genero && filtros.genero !== 'Qualquer') {
+    params.append('genero', filtros.genero);
+  }
+
+  if (filtros.curso && filtros.curso !== 'Qualquer') {
+    params.append('curso', filtros.curso);
+  }
+
+  if (shouldUseLocalDataMocks()) {
+    let caronas = carregarCaronasMock();
+
+    if (filtros.origem) {
+      caronas = caronas.filter((c) =>
+        c.origem.descricao
+          .toLowerCase()
+          .includes(filtros.origem.toLowerCase())
+      );
+    }
+
+    if (filtros.destino) {
+      caronas = caronas.filter((c) =>
+        c.destino.descricao
+          .toLowerCase()
+          .includes(filtros.destino.toLowerCase())
+      );
+    }
+
+    if (filtros.genero && filtros.genero !== 'Qualquer') {
+      caronas = caronas.filter(
+        (c) => c.motorista.genero === filtros.genero
+      );
+    }
+
+    if (filtros.curso && filtros.curso !== 'Qualquer') {
+      caronas = caronas.filter((c) =>
+        c.motorista.curso.includes(filtros.curso)
+      );
+    }
+
+    return caronas.map(ajustarCarona);
+  }
+
+  const resposta = await apiRequest(
+    `/caronas?${params.toString()}`
+  );
+
+  const lista = extrairLista(resposta);
+
+  return lista.map(ajustarCarona);
+}
+
 function montarPayloadCarona(dados = {}) {
   return {
     veiculoId: Number(dados.veiculoId),

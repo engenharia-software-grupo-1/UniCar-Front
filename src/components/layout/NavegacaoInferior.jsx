@@ -12,7 +12,7 @@ export default function NavegacaoInferior() {
         Início
       </NavLink>
 
-      <NavLink to="/inicio" className={() => ''}>
+      <NavLink to="/buscar-carona" className={() => ''}>
         <Search size={24} />
         Buscar
       </NavLink>

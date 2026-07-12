@@ -155,7 +155,7 @@ function Inicio() {
                   : 'Você ainda não tem caronas agendadas. Que tal buscar ou ofertar uma agora?'}
               </span>
               {!carregando && <div className="inicio-empty-actions">
-                <Link to="/inicio">Buscar carona</Link>
+                <Link to="/buscar-carona">Buscar carona</Link>
                 <Link to="/ofertar-carona">Ofertar carona</Link>
               </div>}
             </div>
@@ -166,7 +166,7 @@ function Inicio() {
           <h2 id="atalhos">ATALHOS</h2>
 
           <div className="inicio-shortcuts">
-            <Link to="/inicio" className="inicio-shortcut">
+            <Link to="/buscar-carona" className="inicio-shortcut">
               <span>
                 <MapPin size={27} />
               </span>

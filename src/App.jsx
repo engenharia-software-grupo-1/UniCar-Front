@@ -8,6 +8,7 @@ import Login from './pages/Login/index.jsx';
 import Perfil from './pages/Perfil/index.jsx';
 import MeusVeiculos from './pages/MeusVeiculos/index.jsx';
 import MinhasCaronas from './pages/MinhasCaronas/index.jsx';
+import HistoricoCaronas from './pages/HistoricoCaronas/index.jsx';
 import DetalheCarona from './pages/DetalheCarona/index.jsx';
 import EditarCarona from './pages/EditarCarona/index.jsx';
 import OfertarCarona from './pages/OfertarCarona/index.jsx';
@@ -159,6 +160,15 @@ function App() {
           element={
             <RequireAuthAndTerms>
               <EditarCarona />
+            </RequireAuthAndTerms>
+          }
+        />
+
+        <Route
+          path="/historico-caronas"
+          element={
+            <RequireAuthAndTerms>
+              <HistoricoCaronas />
             </RequireAuthAndTerms>
           }
         />

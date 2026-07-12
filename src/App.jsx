@@ -11,6 +11,8 @@ import MinhasCaronas from './pages/MinhasCaronas/index.jsx';
 import DetalheCarona from './pages/DetalheCarona/index.jsx';
 import EditarCarona from './pages/EditarCarona/index.jsx';
 import OfertarCarona from './pages/OfertarCarona/index.jsx';
+import HistoricoCaronas from './pages/HistoricoCaronas/index.jsx';
+import PerfilPublico from './pages/PerfilPublico/index.jsx';
 import AvaliacoesRecebidas from './pages/AvaliacoesRecebidas/index.jsx';
 import Notificacoes from './pages/Notificacoes/index.jsx';
 import CentralAjuda from './pages/CentralAjuda/index.jsx';
@@ -169,6 +171,24 @@ function App() {
           element={
             <RequireAuthAndTerms>
               <EditarCarona />
+            </RequireAuthAndTerms>
+          }
+        />
+
+        <Route
+          path="/historico-caronas"
+          element={
+            <RequireAuthAndTerms>
+              <HistoricoCaronas />
+            </RequireAuthAndTerms>
+          }
+        />
+
+        <Route
+          path="/usuarios/:usuarioId"
+          element={
+            <RequireAuthAndTerms>
+              <PerfilPublico />
             </RequireAuthAndTerms>
           }
         />

@@ -17,6 +17,7 @@ import {
   listarCaronasDoTrajeto,
   obterTrajetoRecorrente,
 } from '../../services/caronaService.js';
+import { formatarData, formatarHorario } from '../../utils/datas.js';
 import './style.css';
 
 // Indexado por Date#getDay() (0 = domingo).
@@ -281,30 +282,6 @@ function diasDaSemanaDasViagens(viagens) {
   });
 
   return ORDEM_DA_SEMANA.filter((dia) => observados.has(dia));
-}
-
-function formatarData(valor) {
-  const data = new Date(valor);
-
-  if (!valor || Number.isNaN(data.getTime())) {
-    return '—';
-  }
-
-  const pad = (n) => String(n).padStart(2, '0');
-
-  return `${pad(data.getDate())}/${pad(data.getMonth() + 1)}`;
-}
-
-function formatarHorario(valor) {
-  const data = new Date(valor);
-
-  if (!valor || Number.isNaN(data.getTime())) {
-    return '—';
-  }
-
-  const pad = (n) => String(n).padStart(2, '0');
-
-  return `${pad(data.getHours())}:${pad(data.getMinutes())}`;
 }
 
 export default DetalheTrajetoRecorrente;

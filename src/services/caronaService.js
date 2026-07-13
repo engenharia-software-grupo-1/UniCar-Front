@@ -1,28 +1,83 @@
 import { apiRequest } from './api.js';
 import { shouldUseLocalDataMocks } from './apiConfig.js';
+import { listarReservasAceitas } from './reservaService.js';
 import { expandirDatasDaRecorrencia } from '../utils/recorrencia.js';
 
+// Próxima carona do usuário — o card da tela Início.
+//
+// Não existe GET /caronas/proxima: nenhum contrato define esse endpoint. A
+// próxima carona é composta a partir do que existe, e são duas fontes, porque
+// "minha carona" quer dizer duas coisas diferentes:
+//   - MOTORISTA  → GET /caronas/minhas (US7), as caronas que eu dirijo;
+//   - PASSAGEIRO → GET /reservas/enviadas (US10), filtrando as ACEITAS — é o
+//     único jeito de saber onde eu peguei carona. Sem checar a reserva, qualquer
+//     carona alheia viraria "você é passageiro", o que é falso.
+//
+// Vence a que sair primeiro, esteja eu ao volante ou no banco do carona.
 export async function buscarProximaCarona() {
   if (shouldUseLocalDataMocks()) {
-    const agora = Date.now();
-    const proxima = carregarCaronasMock()
-      .filter((carona) => !['CANCELADA', 'FINALIZADA'].includes(carona.status))
-      .filter((carona) => new Date(carona.dataHoraSaida).getTime() >= agora)
-      .sort((a, b) => new Date(a.dataHoraSaida) - new Date(b.dataHoraSaida))[0];
+    const proxima = maisProxima(
+      carregarCaronasMock().map((carona) => ({ ...carona, papel: 'MOTORISTA' })),
+    );
 
-    return proxima ? ajustarCarona({ ...proxima, papel: 'MOTORISTA' }) : null;
+    return proxima ? ajustarCarona(proxima) : null;
   }
 
-  const carona = await apiRequest('/caronas/proxima');
+  const [comoMotorista, comoPassageiro] = await Promise.all([
+    caronasComoMotorista(),
+    caronasComoPassageiro(),
+  ]);
 
-  return carona ? ajustarCarona(carona) : null;
+  const proxima = maisProxima([...comoMotorista, ...comoPassageiro]);
+
+  return proxima ? ajustarCarona(proxima) : null;
 }
 
-export async function buscarSugestoesDeCaronas() {
-  const resposta = await apiRequest('/caronas/sugestoes');
-  const caronas = Array.isArray(resposta) ? resposta : resposta?.content || resposta?.items || [];
+async function caronasComoMotorista() {
+  const resposta = await apiRequest('/caronas/minhas');
 
-  return caronas.map(ajustarCarona);
+  return extrairLista(resposta).map((carona) => ({ ...carona, papel: 'MOTORISTA' }));
+}
+
+// A reserva não traz a data da carona (US10), só { id, origem, destino } — então
+// buscamos o detalhe de cada carona reservada para saber qual sai primeiro.
+async function caronasComoPassageiro() {
+  const reservas = await listarReservasAceitas();
+
+  const caronas = await Promise.all(
+    reservas.map((reserva) =>
+      apiRequest(`/caronas/${reserva.carona.id}`).catch(() => null),
+    ),
+  );
+
+  return caronas
+    .filter(Boolean)
+    .map((carona) => ({ ...carona, papel: 'PASSAGEIRO' }));
+}
+
+// A que sai primeiro entre as que ainda vão acontecer.
+function maisProxima(caronas) {
+  const agora = Date.now();
+
+  return caronas
+    .filter((carona) => !['CANCELADA', 'FINALIZADA'].includes(carona.status))
+    .filter((carona) => new Date(carona.dataHoraSaida).getTime() >= agora)
+    .sort((a, b) => new Date(a.dataHoraSaida) - new Date(b.dataHoraSaida))[0];
+}
+
+// Sugestões da tela Início. Também não existe GET /caronas/sugestoes — mas o GET
+// /caronas da busca (US9) já devolve exatamente o que uma sugestão é: caronas
+// CRIADAS (RN-BUS-01), de outras pessoas (RN-BUS-02), futuras (RN-BUS-04), com
+// vaga (RN-BUS-05) e respeitando bloqueios (RN-BUS-03). Buscar sem filtro nenhum
+// é o mesmo que pedir sugestões.
+export async function buscarSugestoesDeCaronas() {
+  if (shouldUseLocalDataMocks()) {
+    // O store local só tem caronas do próprio usuário e sugestão é, por
+    // definição, carona dos outros (RN-BUS-02) — não há o que sugerir.
+    return [];
+  }
+
+  return buscarCaronas();
 }
 
 // Detalha uma carona (GET /caronas/{id}), trazendo ponto de encontro, vagas etc.
@@ -690,8 +745,18 @@ function derivarTrajetosRecorrentes(caronas) {
       const datas = [...grupo.datas].sort();
 
       return {
-        // O trajeto não existe como entidade: o id é um substituto estável
-        // enquanto o store de caronas não muda. O back gera o seu próprio.
+        // LACUNA DO CONTRATO: o US8 expõe GET /trajetos-recorrentes/{id} e
+        // POST /{id}/recriar, mas diz que o trajeto não existe como entidade — e
+        // não define de onde vem esse id nem que ele é estável. Na falta de
+        // regra, usamos a posição no ranking da RN-TRJ-04.
+        //
+        // Consequência conhecida: o id identifica a POSIÇÃO, não o trajeto. Uma
+        // carona nova reordena a lista e o id passa a apontar para outra rota —
+        // abrir /trajetos-recorrentes/1 (F5, link salvo) ou recriar via
+        // `state.trajetoId` pode trazer a rota errada, sem erro nenhum.
+        //
+        // O back terá o mesmo problema ao implementar: id derivado do par
+        // origem→destino (hash/slug) resolveria dos dois lados. Decidir junto.
         id: indice + 1,
         origem: grupo.origem,
         destino: grupo.destino,

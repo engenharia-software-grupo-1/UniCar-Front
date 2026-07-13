@@ -100,11 +100,6 @@ body {
   color: #18794e;
 }
 
-.badge-status.pausado {
-  background: oklch(0.968 0.007 247.896);
-  color: oklch(0.554 0.046 257.417);
-}
-
 .card-principal {
   background: radial-gradient(
     ellipse at top left,

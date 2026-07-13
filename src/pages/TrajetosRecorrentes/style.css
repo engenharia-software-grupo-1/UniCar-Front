@@ -17,8 +17,22 @@ body {
 
 .trajetos-header,
 .trajetos-lista,
-.trajetos-empty {
+.trajetos-empty,
+.trajetos-erro {
   width: min(760px, 100%);
+}
+
+.trajetos-erro {
+  margin: 0;
+  border: 1px solid rgba(220, 38, 38, 0.3);
+  border-radius: 12px;
+  background: rgba(220, 38, 38, 0.05);
+  padding: 12px 14px;
+  box-sizing: border-box;
+  color: #dc2626;
+  font-size: 14px;
+  line-height: 1.4;
+  text-align: left;
 }
 
 .trajetos-header {
@@ -120,30 +134,14 @@ body {
 .badge {
   min-height: 24px;
   border-radius: 999px;
+  background: #dff8e6;
+  color: #18794e;
   display: inline-flex;
   align-items: center;
   gap: 4px;
   padding: 4px 8px;
   box-sizing: border-box;
   font-size: 11px;
-  line-height: 1;
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-.badge.ativo {
-  background: #dff8e6;
-  color: #18794e;
-}
-
-.badge.inativo {
-  background: oklch(0.968 0.007 247.896);
-  color: oklch(0.554 0.046 257.417);
-}
-
-.preco {
-  color: #d06e28;
-  font-size: 12px;
   line-height: 1;
   font-weight: 700;
   white-space: nowrap;
@@ -169,7 +167,7 @@ body {
   flex: 0 0 auto;
 }
 
-.trajeto-info {
+.trajeto-ultima {
   margin-top: 4px;
   color: oklch(0.554 0.046 257.417);
   font-size: 12px;
@@ -177,65 +175,29 @@ body {
   text-align: left;
 }
 
-.trajeto-days {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  margin-top: 8px;
-}
-
-.day-chip {
-  border-radius: 4px;
-  background: oklch(0.208 0.042 265.755 / 10%);
-  color: oklch(0.208 0.042 265.755);
-  padding: 3px 6px;
-  font-size: 10px;
-  line-height: 1;
-  font-weight: 700;
-}
-
-.trajeto-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.trajeto-btn-secondary,
-.trajeto-btn-danger {
-  min-height: 34px;
-  border-radius: 8px;
-  background: oklch(1 0 0);
+/* Mesmo visual do "Recriar viagem" da tela de detalhe, em escala de card. */
+.trajeto-btn-primary {
+  min-height: 40px;
+  border: 0;
+  border-radius: 10px;
+  background: oklch(0.208 0.042 265.755);
+  color: oklch(0.984 0.003 247.858);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
-  font-weight: 700;
-  transition: background 0.18s, transform 0.18s;
+  gap: 6px;
+  font-family: "Poppins", system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 800;
+  transition: opacity 0.18s, transform 0.18s;
 }
 
-.trajeto-btn-secondary {
-  flex: 1;
-  gap: 4px;
-  border: 1px solid oklch(0.929 0.013 255.508);
-  color: oklch(0.18 0.06 265);
+.trajeto-btn-primary:hover {
+  opacity: 0.93;
 }
 
-.trajeto-btn-secondary:hover {
-  background: oklch(0.968 0.007 247.896);
-}
-
-.trajeto-btn-danger {
-  width: 42px;
-  border: 1px solid rgba(220, 38, 38, 0.3);
-  color: #dc2626;
-}
-
-.trajeto-btn-danger:hover {
-  background: rgba(220, 38, 38, 0.05);
-}
-
-.trajeto-btn-secondary:active,
-.trajeto-btn-danger:active {
+.trajeto-btn-primary:active {
   transform: scale(0.98);
 }
 

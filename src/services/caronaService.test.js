@@ -768,3 +768,205 @@ describe('buscarUltimaCaronaDoTrajeto', () => {
     expect(fetch).not.toHaveBeenCalled();
   });
 });
+
+// Não existe GET /caronas/proxima em contrato nenhum. A próxima carona é composta
+// de /caronas/minhas (onde sou motorista) e /reservas/enviadas (onde sou
+// passageiro, e só se a reserva foi ACEITA).
+describe('buscarProximaCarona', () => {
+  const emHoras = (horas) =>
+    new Date(Date.now() + horas * 3600 * 1000).toISOString();
+
+  // Responde cada endpoint do contrato; o que não for previsto vira erro.
+  function backend({ minhas = [], enviadas = [], detalhes = {} } = {}) {
+    fetch.mockImplementation((url) => {
+      if (url.endsWith('/caronas/minhas')) {
+        return Promise.resolve(respostaJson(minhas));
+      }
+
+      if (url.endsWith('/reservas/enviadas')) {
+        return Promise.resolve(respostaJson(enviadas));
+      }
+
+      const detalhe = Object.entries(detalhes).find(([id]) =>
+        url.endsWith(`/caronas/${id}`),
+      );
+
+      if (detalhe) {
+        return Promise.resolve(respostaJson(detalhe[1]));
+      }
+
+      return Promise.reject(new Error(`URL inesperada: ${url}`));
+    });
+  }
+
+  it('nunca chama o endpoint inexistente /caronas/proxima', async () => {
+    backend();
+
+    const { buscarProximaCarona } = await importarService();
+    await buscarProximaCarona();
+
+    const urls = fetch.mock.calls.map(([url]) => url);
+    expect(urls.some((url) => url.includes('/caronas/proxima'))).toBe(false);
+    expect(urls).toContain(`${BASE_URL}/caronas/minhas`);
+    expect(urls).toContain(`${BASE_URL}/reservas/enviadas`);
+  });
+
+  it('marca MOTORISTA quando a próxima é uma carona que eu dirijo', async () => {
+    backend({
+      minhas: [
+        {
+          id: 10,
+          origem: { descricao: 'Bodocongó' },
+          destino: { descricao: 'UFCG' },
+          status: 'CRIADA',
+          dataHoraSaida: emHoras(2),
+        },
+      ],
+    });
+
+    const { buscarProximaCarona } = await importarService();
+    const proxima = await buscarProximaCarona();
+
+    expect(proxima.id).toBe(10);
+    expect(proxima.papel).toBe('MOTORISTA');
+    expect(proxima.origem).toBe('Bodocongó');
+  });
+
+  it('marca PASSAGEIRO quando a próxima vem de uma reserva ACEITA', async () => {
+    backend({
+      enviadas: [
+        {
+          id: 50,
+          carona: { id: 11, origem: 'Catolé', destino: 'UFCG' },
+          status: 'ACEITA',
+        },
+      ],
+      // A reserva não traz a data: o horário e o motorista saem do detalhe.
+      detalhes: {
+        11: {
+          id: 11,
+          origem: { descricao: 'Catolé' },
+          destino: { descricao: 'UFCG' },
+          status: 'CRIADA',
+          dataHoraSaida: emHoras(3),
+          motorista: { id: 999, nome: 'Marina Souza' },
+        },
+      },
+    });
+
+    const { buscarProximaCarona } = await importarService();
+    const proxima = await buscarProximaCarona();
+
+    expect(proxima.id).toBe(11);
+    expect(proxima.papel).toBe('PASSAGEIRO');
+    expect(proxima.motorista.nome).toBe('Marina Souza');
+  });
+
+  // O bug que existia: o mock devolvia a próxima carona de QUALQUER pessoa e, se
+  // eu não fosse o motorista, me chamava de passageiro — sem reserva nenhuma.
+  it('ignora reserva PENDENTE: pedir carona não é ter carona', async () => {
+    backend({
+      enviadas: [
+        {
+          id: 51,
+          carona: { id: 12, origem: 'Centenário', destino: 'UFCG' },
+          status: 'PENDENTE',
+        },
+      ],
+    });
+
+    const { buscarProximaCarona } = await importarService();
+
+    await expect(buscarProximaCarona()).resolves.toBeNull();
+
+    const urls = fetch.mock.calls.map(([url]) => url);
+    expect(urls.some((url) => url.endsWith('/caronas/12'))).toBe(false);
+  });
+
+  it('escolhe a que sai primeiro, esteja eu ao volante ou de carona', async () => {
+    backend({
+      minhas: [
+        {
+          id: 10,
+          origem: { descricao: 'Bodocongó' },
+          destino: { descricao: 'UFCG' },
+          status: 'CRIADA',
+          dataHoraSaida: emHoras(8),
+        },
+      ],
+      enviadas: [
+        {
+          id: 50,
+          carona: { id: 11, origem: 'Catolé', destino: 'UFCG' },
+          status: 'ACEITA',
+        },
+      ],
+      detalhes: {
+        11: {
+          id: 11,
+          origem: { descricao: 'Catolé' },
+          destino: { descricao: 'UFCG' },
+          status: 'CRIADA',
+          dataHoraSaida: emHoras(1),
+        },
+      },
+    });
+
+    const { buscarProximaCarona } = await importarService();
+    const proxima = await buscarProximaCarona();
+
+    expect(proxima.id).toBe(11);
+    expect(proxima.papel).toBe('PASSAGEIRO');
+  });
+
+  it('descarta carona passada e cancelada', async () => {
+    backend({
+      minhas: [
+        {
+          id: 10,
+          origem: { descricao: 'Bodocongó' },
+          destino: { descricao: 'UFCG' },
+          status: 'CRIADA',
+          dataHoraSaida: emHoras(-2),
+        },
+        {
+          id: 11,
+          origem: { descricao: 'Catolé' },
+          destino: { descricao: 'UFCG' },
+          status: 'CANCELADA',
+          dataHoraSaida: emHoras(4),
+        },
+      ],
+    });
+
+    const { buscarProximaCarona } = await importarService();
+
+    await expect(buscarProximaCarona()).resolves.toBeNull();
+  });
+});
+
+describe('buscarSugestoesDeCaronas', () => {
+  it('usa a busca do US9 (GET /caronas), não o inexistente /caronas/sugestoes', async () => {
+    fetch.mockResolvedValue(
+      respostaJson([
+        {
+          id: 20,
+          origem: { descricao: 'Malvinas' },
+          destino: { descricao: 'UFCG' },
+          dataHoraSaida: '2026-08-01T07:00:00',
+          motorista: { id: 3, nome: 'Marina Souza' },
+        },
+      ]),
+    );
+
+    const { buscarSugestoesDeCaronas } = await importarService();
+    const sugestoes = await buscarSugestoesDeCaronas();
+
+    const [url] = fetch.mock.calls[0];
+    expect(url).toContain('/caronas?');
+    expect(url).not.toContain('/caronas/sugestoes');
+
+    expect(sugestoes).toHaveLength(1);
+    expect(sugestoes[0].origem).toBe('Malvinas');
+  });
+});

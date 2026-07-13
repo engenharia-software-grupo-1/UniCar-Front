@@ -35,13 +35,6 @@ body {
   text-align: left;
 }
 
-.trajetos-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-}
-
 .trajetos-title {
   min-width: 0;
   text-align: left;
@@ -61,30 +54,6 @@ body {
   color: oklch(0.554 0.046 257.417);
   font-size: 14px;
   line-height: 1.35;
-}
-
-.add-btn {
-  width: 40px;
-  height: 40px;
-  border: 0;
-  border-radius: 999px;
-  background: oklch(0.208 0.042 265.755);
-  color: oklch(0.984 0.003 247.858);
-  box-shadow: 0 8px 18px rgba(7, 19, 43, 0.16);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex: 0 0 auto;
-  transition: opacity 0.18s, transform 0.18s;
-}
-
-.add-btn:hover {
-  opacity: 0.94;
-}
-
-.add-btn:active {
-  transform: scale(0.96);
 }
 
 .trajetos-lista {
@@ -222,10 +191,6 @@ body {
 }
 
 @media (max-width: 420px) {
-  .trajetos-header {
-    gap: 12px;
-  }
-
   .trajetos-title h1 {
     font-size: 22px;
   }

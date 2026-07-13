@@ -111,6 +111,16 @@ describe('ações impossíveis', () => {
     expect(screen.queryByRole('button', { name: /excluir/i })).not.toBeInTheDocument();
   });
 
+  // Um trajeto não se cria: ele nasce do histórico. Um "+" no cabeçalho prometia
+  // um cadastro que não existe.
+  it('não oferece criar um trajeto', async () => {
+    renderPagina();
+
+    await screen.findByText('Bodocongó');
+
+    expect(screen.queryByRole('button', { name: /ofertar|adicionar|novo/i })).not.toBeInTheDocument();
+  });
+
   it('não inventa horário, vagas ou contribuição — eles são da carona, não do trajeto', async () => {
     renderPagina();
 

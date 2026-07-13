@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Plus, Repeat, RotateCcw } from 'lucide-react';
+import { ArrowRight, Repeat, RotateCcw } from 'lucide-react';
 import { listarTrajetosRecorrentes } from '../../services/caronaService';
 import { formatarData } from '../../utils/datas.js';
 import './style.css';
@@ -61,14 +61,6 @@ function TrajetosRecorrentes() {
           <h1>Trajetos recorrentes</h1>
           <p>As rotas que você mais faz</p>
         </div>
-
-        <button
-          onClick={() => navigate('/ofertar-carona')}
-          className="add-btn"
-          aria-label="Ofertar carona"
-        >
-          <Plus size={14} />
-        </button>
       </header>
 
       {erro && (

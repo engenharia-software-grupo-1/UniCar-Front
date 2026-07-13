@@ -1,0 +1,235 @@
+.historico-detalhes-page {
+  min-height: 100vh;
+  padding-bottom: 104px;
+  background: #eef6ff;
+  color: #00123f;
+  font-family: "Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.historico-detalhes-shell {
+  width: min(760px, calc(100% - 64px));
+  margin: 0 auto;
+  padding-top: 28px;
+}
+
+.historico-detalhes-voltar {
+  margin: 0 0 22px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #506a92;
+  font: inherit;
+  font-size: 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.historico-detalhes-hero,
+.historico-detalhes-card,
+.historico-detalhes-feedback,
+.historico-detalhes-erro {
+  border: 1px solid #d6e2f0;
+  border-radius: 22px;
+  background: #ffffff;
+}
+
+.historico-detalhes-hero {
+  padding: 24px;
+  margin-bottom: 16px;
+}
+
+.historico-detalhes-hero h1 {
+  margin: 14px 0 8px;
+  font-size: 28px;
+  line-height: 1.18;
+}
+
+.historico-detalhes-hero p {
+  margin: 0;
+  color: #506a92;
+  font-size: 15px;
+}
+
+.historico-detalhes-status {
+  min-height: 28px;
+  border-radius: 999px;
+  padding: 4px 12px;
+  display: inline-flex;
+  align-items: center;
+  background: #dbeafe;
+  color: #075985;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.historico-detalhes-status--finalizada,
+.historico-detalhes-status--confirmada {
+  background: #c9f8df;
+  color: #047857;
+}
+
+.historico-detalhes-status--cancelada,
+.historico-detalhes-status--recusada {
+  background: #ffe0e6;
+  color: #e0002a;
+}
+
+.historico-detalhes-status--pendente {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.historico-detalhes-muted {
+  color: #506a92;
+}
+
+.historico-detalhes-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.historico-detalhes-card {
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.historico-detalhes-card h2 {
+  margin: 0 0 14px;
+  font-size: 17px;
+  line-height: 1.2;
+}
+
+.historico-detalhes-card p {
+  margin: 0 0 6px;
+  color: #506a92;
+  font-size: 14px;
+}
+
+.historico-detalhes-info > div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.historico-detalhes-info h2 {
+  margin: 0;
+}
+
+.historico-detalhes-info svg {
+  color: #506a92;
+}
+
+.historico-detalhes-paradas,
+.historico-detalhes-reservas {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.historico-detalhes-paradas li {
+  border-left: 3px solid #bfdbfe;
+  padding: 6px 0 6px 12px;
+  color: #506a92;
+}
+
+.historico-detalhes-motorista,
+.historico-detalhes-reservas li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.historico-detalhes-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #e5e7eb;
+  color: #00123f;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  object-fit: cover;
+  font-weight: 700;
+  flex: 0 0 auto;
+}
+
+.historico-detalhes-motorista div,
+.historico-detalhes-reservas div {
+  display: grid;
+  gap: 3px;
+}
+
+.historico-detalhes-motorista strong,
+.historico-detalhes-reservas strong {
+  color: #00123f;
+}
+
+.historico-detalhes-motorista span,
+.historico-detalhes-reservas span {
+  color: #506a92;
+  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.historico-detalhes-motorista svg {
+  color: #f97316;
+}
+
+.historico-detalhes-feedback,
+.historico-detalhes-erro {
+  padding: 28px;
+}
+
+.historico-detalhes-erro {
+  color: #b91c1c;
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+
+.historico-detalhes-erro strong {
+  font-size: 42px;
+  line-height: 1;
+}
+
+.historico-detalhes-erro h1 {
+  margin: 8px 0;
+}
+
+.historico-detalhes-erro p {
+  margin: 0 0 16px;
+}
+
+.historico-detalhes-erro a {
+  min-height: 40px;
+  padding: 0 16px;
+  border-radius: 12px;
+  background: #0b1531;
+  color: #ffffff;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  font-weight: 700;
+}
+
+@media (max-width: 700px) {
+  .historico-detalhes-shell {
+    width: min(100% - 28px, 760px);
+  }
+
+  .historico-detalhes-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .historico-detalhes-hero h1 {
+    font-size: 23px;
+  }
+}

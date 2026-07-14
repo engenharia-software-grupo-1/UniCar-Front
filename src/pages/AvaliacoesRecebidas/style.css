@@ -68,7 +68,7 @@
 .avaliacoes-hero h1 {
   margin: 0;
   color: #ffffff;
-  font-size: 24px;
+  font-size: var(--app-font-hero-title);
   font-weight: 800;
 }
 

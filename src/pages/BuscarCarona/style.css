@@ -16,7 +16,7 @@
 }
 
 .buscar-cabecalho { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
-.buscar-title { margin: 0; color: #172033; font-size: 1.5rem; line-height: 1.2; font-weight: 800; letter-spacing: -.02em; }
+.buscar-title { margin: 0; color: #172033; font-size: var(--app-font-page-title); line-height: 1.2; font-weight: 800; letter-spacing: -.02em; }
 
 .buscar-alertas-botao {
   display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0;
@@ -107,7 +107,7 @@
 
 @media (max-width: 520px) {
   .buscar-shell { width:min(var(--app-content-width),calc(100% - var(--app-content-gutter-mobile))); padding:20px 0 28px; }
-  .buscar-title { font-size: 1.3rem; }
+  .buscar-title { font-size: var(--app-font-page-title); }
   .buscar-alertas-botao { padding-inline: 10px; }
   .buscar-formulario { padding: 14px; }
   .ride-card { padding: 14px; gap: 10px; }

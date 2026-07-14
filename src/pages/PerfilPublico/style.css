@@ -1,4 +1,4 @@
-.perfil-publico-page { min-height:100vh; padding-bottom:104px; background:#f8fafc; color:#0f172a; font-family:"Inter",system-ui,sans-serif; }
+.perfil-publico-page { min-height:100vh; padding-bottom:104px; background:#f8fafc; color:#0f172a; font-family:"Nunito",ui-sans-serif,system-ui,sans-serif; }
 .perfil-publico-shell { width:min(var(--app-content-width),calc(100% - var(--app-content-gutter))); margin:auto; padding-top:20px; }
 .perfil-publico-voltar { min-height:34px; margin:0 0 12px; padding:0; border:0; background:none; color:#64748b; font:inherit; font-size:14px; display:inline-flex; align-items:center; gap:8px; cursor:pointer; }
 .perfil-publico-voltar:hover { color:#0f172a; }
@@ -39,7 +39,7 @@
 .perfil-publico-toast--sucesso { border-color:#86efac; color:#047857; }
 .perfil-publico-toast--erro { border-color:#fca5a5; color:#b91c1c; }
 .perfil-publico-page .confirmacaoFundo { align-items:center; background:rgba(15,23,42,.5); }
-.perfil-publico-page .confirmacaoCaixa { max-width:384px; padding:20px; border-radius:16px; box-shadow:0 24px 60px rgba(15,23,42,.22); font-family:"Inter",system-ui,sans-serif; }
+.perfil-publico-page .confirmacaoCaixa { max-width:384px; padding:20px; border-radius:16px; box-shadow:0 24px 60px rgba(15,23,42,.22); font-family:inherit; }
 .perfil-publico-page .confirmacaoCaixa h2 { font-size:16px; }
 .perfil-publico-page .confirmacaoMensagem { color:#334155; font-size:14px; }
 .perfil-publico-page .confirmacaoBotoes { margin-top:18px; gap:8px; }

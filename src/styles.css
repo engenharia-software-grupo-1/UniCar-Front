@@ -154,16 +154,16 @@
 @theme inline {
   --color-unicar-navy: oklch(0.25 0.13 265);
   --color-unicar-gold: oklch(0.7 0.16 50);
-  --font-display: "Poppins", system-ui, sans-serif;
-  --font-sans: "Inter", system-ui, sans-serif;
+  --font-display: "Nunito", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Nunito", ui-sans-serif, system-ui, sans-serif;
 }
 
 @layer base {
   body {
-    font-family: "Inter", system-ui, sans-serif;
+    font-family: "Nunito", ui-sans-serif, system-ui, sans-serif;
   }
   h1, h2, h3, h4 {
-    font-family: "Poppins", system-ui, sans-serif;
+    font-family: "Nunito", ui-sans-serif, system-ui, sans-serif;
     letter-spacing: -0.02em;
   }
 }

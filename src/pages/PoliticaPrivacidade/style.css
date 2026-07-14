@@ -43,7 +43,7 @@
 .privacidade-header h1 {
   margin: 0;
   color: #07132b;
-  font-size: 30px;
+  font-size: var(--app-font-page-title);
   font-weight: 800;
 }
 

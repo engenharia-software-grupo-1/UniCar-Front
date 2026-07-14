@@ -24,7 +24,7 @@
 .termos-header h1 {
   margin: 0;
   color: #0f3d5e;
-  font-size: 30px;
+  font-size: var(--app-font-page-title);
 }
 
 .termos-header p {

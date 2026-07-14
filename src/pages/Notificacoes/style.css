@@ -86,7 +86,7 @@
 .notificacoes-titlebar h1 {
   margin: 0;
   color: #001541;
-  font-size: 30px;
+  font-size: var(--app-font-page-title);
   font-weight: 900;
   line-height: 1.15;
 }
@@ -457,7 +457,7 @@
   }
 
   .notificacoes-titlebar h1 {
-    font-size: 28px;
+    font-size: var(--app-font-page-title);
   }
 
   .notificacoes-titlebar {

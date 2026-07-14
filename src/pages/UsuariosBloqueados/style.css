@@ -67,7 +67,7 @@
   display: flex;
   align-items: center;
   gap: 16px;
-  font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+  font-family: "Nunito", ui-sans-serif, system-ui, sans-serif;
 }
 
 .bloqueados-hero-icon,
@@ -87,7 +87,7 @@
 .bloqueados-hero h1 {
   margin: 0 0 6px;
   color: #ffffff;
-  font-size: 22px;
+  font-size: var(--app-font-hero-title);
   font-weight: 800;
   line-height: 1.1;
 }

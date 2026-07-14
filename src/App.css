@@ -1,9 +1,15 @@
-@import url("https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Poppins:wght@600;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap");
 
 #root {
   --app-content-width: 760px;
   --app-content-gutter: 40px;
   --app-content-gutter-mobile: 28px;
+  --app-font-page-title: clamp(1.625rem, 1.45rem + 0.5vw, 1.875rem);
+  --app-font-hero-title: 1.5rem;
+  --app-font-section-title: 1.25rem;
+  --app-font-body: 0.9375rem;
+  --app-font-small: 0.8125rem;
+  --app-font-micro: 0.6875rem;
   width: 100%;
   max-width: none;
   min-height: 100svh;

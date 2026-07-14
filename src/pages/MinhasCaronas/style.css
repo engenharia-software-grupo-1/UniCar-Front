@@ -69,7 +69,7 @@
 .caronas-title {
   margin: 0 0 24px;
   color: #061235;
-  font-size: 31px;
+  font-size: var(--app-font-page-title);
   font-weight: 900;
   line-height: 1.1;
 }

@@ -29,7 +29,7 @@
 
 .editar-carona-topbar h1 {
   margin: 0;
-  font-size: 26px;
+  font-size: var(--app-font-page-title);
   font-weight: 800;
 }
 

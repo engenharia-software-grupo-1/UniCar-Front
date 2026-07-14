@@ -1,4 +1,4 @@
-.historico-detalhes-page { min-height:100vh; padding-bottom:104px; background:#f8fafc; color:#0b1531; font-family:"Inter",system-ui,sans-serif; }
+.historico-detalhes-page { min-height:100vh; padding-bottom:104px; background:#f8fafc; color:#0b1531; font-family:"Nunito",ui-sans-serif,system-ui,sans-serif; }
 .historico-detalhes-shell { width:min(var(--app-content-width),calc(100% - var(--app-content-gutter))); margin:auto; padding-top:24px; }
 .historico-detalhes-voltar { margin:0 0 20px; padding:0; border:0; background:none; color:#64748b; font:inherit; font-size:14px; display:inline-flex; align-items:center; gap:7px; cursor:pointer; }
 .historico-detalhes-card,.historico-detalhes-feedback,.historico-detalhes-erro { border:1px solid #dfe5ed; border-radius:18px; background:#fff; }

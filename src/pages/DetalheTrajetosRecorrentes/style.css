@@ -1,6 +1,6 @@
 body {
   margin: 0;
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: "Nunito", ui-sans-serif, system-ui, sans-serif;
   background: oklch(0.985 0.005 250);
   color: oklch(0.18 0.06 265);
 }
@@ -68,7 +68,7 @@ body {
 
 .detalhe-title h1 {
   margin: 0;
-  font-family: "Poppins", system-ui, sans-serif;
+  font-family: inherit;
   font-size: 20px;
   line-height: 1.2;
   font-weight: 800;
@@ -258,7 +258,7 @@ body {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  font-family: "Poppins", system-ui, sans-serif;
+  font-family: inherit;
   font-size: 14px;
   font-weight: 800;
   transition: opacity 0.2s, transform 0.2s;
@@ -287,7 +287,7 @@ body {
 .historico-topo h2 {
   margin: 0;
   color: oklch(0.18 0.06 265);
-  font-family: "Poppins", system-ui, sans-serif;
+  font-family: inherit;
   font-size: 14px;
   line-height: 1.2;
   font-weight: 700;

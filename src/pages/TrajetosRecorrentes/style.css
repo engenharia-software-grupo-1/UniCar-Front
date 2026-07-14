@@ -1,6 +1,6 @@
 body {
   margin: 0;
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: "Nunito", ui-sans-serif, system-ui, sans-serif;
   background: oklch(0.985 0.005 250);
   color: oklch(0.18 0.06 265);
 }
@@ -43,8 +43,8 @@ body {
 .trajetos-title h1 {
   margin: 0;
   color: oklch(0.18 0.06 265);
-  font-family: "Poppins", system-ui, sans-serif;
-  font-size: 24px;
+  font-family: inherit;
+  font-size: var(--app-font-page-title);
   line-height: 1.2;
   font-weight: 800;
 }
@@ -156,7 +156,7 @@ body {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  font-family: "Poppins", system-ui, sans-serif;
+  font-family: inherit;
   font-size: 13px;
   font-weight: 800;
   transition: opacity 0.18s, transform 0.18s;
@@ -192,7 +192,7 @@ body {
 
 @media (max-width: 420px) {
   .trajetos-title h1 {
-    font-size: 22px;
+    font-size: var(--app-font-page-title);
   }
 
   .trajetos-title p {

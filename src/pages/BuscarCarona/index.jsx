@@ -12,6 +12,7 @@ import {
   SlidersHorizontal,
   Star,
   X,
+  Users
 } from 'lucide-react';
 import NavegacaoInferior from '../../components/layout/NavegacaoInferior.jsx';
 import { buscarCaronas } from '../../services/caronaService.js';
@@ -20,14 +21,14 @@ import './style.css';
 const VEICULOS = ['Qualquer', 'Carro', 'Moto'];
 const CURSOS = [
   'Qualquer',
-  'Eng. Computação',
+  'Ciência da Computação',
   'Eng. Elétrica',
   'Eng. Mecânica',
   'Direito',
   'Medicina',
   'Letras',
 ];
-const GENEROS = ['Qualquer', 'Feminino', 'Masculino'];
+const GENEROS = ['Qualquer', 'Feminino', 'Masculino', 'Outro'];
 
 function BuscarCarona() {
   const [origem, setOrigem] = useState('');
@@ -47,9 +48,10 @@ function BuscarCarona() {
   const [apenasVerificados, setApenasVerificados] = useState(false);
   const [modalAlertasAberto, setModalAlertasAberto] = useState(false);
   const [alertas, setAlertas] = useState([
-    { id: 1, origem: 'Centro', destino: 'UFC', horario: 'Dias úteis • 07:00–08:00', ativo: true },
-    { id: 2, origem: 'UFC', destino: 'Aldeota', horario: 'Seg, Qua e Sex • após 17:00', ativo: false },
+    { id: 1, origem: 'Centro', destino: 'UFCG', horario: 'Dias úteis • 07:00–08:00', ativo: true },
+    { id: 2, origem: 'UFCG', destino: 'Catolé', horario: 'Seg, Qua e Sex • após 17:00', ativo: false },
   ]);
+
 
   const caronasFiltradas = useMemo(() => caronas.filter((carona) => {
     const vagas = Number(carona.vagasDisponiveis ?? carona.quantidadeVagas ?? 0);
@@ -167,7 +169,7 @@ function BuscarCarona() {
                 <BellPlus size={15} /> Criar alerta para este trajeto
               </button>
             </div>
-          )}
+          )} 
           {!carregando && caronasFiltradas.map((carona) => <RideCard key={carona.id} carona={carona} />)}
         </div>
       </section>
@@ -237,43 +239,126 @@ function SelectField({ label, value, onChange, options }) {
 
 function RideCard({ carona }) {
   const motorista = carona.motorista ?? {};
-  const nome = carona.motoristaNome || motorista.nome || 'Motorista';
-  const iniciais = nome.split(' ').slice(0, 2).map((parte) => parte[0]).join('').toUpperCase();
+  const usuarioId =
+    motorista.id ??
+    carona.motoristaId ??
+    carona.usuarioId;
+  const nome =
+    carona.motoristaNome ||
+    motorista.nome ||
+    'Motorista';
+  const iniciais = nome
+    .split(' ')
+    .slice(0, 2)
+    .map((parte) => parte[0])
+    .join('')
+    .toUpperCase();
   const data = new Date(carona.dataHoraSaida);
   const dataValida = !Number.isNaN(data.getTime());
-  const horario = dataValida ? data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '--:--';
-  const dia = dataValida ? data.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) : '';
-  const tipo = String(carona.veiculo?.tipo ?? carona.tipoVeiculo ?? 'Carro');
+  const horario = dataValida
+    ? data.toLocaleTimeString('pt-BR', {
+        hour: '2-digit',
+        minute: '2-digit',
+      })
+    : '--:--';
+  const dia = dataValida
+    ? data.toLocaleDateString('pt-BR', {
+        day: '2-digit',
+        month: '2-digit',
+      })
+    : '';
+  const tipo = String(
+    carona.veiculo?.tipo ??
+    carona.tipoVeiculo ??
+    'Carro'
+  );
   const moto = tipo.toLowerCase().includes('moto');
 
   return (
-    <Link to={`/minhas-caronas/${carona.id}`} className="ride-card">
-      <div className="ride-avatar">{iniciais || 'U'}</div>
+    <article className="ride-card">
+      <Link
+        to={`/usuarios/${usuarioId}`}
+        className="ride-avatar-link"
+      >
+        <div className="ride-avatar">
+          {iniciais || 'U'}
+        </div>
+      </Link>
+
       <div className="ride-conteudo">
         <div className="ride-motorista">
-          <strong>{nome}</strong>
-          {(motorista.verificado || carona.motoristaVerificado) && <ShieldCheck size={14} />}
-          {(motorista.avaliacao || carona.avaliacaoMotorista) && (
-            <span className="ride-avaliacao"><Star size={12} /> {motorista.avaliacao || carona.avaliacaoMotorista}</span>
+          <Link
+            to={`/usuarios/${usuarioId}`}
+            className="ride-motorista-link"
+          >
+            <strong>{nome}</strong>
+          </Link>
+          {(motorista.verificado ||
+            carona.motoristaVerificado) && (
+            <ShieldCheck size={14} />
+          )}
+          {(motorista.avaliacao ||
+            carona.avaliacaoMotorista) && (
+            <span className="ride-avaliacao">
+              <Star size={12} />
+              {motorista.avaliacao ||
+                carona.avaliacaoMotorista}
+            </span>
           )}
         </div>
-        {(motorista.curso || carona.motoristaCurso) && <span className="ride-curso">{motorista.curso || carona.motoristaCurso}</span>}
+
+        {(motorista.curso ||
+          carona.motoristaCurso) && (
+          <span className="ride-curso">
+            {motorista.curso ||
+              carona.motoristaCurso}
+          </span>
+        )}
+
         <div className="ride-route">
-          <strong>{carona.origem?.descricao || carona.origem}</strong>
+          <strong>
+            {carona.origem?.descricao ||
+              carona.origem}
+          </strong>
           <ArrowRight size={14} />
-          <strong>{carona.destino?.descricao || carona.destino}</strong>
+          <strong>
+            {carona.destino?.descricao ||
+              carona.destino}
+          </strong>
         </div>
-        <span className={`ride-tipo ${moto ? 'moto' : 'carro'}`}>
-          {moto ? <Bike size={12} /> : <Car size={12} />} {moto ? 'Moto' : 'Carro'}
-        </span>
+
+        <div className="ride-footer">
+          <span
+            className={`ride-tipo ${
+              moto ? 'moto' : 'carro'
+            }`}
+          >
+            {moto
+              ? <Bike size={12} />
+              : <Car size={12} />}
+
+            {moto ? 'Moto' : 'Carro'}
+          </span>
+          <span className="ride-vagas">
+            <Users size={12} />
+            {carona.vagasDisponiveis ?? 0} vaga(s)
+          </span>
+        </div>
       </div>
+
       <div className="ride-resumo">
         <strong>{horario}</strong>
         <span>{dia}</span>
-        <b>R$ {Number(carona.valorContribuicao ?? 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</b>
-        <span>{carona.vagasDisponiveis ?? 0} vagas</span>
+        <b>
+          R${' '}
+          {Number(
+            carona.valorContribuicao ?? 0
+          ).toLocaleString('pt-BR', {
+            minimumFractionDigits: 2,
+          })}
+        </b>
       </div>
-    </Link>
+    </article>
   );
 }
 

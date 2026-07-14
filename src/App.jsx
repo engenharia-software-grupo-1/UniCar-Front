@@ -12,6 +12,7 @@ import DetalheCarona from './pages/DetalheCarona/index.jsx';
 import EditarCarona from './pages/EditarCarona/index.jsx';
 import OfertarCarona from './pages/OfertarCarona/index.jsx';
 import HistoricoCaronas from './pages/HistoricoCaronas/index.jsx';
+import HistoricoDetalhes from './pages/HistoricoDetalhes/index.jsx';
 import PerfilPublico from './pages/PerfilPublico/index.jsx';
 import AvaliacoesRecebidas from './pages/AvaliacoesRecebidas/index.jsx';
 import Notificacoes from './pages/Notificacoes/index.jsx';
@@ -180,6 +181,15 @@ function App() {
           element={
             <RequireAuthAndTerms>
               <HistoricoCaronas />
+            </RequireAuthAndTerms>
+          }
+        />
+
+        <Route
+          path="/historico/:id"
+          element={
+            <RequireAuthAndTerms>
+              <HistoricoDetalhes />
             </RequireAuthAndTerms>
           }
         />

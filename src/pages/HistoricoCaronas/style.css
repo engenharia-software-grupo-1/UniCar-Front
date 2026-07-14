@@ -180,18 +180,66 @@
 
 .historico-lista {
   list-style: none;
+  width: 100%;
   margin: 0;
   padding: 0;
-  display: grid;
-  gap: 8px;
+  display: block;
+  background: transparent !important;
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+}
+
+.historico-lista li {
+  width: 100%;
+  margin: 0 0 22px;
+  padding: 0;
+  background: transparent !important;
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+}
+
+.historico-lista li:last-child {
+  margin-bottom: 0;
 }
 
 .historico-card {
-  min-height: 0;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
+  box-sizing: border-box;
+  position: relative;
+  width: 100%;
+  min-height: 116px;
+  margin: 0;
+  border: 1px solid #d6e2f0;
+  border-radius: 22px;
+  outline: 0 !important;
   background: #ffffff;
-  padding: 16px;
+  background-clip: padding-box;
+  padding: 20px;
+  box-shadow: none !important;
+}
+
+.historico-card--clicavel {
+  transition:
+    border-color 160ms ease,
+    transform 160ms ease;
+}
+
+.historico-card--clicavel:hover {
+  border-color: #bfdbfe;
+  transform: translateY(-1px);
+}
+
+.historico-card__link {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+}
+
+.historico-card__link:focus-visible {
+  outline: 3px solid rgba(249, 115, 22, 0.35);
+  outline-offset: 3px;
 }
 
 .historico-card__topo {
@@ -225,6 +273,11 @@
   color: #0369a1;
 }
 
+.historico-status--ativa {
+  background: #d7efff;
+  color: #0369a1;
+}
+
 .historico-status--finalizada {
   background: #c9f8df;
   color: #047857;
@@ -239,6 +292,11 @@
 .historico-status--pendente {
   background: #fef3c7;
   color: #92400e;
+}
+
+.historico-status--expirada {
+  background: #e2e8f0;
+  color: #475569;
 }
 
 .historico-motorista {
@@ -267,6 +325,8 @@
 }
 
 .historico-avatar-link {
+  position: relative;
+  z-index: 2;
   color: #00123f;
   text-decoration: none;
   cursor: pointer;
@@ -332,6 +392,135 @@
   display: flex;
   align-items: center;
   gap: 6px;
+}
+
+.historico-passageiro {
+  margin: 8px 0 0;
+  color: #506a92;
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.historico-avaliar {
+  position: relative;
+  z-index: 2;
+  margin-top: 12px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #00123f;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+}
+
+.historico-avaliar svg {
+  color: #00123f;
+}
+
+.historico-sucesso {
+  box-sizing: border-box;
+  width: 100%;
+  margin: 0 0 18px;
+  padding: 14px 18px;
+  border: 1px solid #bbf7d0;
+  border-radius: 14px;
+  background: #f0fdf4;
+  color: #15803d;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.historico-seletor-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: rgba(15, 23, 42, 0.46);
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.historico-seletor {
+  width: min(440px, 100%);
+  border-radius: 22px;
+  background: #ffffff;
+  padding: 24px;
+  color: #00123f;
+}
+
+.historico-seletor__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.historico-seletor__header h2 {
+  margin: 0;
+  font-size: 22px;
+  line-height: 1.2;
+}
+
+.historico-seletor__header p {
+  margin: 6px 0 0;
+  color: #506a92;
+  font-size: 14px;
+}
+
+.historico-seletor__header button {
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #00123f;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.historico-seletor__lista {
+  display: grid;
+  gap: 10px;
+}
+
+.historico-seletor__lista button {
+  min-height: 52px;
+  border: 1px solid #d6e2f0;
+  border-radius: 14px;
+  background: #ffffff;
+  color: #00123f;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.historico-seletor__lista button:hover {
+  background: #f4f9ff;
+}
+
+.historico-seletor__lista span {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #e5e7eb;
+  color: #00123f;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  font-size: 14px;
 }
 
 .historico-vazio--passageiro {

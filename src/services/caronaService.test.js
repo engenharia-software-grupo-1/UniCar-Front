@@ -302,15 +302,15 @@ describe('cancelarCarona', () => {
 });
 
 describe('removerReservaCarona', () => {
-  it('faz DELETE /caronas/{id}/reservas/{reservaId} com o token e sem corpo', async () => {
+  it('faz PATCH /reservas/{reservaId}/remover com o token e sem corpo', async () => {
     fetch.mockResolvedValue(respostaJson({ id: 101, status: 'REMOVIDA' }));
 
     const { removerReservaCarona } = await importarService();
     const resultado = await removerReservaCarona(10, 101);
 
     const [url, opcoes] = fetch.mock.calls[0];
-    expect(url).toBe(`${BASE_URL}/caronas/10/reservas/101`);
-    expect(opcoes.method).toBe('DELETE');
+    expect(url).toBe(`${BASE_URL}/reservas/101/remover`);
+    expect(opcoes.method).toBe('PATCH');
     expect(opcoes.headers.Authorization).toBe(`Bearer ${TOKEN}`);
     expect(opcoes.body).toBeUndefined();
     expect(resultado).toEqual({ id: 101, status: 'REMOVIDA' });
@@ -392,7 +392,9 @@ describe('editarCarona', () => {
     valorContribuicao: 6,
   };
 
-  it('faz PATCH /caronas/{id} com o payload do contrato', async () => {
+  // O PUT reaproveita o CaronaRequestDTO da criação: recurso inteiro e a data em
+  // `datasHorasSaida` (lista de um item), não `dataHoraSaida`.
+  it('faz PUT /caronas/{id} com o payload do contrato', async () => {
     fetch.mockResolvedValue(
       respostaJson({
         ...DETALHE_10,
@@ -406,14 +408,14 @@ describe('editarCarona', () => {
 
     const [url, opcoes] = fetch.mock.calls[0];
     expect(url).toBe(`${BASE_URL}/caronas/10`);
-    expect(opcoes.method).toBe('PATCH');
+    expect(opcoes.method).toBe('PUT');
     expect(opcoes.headers.Authorization).toBe(`Bearer ${TOKEN}`);
     expect(JSON.parse(opcoes.body)).toEqual({
       veiculoId: 1,
       origem: { descricao: 'Bodocongó', latitude: null, longitude: null },
       destino: { descricao: 'UFCG', latitude: null, longitude: null },
       pontoEncontro: 'Biblioteca central',
-      dataHoraSaida: '2026-08-25T07:30:00',
+      datasHorasSaida: ['2026-08-25T07:30:00'],
       quantidadeVagas: 3,
       valorContribuicao: 6,
     });

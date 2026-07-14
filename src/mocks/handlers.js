@@ -4,9 +4,11 @@ const API_BASE_URL = import.meta.env?.VITE_API_URL ?? 'http://localhost:8080';
 
 // Store em memória que emula a persistência do backend US6.
 // Reiniciado por `resetStore()` entre os testes.
+// O campo do tipo é o enum `tipoVeiculo` (CARRO | MOTO), como no contrato US6:
+// a tradução para o 'carro' | 'moto' da UI é responsabilidade do vehicleService.
 const estadoInicial = () => [
-  { id: 1, modelo: 'Onix', placa: 'ABC1D23', cor: 'Prata', tipo: 'carro' },
-  { id: 2, modelo: 'CG 160', placa: 'XYZ9A87', cor: 'Preta', tipo: 'moto' },
+  { id: 1, modelo: 'Onix', placa: 'ABC1D23', cor: 'Prata', tipoVeiculo: 'CARRO' },
+  { id: 2, modelo: 'CG 160', placa: 'XYZ9A87', cor: 'Preta', tipoVeiculo: 'MOTO' },
 ];
 
 let veiculos = estadoInicial();
@@ -240,27 +242,25 @@ export const handlers = [
     return HttpResponse.json({ id: carona.id, status: carona.status }, { status: 200 });
   }),
 
-  // DELETE /caronas/{id}/reservas/{reservaId} — remove reserva aceita da carona.
-  http.delete(`${API_BASE_URL}/caronas/:id/reservas/:reservaId`, ({ request, params }) => {
+  // PATCH /reservas/{reservaId}/remover — motorista remove um passageiro (204 sem
+  // corpo). A reserva é endereçada por si só: achamos a carona dona varrendo o store.
+  http.patch(`${API_BASE_URL}/reservas/:reservaId/remover`, ({ request, params }) => {
     const negado = exigirAutorizacao(request);
     if (negado) return negado;
 
-    const carona = caronas.find((item) => item.id === Number(params.id));
+    const pertenceAReserva = (passageiro) =>
+      String(passageiro.reservaId ?? passageiro.id) === String(params.reservaId);
 
-    if (!carona) {
-      return HttpResponse.json({ message: 'Carona não encontrada' }, { status: 404 });
-    }
-
-    const passageiros = Array.isArray(carona.passageiros) ? carona.passageiros : [];
-    const indice = passageiros.findIndex((passageiro) =>
-      String(passageiro.reservaId ?? passageiro.id) === String(params.reservaId),
+    const carona = caronas.find((item) =>
+      Array.isArray(item.passageiros) && item.passageiros.some(pertenceAReserva),
     );
 
-    if (indice === -1) {
+    if (!carona) {
       return HttpResponse.json({ message: 'Reserva não encontrada' }, { status: 404 });
     }
 
-    const [removida] = passageiros.splice(indice, 1);
+    const indice = carona.passageiros.findIndex(pertenceAReserva);
+    const [removida] = carona.passageiros.splice(indice, 1);
 
     if (/confirmad|aceit/i.test(String(removida.status || ''))) {
       carona.vagasDisponiveis = Math.min(
@@ -269,7 +269,7 @@ export const handlers = [
       );
     }
 
-    return HttpResponse.json({ id: Number(params.reservaId), status: 'REMOVIDA' }, { status: 200 });
+    return new HttpResponse(null, { status: 204 });
   }),
 
   // GET /veiculos — lista os veículos do usuário autenticado.
@@ -285,13 +285,13 @@ export const handlers = [
     const negado = exigirAutorizacao(request);
     if (negado) return negado;
 
-    const { modelo, placa, cor, tipo } = await request.json();
+    const { modelo, placa, cor, tipoVeiculo } = await request.json();
 
     if (veiculos.some((veiculo) => veiculo.placa === placa)) {
       return HttpResponse.json({ message: 'Placa já cadastrada' }, { status: 400 });
     }
 
-    const novoVeiculo = { id: proximoId, modelo, placa, cor, tipo };
+    const novoVeiculo = { id: proximoId, modelo, placa, cor, tipoVeiculo };
     proximoId += 1;
     veiculos.push(novoVeiculo);
 
@@ -324,7 +324,7 @@ export const handlers = [
       return HttpResponse.json({ message: 'Veículo não encontrado' }, { status: 404 });
     }
 
-    const { modelo, placa, cor, tipo } = await request.json();
+    const { modelo, placa, cor, tipoVeiculo } = await request.json();
 
     const placaDuplicada = veiculos.some(
       (item) => item.placa === placa && item.id !== id,
@@ -334,7 +334,7 @@ export const handlers = [
       return HttpResponse.json({ message: 'Placa já cadastrada' }, { status: 400 });
     }
 
-    veiculos[index] = { id, modelo, placa, cor, tipo };
+    veiculos[index] = { id, modelo, placa, cor, tipoVeiculo };
 
     return HttpResponse.json(veiculos[index], { status: 200 });
   }),

@@ -134,10 +134,10 @@ export async function criarCarona(dados) {
   return Array.isArray(criadas) ? criadas : [criadas];
 }
 
-// Atualiza os dados editáveis de UMA carona (PATCH /caronas/{id}). Cada carona
-// é uma data só — não há recorrência a editar aqui.
+// Atualiza os dados editáveis de UMA carona (PUT /caronas/{id}). Cada carona é
+// uma data só — não há recorrência a editar aqui.
 export async function editarCarona(id, dados) {
-  const payload = { ...montarPayloadBase(dados), dataHoraSaida: dados.dataHoraSaida };
+  const base = montarPayloadBase(dados);
 
   if (shouldUseLocalDataMocks()) {
     const caronas = carregarCaronasMock();
@@ -149,8 +149,9 @@ export async function editarCarona(id, dados) {
 
     const atualizada = {
       ...caronas[indice],
-      ...payload,
-      vagasDisponiveis: recalcularVagasDisponiveis(caronas[indice], payload.quantidadeVagas),
+      ...base,
+      dataHoraSaida: dados.dataHoraSaida,
+      vagasDisponiveis: recalcularVagasDisponiveis(caronas[indice], base.quantidadeVagas),
     };
 
     caronas[indice] = atualizada;
@@ -159,8 +160,12 @@ export async function editarCarona(id, dados) {
     return ajustarCaronaMotorista(atualizada);
   }
 
+  // O PUT reaproveita o CaronaRequestDTO da criação: exige o recurso inteiro e a
+  // data em `datasHorasSaida` (lista de um item só). Payload parcial volta 400.
+  const payload = { ...base, datasHorasSaida: [dados.dataHoraSaida] };
+
   const carona = await apiRequest(`/caronas/${id}`, {
-    method: 'PATCH',
+    method: 'PUT',
     body: JSON.stringify(payload),
   });
 
@@ -365,9 +370,12 @@ export async function removerReservaCarona(caronaId, reservaId) {
     return { id: Number(reservaId), status: 'REMOVIDA' };
   }
 
-  return apiRequest(`/caronas/${caronaId}/reservas/${reservaId}`, {
-    method: 'DELETE',
-  });
+  // A remoção é endereçada pela reserva, não pela carona: PATCH /reservas/{id}/remover
+  // (204 sem corpo, daí devolvermos o status por conta própria). O `caronaId` só
+  // serve ao store mockado acima.
+  await apiRequest(`/reservas/${reservaId}/remover`, { method: 'PATCH' });
+
+  return { id: Number(reservaId), status: 'REMOVIDA' };
 }
 
 // Lista as caronas criadas pelo motorista autenticado. O GET /caronas/minhas

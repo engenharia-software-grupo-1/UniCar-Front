@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   ArrowRight,
   BellPlus,
@@ -30,6 +30,7 @@ const CURSOS = [
 const GENEROS = ['Qualquer', 'Feminino', 'Masculino'];
 
 function BuscarCarona() {
+  const navigate = useNavigate();
   const [origem, setOrigem] = useState('');
   const [destino, setDestino] = useState('');
   const [curso, setCurso] = useState('Qualquer');
@@ -51,6 +52,29 @@ function BuscarCarona() {
     { id: 2, origem: 'UFC', destino: 'Aldeota', horario: 'Seg, Qua e Sex • após 17:00', ativo: false },
   ]);
 
+  useEffect(() => {
+    let ativo = true;
+
+    async function carregarCaronas() {
+      try {
+        setCarregando(true);
+        setErroBusca('');
+        const resultado = await buscarCaronas();
+        if (ativo) {
+          setCaronas(resultado);
+          setBuscaRealizada(true);
+        }
+      } catch (erro) {
+        if (ativo) setErroBusca(erro.message || 'Não foi possível buscar as caronas.');
+      } finally {
+        if (ativo) setCarregando(false);
+      }
+    }
+
+    carregarCaronas();
+    return () => { ativo = false; };
+  }, []);
+
   const caronasFiltradas = useMemo(() => caronas.filter((carona) => {
     const vagas = Number(carona.vagasDisponiveis ?? carona.quantidadeVagas ?? 0);
     const preco = Number(carona.valorContribuicao ?? 0);
@@ -63,20 +87,12 @@ function BuscarCarona() {
     return true;
   }), [caronas, vagasMinimas, precoMaximo, veiculo, apenasVerificados]);
 
-  function validarFormulario() {
-    const origemValida = Boolean(origem.trim());
-    const destinoValido = Boolean(destino.trim());
-    setErroOrigem(origemValida ? '' : 'Por favor, informe a origem.');
-    setErroDestino(destinoValido ? '' : 'Por favor, informe o destino.');
-    return origemValida && destinoValido;
-  }
-
   async function realizarBusca() {
-    if (!validarFormulario()) return;
-
     try {
       setCarregando(true);
       setErroBusca('');
+      setErroOrigem('');
+      setErroDestino('');
       const resultado = await buscarCaronas({ origem, destino, curso, genero });
       setCaronas(resultado);
       setBuscaRealizada(true);
@@ -160,6 +176,7 @@ function BuscarCarona() {
         </div>
 
         <div className="buscar-lista">
+          {carregando && <div className="buscar-carregando">Buscando caronas...</div>}
           {!carregando && buscaRealizada && caronasFiltradas.length === 0 && (
             <div className="buscar-vazio">
               <p>Nenhuma carona encontrada com esses filtros.</p>
@@ -168,7 +185,9 @@ function BuscarCarona() {
               </button>
             </div>
           )}
-          {!carregando && caronasFiltradas.map((carona) => <RideCard key={carona.id} carona={carona} />)}
+          {!carregando && caronasFiltradas.map((carona) => (
+            <RideCard key={carona.id} carona={carona} onOpenProfile={(id) => navigate(`/usuarios/${id}`)} />
+          ))}
         </div>
       </section>
 
@@ -235,7 +254,7 @@ function SelectField({ label, value, onChange, options }) {
   );
 }
 
-function RideCard({ carona }) {
+function RideCard({ carona, onOpenProfile }) {
   const motorista = carona.motorista ?? {};
   const nome = carona.motoristaNome || motorista.nome || 'Motorista';
   const iniciais = nome.split(' ').slice(0, 2).map((parte) => parte[0]).join('').toUpperCase();
@@ -245,10 +264,31 @@ function RideCard({ carona }) {
   const dia = dataValida ? data.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) : '';
   const tipo = String(carona.veiculo?.tipo ?? carona.tipoVeiculo ?? 'Carro');
   const moto = tipo.toLowerCase().includes('moto');
+  const perfilId = motorista.id ?? motorista.usuarioId ?? carona.motoristaId ?? slugify(nome);
+  const recorrente = carona.recorrente || carona.recurring;
+  const diasRecorrencia = carona.diasRecorrencia || carona.recurring?.days || [];
 
   return (
     <Link to={`/minhas-caronas/${carona.id}`} className="ride-card">
-      <div className="ride-avatar">{iniciais || 'U'}</div>
+      <span
+        role="link"
+        tabIndex={0}
+        className="ride-avatar"
+        aria-label={`Ver perfil de ${nome}`}
+        onClick={(evento) => {
+          evento.preventDefault();
+          evento.stopPropagation();
+          onOpenProfile(perfilId);
+        }}
+        onKeyDown={(evento) => {
+          if (evento.key === 'Enter' || evento.key === ' ') {
+            evento.preventDefault();
+            onOpenProfile(perfilId);
+          }
+        }}
+      >
+        {iniciais || 'U'}
+      </span>
       <div className="ride-conteudo">
         <div className="ride-motorista">
           <strong>{nome}</strong>
@@ -266,6 +306,11 @@ function RideCard({ carona }) {
         <span className={`ride-tipo ${moto ? 'moto' : 'carro'}`}>
           {moto ? <Bike size={12} /> : <Car size={12} />} {moto ? 'Moto' : 'Carro'}
         </span>
+        {recorrente && (
+          <span className="ride-recorrente">
+            Recorrente{diasRecorrencia.length ? ` • ${diasRecorrencia.join('/')}` : ''}
+          </span>
+        )}
       </div>
       <div className="ride-resumo">
         <strong>{horario}</strong>
@@ -275,6 +320,10 @@ function RideCard({ carona }) {
       </div>
     </Link>
   );
+}
+
+function slugify(valor = '') {
+  return valor.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim().replace(/\s+/g, '-');
 }
 
 export default BuscarCarona;

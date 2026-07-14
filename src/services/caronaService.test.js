@@ -474,7 +474,7 @@ describe('criarCarona', () => {
     expect(opcoes.method).toBe('POST');
     expect(opcoes.headers.Authorization).toBe(`Bearer ${TOKEN}`);
 
-    // Sem recorrência, `datas` tem só a data escolhida. Não existe mais
+    // Sem recorrência, `datasHorasSaida` tem só a data escolhida.
     // `dataHoraSaida` (singular) nem os campos de recorrência no payload.
     expect(JSON.parse(opcoes.body)).toEqual({
       veiculoId: 1,
@@ -483,14 +483,14 @@ describe('criarCarona', () => {
       pontoEncontro: 'Portão principal',
       quantidadeVagas: 4,
       valorContribuicao: 5,
-      datas: ['2026-08-25T07:00:00'],
+      datasHorasSaida: ['2026-08-25T07:00:00'],
     });
     expect(resultado).toEqual([{ id: 10, status: 'CRIADA' }]);
   });
 
   // 25/08/2026 é uma terça. Marcando Ter/Qui/Sáb, a data escolhida entra e os
   // outros dois dias geram as ocorrências seguintes, dentro da mesma semana.
-  it('expande os dias marcados em datas e envia todas em `datas`', async () => {
+  it('expande os dias marcados e envia todos em `datasHorasSaida`', async () => {
     fetch.mockResolvedValue(
       respostaJson(
         [
@@ -509,7 +509,7 @@ describe('criarCarona', () => {
       diasRecorrencia: ['Ter', 'Qui', 'Sáb'],
     });
 
-    expect(JSON.parse(fetch.mock.calls[0][1].body).datas).toEqual([
+    expect(JSON.parse(fetch.mock.calls[0][1].body).datasHorasSaida).toEqual([
       '2026-08-25T07:00:00', // Ter — a data escolhida, sem duplicar
       '2026-08-27T07:00:00', // Qui
       '2026-08-29T07:00:00', // Sáb

@@ -14,6 +14,14 @@ vi.mock('../../services/vehicleService.js', () => ({
   listarVeiculos: vi.fn(),
 }));
 
+vi.mock('../../services/geocodingService.js', () => ({
+  geocodificarEndereco: vi.fn(async (descricao) => ({
+    descricao,
+    latitude: descricao === 'UFCG' ? -7.2159 : -7.21456,
+    longitude: descricao === 'UFCG' ? -35.9095 : -35.90872,
+  })),
+}));
+
 vi.mock('../../services/caronaService.js', () => ({
   buscarUltimaCaronaDoTrajeto: vi.fn(),
   criarCarona: vi.fn(),
@@ -339,8 +347,16 @@ describe('passo 3 — revisão e publicação', () => {
     await waitFor(() =>
       expect(criarCarona).toHaveBeenCalledWith({
         veiculoId: 1,
-        origem: 'Bodocongó',
-        destino: 'UFCG',
+        origem: {
+          descricao: 'Bodocongó',
+          latitude: -7.21456,
+          longitude: -35.90872,
+        },
+        destino: {
+          descricao: 'UFCG',
+          latitude: -7.2159,
+          longitude: -35.9095,
+        },
         pontoEncontro: 'Portão principal',
         dataHoraSaida: `${DATA_FUTURA}T07:00:00`,
         quantidadeVagas: 1,

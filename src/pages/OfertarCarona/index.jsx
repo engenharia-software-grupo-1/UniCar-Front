@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import NavegacaoInferior from '../../components/layout/NavegacaoInferior.jsx';
 import { listarVeiculos } from '../../services/vehicleService.js';
+import { geocodificarEndereco } from '../../services/geocodingService.js';
 import {
   buscarUltimaCaronaDoTrajeto,
   criarCarona,
@@ -397,12 +398,15 @@ function OfertarCarona() {
       setPublicando(true);
       setErro('');
 
+      const origemGeocodificada = await geocodificarEndereco(origem);
+      const destinoGeocodificado = await geocodificarEndereco(destino);
+
       // A recorrência vira uma carona por data: o serviço expande os dias
       // marcados e devolve a lista das caronas criadas.
       const criadas = await criarCarona({
         veiculoId: veiculoSelecionado.id,
-        origem: origem.trim(),
-        destino: destino.trim(),
+        origem: origemGeocodificada,
+        destino: destinoGeocodificado,
         pontoEncontro: pontoEncontro.trim(),
         dataHoraSaida: `${data}T${horario}:00`,
         quantidadeVagas: vagas,

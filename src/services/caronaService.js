@@ -99,11 +99,11 @@ export async function obterCarona(id) {
 
 // Cria caronas (POST /caronas). A recorrência não é um atributo da carona: os
 // dias marcados pelo motorista viram uma lista de datas concretas e o back cria
-// UMA carona por data. Por isso o payload leva `datas` (plural) e a resposta é
+// UMA carona por data. Por isso o payload leva `datasHorasSaida` e a resposta é
 // a lista das caronas criadas: [{ id, status: 'CRIADA' }, ...].
 export async function criarCarona(dados) {
   const datas = expandirDatasDaRecorrencia(dados);
-  const payload = { ...montarPayloadBase(dados), datas };
+  const payload = { ...montarPayloadBase(dados), datasHorasSaida: datas };
 
   if (shouldUseLocalDataMocks()) {
     const caronas = carregarCaronasMock();
@@ -168,7 +168,7 @@ export async function editarCarona(id, dados) {
 }
 
 // Campos comuns a criar e editar. A data fica de fora porque as duas operações
-// a tratam de forma diferente: criar leva `datas` (lista), editar leva
+// a tratam de forma diferente: criar leva `datasHorasSaida` (lista), editar leva
 // `dataHoraSaida` (uma ocorrência).
 function montarPayloadBase(dados = {}) {
   return {

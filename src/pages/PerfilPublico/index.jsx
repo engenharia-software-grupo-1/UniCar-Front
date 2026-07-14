@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Ban, CalendarDays, Car, ShieldCheck, Star } from 'lucide-react';
+import { ArrowLeft, CalendarDays, Car, ShieldCheck, Star } from 'lucide-react';
 import NavegacaoInferior from '../../components/layout/NavegacaoInferior.jsx';
+import BlockUserButton from '../Perfil/BlockUserButton.jsx';
+import ConfirmBlockModal from '../Perfil/ConfirmBlockModal.jsx';
+import { bloquearUsuario } from '../../services/blockUserService.js';
 import { obterPerfilPublicoUsuario } from '../../services/publicProfileService.js';
 import './style.css';
 
@@ -11,6 +14,9 @@ function PerfilPublico() {
   const [perfil, setPerfil] = useState(null);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState('');
+  const [modalBloqueioAberto, setModalBloqueioAberto] = useState(false);
+  const [bloqueando, setBloqueando] = useState(false);
+  const [feedback, setFeedback] = useState(null);
 
   useEffect(() => {
     let ativo = true;
@@ -42,6 +48,34 @@ function PerfilPublico() {
     };
   }, [usuarioId]);
 
+  useEffect(() => {
+    if (!feedback) return undefined;
+
+    const timeout = window.setTimeout(() => setFeedback(null), 4000);
+    return () => window.clearTimeout(timeout);
+  }, [feedback]);
+
+  async function confirmarBloqueio() {
+    try {
+      setBloqueando(true);
+      const resultado = await bloquearUsuario(perfil.id);
+
+      setPerfil((perfilAtual) => ({ ...perfilAtual, isBlocked: true }));
+      setModalBloqueioAberto(false);
+      setFeedback({
+        tipo: 'sucesso',
+        mensagem: resultado.alreadyBlocked
+          ? 'Este usuário já estava bloqueado.'
+          : 'Usuário bloqueado com sucesso',
+      });
+    } catch (error) {
+      setModalBloqueioAberto(false);
+      setFeedback({ tipo: 'erro', mensagem: mensagemErroBloqueio(error) });
+    } finally {
+      setBloqueando(false);
+    }
+  }
+
   return (
     <main className="perfil-publico-page">
       <section className="perfil-publico-shell">
@@ -60,14 +94,14 @@ function PerfilPublico() {
           <>
             <section className="perfil-publico-card" aria-label={`Perfil de ${perfil.nome}`}>
               <div className="perfil-publico-header">
-                <Avatar nome={perfil.nome} />
+                <Avatar nome={perfil.nome} verificado={perfil.verificado} />
 
                 <div className="perfil-publico-identidade">
                   <h1>
                     {perfil.nome}
                     {perfil.verificado && <span>Verificado</span>}
                   </h1>
-                  <p>{perfil.curso} • {perfil.instituicao}</p>
+                  <p>{perfil.curso}</p>
                   <strong>
                     <Star size={17} fill="currentColor" aria-hidden="true" />
                     {formatarMedia(perfil.avaliacao)}
@@ -84,10 +118,11 @@ function PerfilPublico() {
                 <Metrica icon={CalendarDays} valor={perfil.membroDesde} label="Membro" />
               </div>
 
-              <button type="button" className="perfil-publico-bloquear">
-                <Ban size={20} aria-hidden="true" />
-                Bloquear usuário
-              </button>
+              <BlockUserButton
+                isBlocked={perfil.isBlocked}
+                loading={bloqueando}
+                onClick={() => setModalBloqueioAberto(true)}
+              />
             </section>
 
             <section className="perfil-publico-avaliacoes">
@@ -110,18 +145,45 @@ function PerfilPublico() {
         )}
       </section>
 
+      <ConfirmBlockModal
+        open={modalBloqueioAberto}
+        userName={perfil?.nome}
+        loading={bloqueando}
+        onConfirm={confirmarBloqueio}
+        onCancel={() => setModalBloqueioAberto(false)}
+      />
+
+      {feedback && (
+        <div
+          className={`perfil-publico-toast perfil-publico-toast--${feedback.tipo}`}
+          role={feedback.tipo === 'erro' ? 'alert' : 'status'}
+          aria-live="polite"
+        >
+          {feedback.mensagem}
+        </div>
+      )}
+
       <NavegacaoInferior />
     </main>
   );
 }
 
-function Avatar({ nome }) {
+function mensagemErroBloqueio(error) {
+  if (error?.status === 409) return 'Este usuário já está bloqueado.';
+  if (error?.status >= 500) return 'Não foi possível bloquear o usuário agora. Tente novamente.';
+  if (/conectar|network|fetch/i.test(error?.message || '')) {
+    return 'Não foi possível conectar ao servidor. Verifique sua conexão.';
+  }
+  return error?.message || 'Não foi possível bloquear o usuário.';
+}
+
+function Avatar({ nome, verificado }) {
   return (
     <div className="perfil-publico-avatar">
       {nome.trim()[0]?.toUpperCase() || 'U'}
-      <span aria-label="Usuário verificado">
+      {verificado && <span aria-label="Usuário verificado">
         <ShieldCheck size={16} />
-      </span>
+      </span>}
     </div>
   );
 }

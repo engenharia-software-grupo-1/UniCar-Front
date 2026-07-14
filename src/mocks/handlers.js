@@ -154,7 +154,7 @@ export const handlers = [
     return HttpResponse.json(resumo, { status: 200 });
   }),
 
-  // POST /caronas — cria UMA carona por data recebida em `datas`. A recorrência
+  // POST /caronas — cria UMA carona por data recebida em `datasHorasSaida`.
   // não é um atributo da carona: o front expande os dias marcados em datas e o
   // back materializa cada uma como uma carona independente.
   http.post(`${API_BASE_URL}/caronas`, async ({ request }) => {
@@ -162,13 +162,13 @@ export const handlers = [
     if (negado) return negado;
 
     const corpo = await request.json();
-    const { veiculoId, origem, destino, quantidadeVagas, datas } = corpo;
+    const { veiculoId, origem, destino, quantidadeVagas, datasHorasSaida } = corpo;
 
     if (!veiculoId) {
       return HttpResponse.json({ message: 'Veículo é obrigatório' }, { status: 400 });
     }
 
-    if (!Array.isArray(datas) || datas.length === 0) {
+    if (!Array.isArray(datasHorasSaida) || datasHorasSaida.length === 0) {
       return HttpResponse.json(
         { message: 'Informe ao menos uma data de saída' },
         { status: 400 },
@@ -192,9 +192,9 @@ export const handlers = [
     }
 
     const dadosDaCarona = { ...corpo };
-    delete dadosDaCarona.datas;
+    delete dadosDaCarona.datasHorasSaida;
 
-    const novas = datas.map((dataHoraSaida) => {
+    const novas = datasHorasSaida.map((dataHoraSaida) => {
       const novaCarona = {
         ...dadosDaCarona,
         id: proximaCaronaId,

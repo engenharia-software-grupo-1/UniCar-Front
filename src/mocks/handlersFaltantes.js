@@ -405,16 +405,16 @@ export const handlersFaltantes = [
     return HttpResponse.json(minhas, { status: 200 });
   }),
 
-  // POST /caronas — cria uma carona por data recebida em `datas` (contrato US7).
+  // POST /caronas — cria uma carona por data recebida em `datasHorasSaida`.
   http.post('/caronas', async ({ request }) => {
     const corpo = await request.json();
-    const { veiculoId, origem, destino, quantidadeVagas, datas } = corpo;
+    const { veiculoId, origem, destino, quantidadeVagas, datasHorasSaida } = corpo;
 
     if (!veiculoId) {
       return HttpResponse.json({ message: 'Veículo é obrigatório' }, { status: 400 });
     }
 
-    if (!Array.isArray(datas) || datas.length === 0) {
+    if (!Array.isArray(datasHorasSaida) || datasHorasSaida.length === 0) {
       return HttpResponse.json({ message: 'Informe ao menos uma data de saída' }, { status: 400 });
     }
 
@@ -433,11 +433,11 @@ export const handlersFaltantes = [
     const veiculo = await buscarVeiculoReal(veiculoId);
     const caronas = carregar();
     const dadosBase = { ...corpo };
-    delete dadosBase.datas;
+    delete dadosBase.datasHorasSaida;
 
     let proximoId = caronas.reduce((maior, carona) => Math.max(maior, Number(carona.id) || 0), 100);
 
-    const criadas = datas.map((dataHoraSaida) => {
+    const criadas = datasHorasSaida.map((dataHoraSaida) => {
       proximoId += 1;
 
       const nova = {

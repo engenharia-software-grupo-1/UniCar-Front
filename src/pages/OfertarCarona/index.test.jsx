@@ -27,6 +27,7 @@ vi.mock('../../services/caronaService.js', () => ({
   criarCarona: vi.fn(),
   listarTrajetosRecorrentes: vi.fn(),
   obterTrajetoRecorrente: vi.fn(),
+  OBSERVACAO_MAX: 255,
 }));
 
 import OfertarCarona from './index.jsx';
@@ -324,16 +325,15 @@ describe('passo 3 — revisão e publicação', () => {
     expect(screen.getByText(/1 vaga • R\$ 5/)).toBeInTheDocument();
   });
 
-  it('não exibe a caixa de observações no último passo', async () => {
+  it('exibe a caixa de observações no último passo', async () => {
     const user = userEvent.setup();
     renderPagina();
 
     await chegarNoResumo(user);
 
-    expect(screen.queryByLabelText('Observações')).not.toBeInTheDocument();
     expect(
-      screen.queryByPlaceholderText(/aceito até 3 paradas/i),
-    ).not.toBeInTheDocument();
+      screen.getByPlaceholderText(/aceito até 3 paradas/i),
+    ).toBeInTheDocument();
   });
 
   it('publica a carona com o payload correto e navega para minhas caronas', async () => {
@@ -358,6 +358,7 @@ describe('passo 3 — revisão e publicação', () => {
           longitude: -35.9095,
         },
         pontoEncontro: 'Portão principal',
+        observacao: '',
         dataHoraSaida: `${DATA_FUTURA}T07:00:00`,
         quantidadeVagas: 1,
         valorContribuicao: 5,
@@ -369,6 +370,28 @@ describe('passo 3 — revisão e publicação', () => {
     expect(navigateMock).toHaveBeenCalledWith('/minhas-caronas', {
       state: { mensagem: 'Carona publicada com sucesso.' },
     });
+  });
+
+  // A observação é opcional no contrato, mas quando o motorista escreve algo na
+  // revisão ela precisa chegar ao POST.
+  it('envia a observação escrita na revisão', async () => {
+    const user = userEvent.setup();
+    criarCarona.mockResolvedValue([{ id: 42, status: 'CRIADA' }]);
+    renderPagina();
+
+    await chegarNoResumo(user);
+
+    await user.type(
+      screen.getByPlaceholderText(/aceito até 3 paradas/i),
+      'Sem fumantes, por favor.',
+    );
+    await user.click(screen.getByRole('button', { name: 'Publicar carona' }));
+
+    await waitFor(() =>
+      expect(criarCarona).toHaveBeenCalledWith(
+        expect.objectContaining({ observacao: 'Sem fumantes, por favor.' }),
+      ),
+    );
   });
 
   it('avisa quantas caronas foram criadas quando havia recorrência', async () => {

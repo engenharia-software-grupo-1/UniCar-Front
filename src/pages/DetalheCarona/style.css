@@ -276,6 +276,24 @@
   overflow-wrap: anywhere;
 }
 
+.detalhe-observacao {
+  align-items: flex-start;
+}
+
+.detalhe-observacao > span {
+  margin-top: 2px;
+}
+
+.detalhe-observacao-texto {
+  display: block;
+  color: #23324c;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
 .detalhe-status-price {
   margin-top: 16px;
   border-radius: 12px;

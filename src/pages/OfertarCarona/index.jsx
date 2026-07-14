@@ -20,6 +20,7 @@ import {
   criarCarona,
   listarTrajetosRecorrentes,
   obterTrajetoRecorrente,
+  OBSERVACAO_MAX,
 } from '../../services/caronaService.js';
 import {
   DIAS_SEMANA,
@@ -62,6 +63,7 @@ function OfertarCarona() {
   const [origem, setOrigem] = useState('');
   const [destino, setDestino] = useState('');
   const [pontoEncontro, setPontoEncontro] = useState('');
+  const [observacao, setObservacao] = useState('');
   const [data, setData] = useState('');
   const [horario, setHorario] = useState('');
   const [recorrente, setRecorrente] = useState(false);
@@ -152,6 +154,10 @@ function OfertarCarona() {
 
       if (ultima.pontoEncontro) {
         setPontoEncontro(ultima.pontoEncontro);
+      }
+
+      if (ultima.observacao) {
+        setObservacao(ultima.observacao);
       }
 
       // Moto só admite 1 vaga (regra da issue #31).
@@ -408,6 +414,7 @@ function OfertarCarona() {
         origem: origemGeocodificada,
         destino: destinoGeocodificado,
         pontoEncontro: pontoEncontro.trim(),
+        observacao: observacao.trim(),
         dataHoraSaida: `${data}T${horario}:00`,
         quantidadeVagas: vagas,
         valorContribuicao: contribuicao,
@@ -846,6 +853,22 @@ function OfertarCarona() {
                 </div>
               )}
             </div>
+
+            {/* A observação é o último retoque antes de publicar: vale para todas as
+                caronas criadas quando o trajeto é recorrente. */}
+            <label className="ofertar-campo ofertar-observacao">
+              <span>Observações (opcional)</span>
+              <textarea
+                className="ofertar-textarea"
+                value={observacao}
+                onChange={(evento) => setObservacao(evento.target.value)}
+                maxLength={OBSERVACAO_MAX}
+                placeholder="Ex: aceito até 3 paradas, sem fumantes..."
+              />
+              <span className="ofertar-contador">
+                {observacao.length}/{OBSERVACAO_MAX}
+              </span>
+            </label>
 
             {acoes}
           </div>

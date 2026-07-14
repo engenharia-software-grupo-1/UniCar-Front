@@ -175,15 +175,28 @@ export async function editarCarona(id, dados) {
 // Campos comuns a criar e editar. A data fica de fora porque as duas operações
 // a tratam de forma diferente: criar leva `datasHorasSaida` (lista), editar leva
 // `dataHoraSaida` (uma ocorrência).
+//
+// `observacao` é opcional (VARCHAR(255) nullable) e precisa ir SEMPRE no payload
+// do PUT: como a edição substitui o recurso inteiro, omitir o campo apaga a
+// observação já gravada. Vazio vira null, que é o que a API espera.
 function montarPayloadBase(dados = {}) {
   return {
     veiculoId: Number(dados.veiculoId),
     origem: montarLocalContrato(dados.origem),
     destino: montarLocalContrato(dados.destino),
     pontoEncontro: dados.pontoEncontro ?? '',
+    observacao: normalizarObservacao(dados.observacao),
     quantidadeVagas: Number(dados.quantidadeVagas),
     valorContribuicao: Number(dados.valorContribuicao),
   };
+}
+
+export const OBSERVACAO_MAX = 255;
+
+function normalizarObservacao(observacao) {
+  const texto = String(observacao ?? '').trim();
+
+  return texto ? texto.slice(0, OBSERVACAO_MAX) : null;
 }
 
 // Busca uma carona via endpoint GET /caronas
@@ -332,8 +345,17 @@ export async function finalizarCarona(id) {
   });
 }
 
-// Remove uma reserva aceita da carona do motorista
-// (DELETE /caronas/{id}/reservas/{reservaId}) — contrato US7-BACK-07.
+// Remove uma reserva da carona (PATCH /reservas/{reservaId}/remover).
+//
+// ⚠️ A API só autoriza o DONO da reserva (o passageiro) a chamar isto: o
+// `ReservaCaronaService.validarDono` compara o usuário do token com o passageiro
+// e devolve 403 para o motorista, apesar do Swagger anunciar "remove passageiro
+// de uma carona". Verificado contra o backend em 14/07/2026.
+//
+// Ou seja: a remoção pelo MOTORISTA (que é quem chama isto no DetalheCarona) NÃO
+// tem endpoint hoje — em produção ela responde 403. Só funciona porque o MSW
+// intercepta antes. Enquanto o backend não expuser a versão do motorista, esta
+// função só é confiável no fluxo "passageiro cancela a própria reserva".
 export async function removerReservaCarona(caronaId, reservaId) {
   if (!caronaId || !reservaId) {
     throw new Error('Reserva inválida.');
@@ -569,7 +591,10 @@ function ajustarCaronaMotorista(carona = {}) {
     dataHoraSaida: carona.dataHoraSaida || carona.dataHora || '',
     origem: descricaoLocal(carona.origem),
     destino: descricaoLocal(carona.destino),
+    origemCoordenadas: coordenadasLocal(carona.origem),
+    destinoCoordenadas: coordenadasLocal(carona.destino),
     pontoEncontro: carona.pontoEncontro || '',
+    observacao: carona.observacao || '',
     valorContribuicao: carona.valorContribuicao ?? carona.valor ?? carona.preco ?? null,
     quantidadeVagas,
     vagasDisponiveis,
@@ -643,6 +668,24 @@ function descricaoLocal(local) {
   }
 
   return typeof local === 'string' ? local : local.descricao || '';
+}
+
+// Preserva as coordenadas que o backend devolve no detalhe. São obrigatórias no
+// PUT: quem edita a carona precisa reenviá-las, senão a validação recusa com
+// "Latitude é obrigatória". Devolve null quando o local não tem coordenadas.
+function coordenadasLocal(local) {
+  if (!local || typeof local !== 'object') {
+    return null;
+  }
+
+  const latitude = Number(local.latitude);
+  const longitude = Number(local.longitude);
+
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+    return null;
+  }
+
+  return { latitude, longitude };
 }
 
 function ajustarCarona(carona = {}) {

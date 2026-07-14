@@ -10,6 +10,7 @@ import {
   Flag,
   MapPin,
   MessageCircle,
+  MessageSquareText,
   Pencil,
   Send,
   Shield,
@@ -375,6 +376,17 @@ function DetalheCarona() {
             {abaAtiva === 'info' && (
               <section className="detalhe-card detalhe-info-card">
                 <Row icon={MapPin} label="Ponto de encontro" value={carona.pontoEncontro || 'Não informado'} />
+                {carona.observacao && (
+                  <div className="detalhe-row detalhe-observacao">
+                    <span>
+                      <MessageSquareText size={17} />
+                    </span>
+                    <div>
+                      <p>Observações do motorista</p>
+                      <span className="detalhe-observacao-texto">{carona.observacao}</span>
+                    </div>
+                  </div>
+                )}
                 <Row icon={Car} label="Modelo" value={veiculo.modelo || 'Não informado'} />
                 <Row icon={Car} label="Cor" value={veiculo.cor || 'Não informado'} />
                 {veiculo.placa && <Row icon={Car} label="Placa" value={veiculo.placa} />}

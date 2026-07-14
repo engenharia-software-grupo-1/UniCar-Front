@@ -124,6 +124,23 @@
   outline: none;
 }
 
+.editar-carona-input--readonly {
+  background: #eef2f8;
+  border-color: #dbe6f4;
+}
+
+.editar-carona-input--readonly input {
+  color: #5a7398;
+  cursor: default;
+}
+
+.editar-carona-dica {
+  display: block;
+  margin-top: 6px;
+  color: #6b7f9e;
+  font-size: 12px;
+}
+
 .editar-carona-linha {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -283,6 +300,13 @@
 .editar-carona-card textarea:focus {
   border-color: #07132b;
   background: #ffffff;
+}
+
+.editar-carona-contador {
+  margin: 6px 0 0;
+  color: #6b7f9e;
+  font-size: 13px;
+  text-align: right;
 }
 
 .editar-carona-erro,

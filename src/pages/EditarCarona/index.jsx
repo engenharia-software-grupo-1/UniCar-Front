@@ -14,7 +14,8 @@ import {
   X,
 } from 'lucide-react';
 import NavegacaoInferior from '../../components/layout/NavegacaoInferior.jsx';
-import { editarCarona, obterCarona } from '../../services/caronaService.js';
+import { editarCarona, obterCarona, OBSERVACAO_MAX } from '../../services/caronaService.js';
+import { geocodificarEndereco } from '../../services/geocodingService.js';
 import './style.css';
 
 const STATUS_BLOQUEADOS = ['EM_ANDAMENTO', 'FINALIZADA', 'CANCELADA'];
@@ -30,7 +31,9 @@ const FORM_INICIAL = {
   veiculoId: '',
   quantidadeVagas: 1,
   valorContribuicao: 0,
-  observacoes: '',
+  observacao: '',
+  origemCoordenadas: null,
+  destinoCoordenadas: null,
 };
 
 function EditarCarona() {
@@ -134,14 +137,7 @@ function EditarCarona() {
   function validar() {
     const erros = {};
 
-    if (!form.origem.trim()) {
-      erros.origem = 'Informe o ponto de partida.';
-    }
-
-    if (!form.destino.trim()) {
-      erros.destino = 'Informe o destino.';
-    }
-
+    // Origem e destino são somente leitura (vêm da carona), então não entram aqui.
     if (!form.data) {
       erros.data = 'Informe a data.';
     }
@@ -177,7 +173,17 @@ function EditarCarona() {
       setSalvando(true);
       setErro('');
 
-      await editarCarona(id, montarDadosEditaveis(form, carona));
+      // O PUT exige coordenadas em origem/destino. Como os endereços são somente
+      // leitura, reusamos as que a carona já tinha; a geocodificação em resolverLocal
+      // fica só como fallback para caronas antigas que porventura não tenham lat/long.
+      const origem = await resolverLocal(form.origem, formOriginal.origem, form.origemCoordenadas);
+      const destino = await resolverLocal(
+        form.destino,
+        formOriginal.destino,
+        form.destinoCoordenadas,
+      );
+
+      await editarCarona(id, montarDadosEditaveis(form, carona, { origem, destino }));
 
       setSucesso(true);
       window.setTimeout(() => {
@@ -250,19 +256,22 @@ function EditarCarona() {
           <section className="editar-carona-card">
             <h2>Trajeto e horário</h2>
 
+            {/* Origem e destino não são editáveis: mudar a rota de uma carona já
+                publicada é criar outra carona. Ficam só de leitura aqui. */}
             <Campo
               icon={MapPin}
               label="Ponto de partida"
               value={form.origem}
-              erro={errosCampos.origem}
-              onChange={(valor) => atualizar('origem', valor)}
+              onChange={() => {}}
+              readOnly
+              dica="Para mudar a rota, crie uma nova carona."
             />
             <Campo
               icon={MapPin}
               label="Destino"
               value={form.destino}
-              erro={errosCampos.destino}
-              onChange={(valor) => atualizar('destino', valor)}
+              onChange={() => {}}
+              readOnly
             />
 
             <div className="editar-carona-linha">
@@ -360,10 +369,14 @@ function EditarCarona() {
           <section className="editar-carona-card">
             <h2>Observações</h2>
             <textarea
-              value={form.observacoes}
-              onChange={(event) => atualizar('observacoes', event.target.value)}
+              value={form.observacao}
+              onChange={(event) => atualizar('observacao', event.target.value)}
+              maxLength={OBSERVACAO_MAX}
               placeholder="Ex: aceito até 3 paradas, sem fumantes..."
             />
+            <p className="editar-carona-contador">
+              {form.observacao.length}/{OBSERVACAO_MAX}
+            </p>
           </section>
         </fieldset>
       </section>
@@ -390,14 +403,20 @@ function EditarCarona() {
   );
 }
 
-function Campo({ icon: Icon, label, value, onChange, erro, type = 'text' }) {
+function Campo({ icon: Icon, label, value, onChange, erro, type = 'text', readOnly = false, dica }) {
   return (
     <label className="editar-carona-campo">
       <span className="editar-carona-label">{label}</span>
-      <div className="editar-carona-input">
+      <div className={`editar-carona-input${readOnly ? ' editar-carona-input--readonly' : ''}`}>
         {Icon && <Icon size={18} />}
-        <input type={type} value={value} onChange={(event) => onChange(event.target.value)} />
+        <input
+          type={type}
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          readOnly={readOnly}
+        />
       </div>
+      {dica && <span className="editar-carona-dica">{dica}</span>}
       {erro && <span className="editar-carona-erro-campo">{erro}</span>}
     </label>
   );
@@ -417,19 +436,35 @@ function toForm(carona) {
     veiculoId: carona.veiculo?.id || '',
     quantidadeVagas: carona.quantidadeVagas || 1,
     valorContribuicao: Number(carona.valorContribuicao ?? 0),
-    observacoes: '',
+    observacao: carona.observacao || '',
+    origemCoordenadas: carona.origemCoordenadas || null,
+    destinoCoordenadas: carona.destinoCoordenadas || null,
   };
 }
 
-function montarDadosEditaveis(formulario, carona = null) {
+// Resolve o local para o formato que o PUT exige ({ descricao, latitude, longitude }).
+// Sem mudança no texto, reaproveita as coordenadas preservadas da carona; com
+// mudança (ou sem coordenadas guardadas), geocodifica o endereço atual.
+async function resolverLocal(texto, textoOriginal, coordenadas) {
+  const descricao = texto.trim();
+
+  if (descricao === textoOriginal.trim() && coordenadas) {
+    return { descricao, ...coordenadas };
+  }
+
+  return geocodificarEndereco(descricao);
+}
+
+function montarDadosEditaveis(formulario, carona = null, locais = {}) {
   return {
     veiculoId: Number(formulario.veiculoId || carona?.veiculo?.id || 0),
-    origem: formulario.origem.trim(),
-    destino: formulario.destino.trim(),
+    origem: locais.origem ?? formulario.origem.trim(),
+    destino: locais.destino ?? formulario.destino.trim(),
     pontoEncontro: formulario.pontoEncontro.trim(),
     dataHoraSaida: `${formulario.data}T${formulario.horario}:00`,
     quantidadeVagas: Number(formulario.quantidadeVagas),
     valorContribuicao: Number(formulario.valorContribuicao),
+    observacao: formulario.observacao.trim(),
   };
 }
 

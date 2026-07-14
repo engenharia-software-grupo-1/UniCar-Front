@@ -8,7 +8,7 @@
 
 .veiculos-card {
   width: 100%;
-  max-width: 760px;
+  max-width: var(--app-content-width);
   background-color: #ffffff;
   border-radius: 20px;
   padding: 32px;

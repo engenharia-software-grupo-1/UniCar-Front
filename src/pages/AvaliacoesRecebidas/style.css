@@ -9,7 +9,7 @@
 
 .avaliacoes-shell {
   width: 100%;
-  max-width: 920px;
+  max-width: var(--app-content-width);
   display: flex;
   flex-direction: column;
   gap: 22px;
@@ -17,7 +17,7 @@
 
 .avaliacoes-loading-card {
   width: 100%;
-  max-width: 920px;
+  max-width: var(--app-content-width);
   min-height: 240px;
   border: 1px solid #e2e8f0;
   border-radius: 24px;

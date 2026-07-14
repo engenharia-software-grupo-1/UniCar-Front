@@ -9,7 +9,7 @@
 
 .ajuda-shell {
   width: 100%;
-  max-width: 980px;
+  max-width: var(--app-content-width);
   display: flex;
   flex-direction: column;
   gap: 24px;

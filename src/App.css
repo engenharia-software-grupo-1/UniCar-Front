@@ -1,6 +1,9 @@
 @import url("https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Poppins:wght@600;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap");
 
 #root {
+  --app-content-width: 760px;
+  --app-content-gutter: 40px;
+  --app-content-gutter-mobile: 28px;
   width: 100%;
   max-width: none;
   min-height: 100svh;

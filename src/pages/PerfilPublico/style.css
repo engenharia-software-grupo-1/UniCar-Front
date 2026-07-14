@@ -1,5 +1,5 @@
 .perfil-publico-page { min-height:100vh; padding-bottom:104px; background:#f8fafc; color:#0f172a; font-family:"Inter",system-ui,sans-serif; }
-.perfil-publico-shell { width:min(620px,calc(100% - 32px)); margin:auto; padding-top:20px; }
+.perfil-publico-shell { width:min(var(--app-content-width),calc(100% - var(--app-content-gutter))); margin:auto; padding-top:20px; }
 .perfil-publico-voltar { min-height:34px; margin:0 0 12px; padding:0; border:0; background:none; color:#64748b; font:inherit; font-size:14px; display:inline-flex; align-items:center; gap:8px; cursor:pointer; }
 .perfil-publico-voltar:hover { color:#0f172a; }
 .perfil-publico-card,.perfil-publico-avaliacoes,.perfil-publico-state { border:1px solid #e2e8f0; border-radius:16px; background:#fff; }
@@ -44,4 +44,4 @@
 .perfil-publico-page .confirmacaoMensagem { color:#334155; font-size:14px; }
 .perfil-publico-page .confirmacaoBotoes { margin-top:18px; gap:8px; }
 .perfil-publico-page .confirmacaoBotoes button { min-height:42px; padding:9px 14px; border-radius:12px; font-size:14px; }
-@media (max-width:520px) { .perfil-publico-shell{width:calc(100% - 24px);padding-top:14px}.perfil-publico-card,.perfil-publico-avaliacoes{padding:16px}.perfil-publico-header{align-items:flex-start;gap:13px}.perfil-publico-avatar{width:58px;height:58px}.perfil-publico-metricas{grid-template-columns:repeat(3,minmax(0,1fr))}.perfil-publico-metrica{min-height:72px;padding:8px 4px}.perfil-publico-page .confirmacaoFundo{align-items:flex-end;padding:12px}.perfil-publico-page .confirmacaoCaixa{max-width:none;border-radius:18px}.perfil-publico-toast{right:16px;bottom:88px} }
+@media (max-width:520px) { .perfil-publico-shell{width:min(var(--app-content-width),calc(100% - var(--app-content-gutter-mobile)));padding-top:14px}.perfil-publico-card,.perfil-publico-avaliacoes{padding:16px}.perfil-publico-header{align-items:flex-start;gap:13px}.perfil-publico-avatar{width:58px;height:58px}.perfil-publico-metricas{grid-template-columns:repeat(3,minmax(0,1fr))}.perfil-publico-metrica{min-height:72px;padding:8px 4px}.perfil-publico-page .confirmacaoFundo{align-items:flex-end;padding:12px}.perfil-publico-page .confirmacaoCaixa{max-width:none;border-radius:18px}.perfil-publico-toast{right:16px;bottom:88px} }

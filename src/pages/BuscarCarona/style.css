@@ -10,9 +10,9 @@
 .buscar-page button, .buscar-page input, .buscar-page select { font: inherit; }
 
 .buscar-shell {
-  width: min(100%, 620px);
+  width: min(var(--app-content-width), calc(100% - var(--app-content-gutter)));
   margin: 0 auto;
-  padding: 24px 20px 32px;
+  padding: 24px 0 32px;
 }
 
 .buscar-cabecalho { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
@@ -106,7 +106,7 @@
 .buscar-novo-alerta { width: 100%; min-height: 40px; margin-top: 14px; border: 1px dashed #8294b2; border-radius: 10px; background: #fff; color: #16284c; display: flex; align-items: center; justify-content: center; gap: 7px; font-size: .76rem; font-weight: 800; cursor: pointer; }
 
 @media (max-width: 520px) {
-  .buscar-shell { padding: 20px 16px 28px; }
+  .buscar-shell { width:min(var(--app-content-width),calc(100% - var(--app-content-gutter-mobile))); padding:20px 0 28px; }
   .buscar-title { font-size: 1.3rem; }
   .buscar-alertas-botao { padding-inline: 10px; }
   .buscar-formulario { padding: 14px; }

@@ -28,7 +28,7 @@ body {
 .metricas,
 .recriar-btn,
 .historico {
-  width: min(760px, 100%);
+  width: min(var(--app-content-width), 100%);
 }
 
 .detalhe-header {

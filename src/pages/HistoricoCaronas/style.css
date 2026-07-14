@@ -64,7 +64,7 @@
 }
 
 .historico-shell {
-  width: min(760px, calc(100% - 64px));
+  width: min(var(--app-content-width), calc(100% - var(--app-content-gutter)));
   margin: 0 auto;
   padding-top: 38px;
 }
@@ -576,7 +576,7 @@
   }
 
   .historico-shell {
-    width: min(100% - 28px, 920px);
+    width: min(var(--app-content-width), calc(100% - var(--app-content-gutter-mobile)));
     padding-top: 28px;
   }
 

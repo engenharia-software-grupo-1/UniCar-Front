@@ -64,7 +64,7 @@
 }
 
 .perfil-shell {
-  width: min(760px, calc(100% - 40px));
+  width: min(var(--app-content-width), calc(100% - var(--app-content-gutter)));
   margin: 0 auto;
   padding-top: 24px;
 }
@@ -692,7 +692,7 @@
   }
 
   .perfil-shell {
-    width: min(100% - 28px, 920px);
+    width: min(var(--app-content-width), calc(100% - var(--app-content-gutter-mobile)));
   }
 
   .perfil-hero {

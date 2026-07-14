@@ -6,7 +6,7 @@
 }
 
 .ofertar-topbar {
-  padding: 28px max(18px, calc((100vw - 760px) / 2)) 18px;
+  padding: 28px max(18px, calc((100vw - var(--app-content-width)) / 2)) 18px;
   background: rgba(248, 251, 255, 0.92);
   border-bottom: 1px solid #dce7f3;
 }
@@ -43,7 +43,7 @@
 }
 
 .ofertar-shell {
-  padding: 22px max(18px, calc((100vw - 760px) / 2)) 0;
+  padding: 22px max(18px, calc((100vw - var(--app-content-width)) / 2)) 0;
 }
 
 .ofertar-erro {

@@ -61,7 +61,7 @@
 }
 
 .inicio-shell {
-  width: min(920px, calc(100% - 40px));
+  width: min(var(--app-content-width), calc(100% - var(--app-content-gutter)));
   margin: 0 auto;
   padding-top: 30px;
 }
@@ -409,7 +409,7 @@
   }
 
   .inicio-shell {
-    width: min(100% - 28px, 920px);
+    width: min(var(--app-content-width), calc(100% - var(--app-content-gutter-mobile)));
     padding-top: 24px;
   }
 

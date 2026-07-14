@@ -250,6 +250,12 @@ function normalizarDetalheHistorico(detalhe = {}) {
     paradas: extrairLista(detalhe.paradas || detalhe.pontosParada).map(descricaoLocal).filter(Boolean),
     valor: Number(detalhe.valor ?? detalhe.custo ?? detalhe.preco ?? 0),
     custos: detalhe.custos || detalhe.descricaoCustos || '',
+    vagasTotais: detalhe.vagasTotais ?? detalhe.quantidadeVagas ?? detalhe.totalVagas ?? 0,
+    veiculo: detalhe.veiculo ? {
+      modelo: detalhe.veiculo.modelo || '',
+      cor: detalhe.veiculo.cor || '',
+      placa: detalhe.veiculo.placa || '',
+    } : null,
     motorista: {
       id: motorista.id ?? motorista.usuarioId ?? detalhe.motoristaId ?? '',
       nome: motorista.nome || motorista.nomeCompleto || 'Motorista',
@@ -269,6 +275,7 @@ function normalizarReserva(reserva = {}) {
     nome: usuario.nome || usuario.nomeCompleto || reserva.nome || 'Passageiro',
     vagas: reserva.vagas ?? reserva.quantidadePassageiros ?? reserva.vagasReservadas ?? 1,
     status: reserva.status || 'CONFIRMADA',
+    avaliacao: usuario.avaliacao ?? usuario.rating ?? reserva.avaliacao ?? '',
     fotoPerfil: usuario.fotoPerfil || usuario.avatarUrl || '',
   };
 }

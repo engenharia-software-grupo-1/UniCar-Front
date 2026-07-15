@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, CalendarDays, Car, ShieldCheck, Star } from 'lucide-react';
-import NavegacaoInferior from '../../components/layout/NavegacaoInferior.jsx';
+import { useParams } from 'react-router-dom';
+import { CalendarDays, Car, ShieldCheck, Star } from 'lucide-react';
 import BlockUserButton from '../Perfil/BlockUserButton.jsx';
 import ConfirmBlockModal from '../Perfil/ConfirmBlockModal.jsx';
 import { bloquearUsuario } from '../../services/blockUserService.js';
@@ -10,7 +9,6 @@ import './style.css';
 
 function PerfilPublico() {
   const { usuarioId } = useParams();
-  const navigate = useNavigate();
   const [perfil, setPerfil] = useState(null);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState('');
@@ -79,11 +77,6 @@ function PerfilPublico() {
   return (
     <main className="perfil-publico-page">
       <section className="perfil-publico-shell">
-        <button type="button" className="perfil-publico-voltar" onClick={() => navigate(-1)}>
-          <ArrowLeft size={19} aria-hidden="true" />
-          Voltar
-        </button>
-
         {carregando ? (
           <p className="perfil-publico-state">Carregando perfil...</p>
         ) : erro ? (
@@ -162,8 +155,6 @@ function PerfilPublico() {
           {feedback.mensagem}
         </div>
       )}
-
-      <NavegacaoInferior />
     </main>
   );
 }

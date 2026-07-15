@@ -1,63 +1,7 @@
 .caronas-page {
   min-height: 100vh;
-  padding-bottom: 108px;
   background: #eef6ff;
   color: #07132b;
-}
-
-.caronas-topbar {
-  height: 100px;
-  border-bottom: 1px solid #dce7f3;
-  background: rgba(248, 251, 255, 0.92);
-  display: grid;
-  grid-template-columns: 1fr minmax(320px, 1056px) 1fr;
-  align-items: center;
-  padding: 0 24px;
-}
-
-.caronas-logo {
-  grid-column: 2;
-  justify-self: start;
-  display: inline-flex;
-  align-items: center;
-  width: 220px;
-  height: 96px;
-  overflow: visible;
-}
-
-.caronas-logo img {
-  width: auto;
-  max-width: none;
-  height: 78px;
-  object-fit: contain;
-  object-position: left center;
-  transform: none;
-  transform-origin: left center;
-}
-
-.caronas-notification {
-  grid-column: 2;
-  justify-self: end;
-  position: relative;
-  width: 44px;
-  height: 44px;
-  border: 0;
-  border-radius: 50%;
-  background: transparent;
-  color: #07132b;
-  display: grid;
-  place-items: center;
-  cursor: pointer;
-}
-
-.caronas-notification span {
-  position: absolute;
-  top: 8px;
-  right: 7px;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: #f97316;
 }
 
 .caronas-shell {
@@ -347,19 +291,6 @@
 }
 
 @media (max-width: 700px) {
-  .caronas-topbar {
-    height: 92px;
-    grid-template-columns: 1fr auto 1fr;
-  }
-
-  .caronas-logo {
-    grid-column: 2;
-  }
-
-  .caronas-notification {
-    grid-column: 3;
-  }
-
   .caronas-shell {
     width: min(var(--app-content-width), calc(100% - var(--app-content-gutter-mobile)));
     padding-top: 22px;

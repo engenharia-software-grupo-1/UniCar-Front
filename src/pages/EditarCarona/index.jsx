@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   AlertTriangle,
-  ArrowLeft,
   Bike,
   Calendar,
   Car,
@@ -13,7 +12,6 @@ import {
   Users,
   X,
 } from 'lucide-react';
-import NavegacaoInferior from '../../components/layout/NavegacaoInferior.jsx';
 import { editarCarona, obterCarona, OBSERVACAO_MAX } from '../../services/caronaService.js';
 import {
   geocodificarEndereco,
@@ -225,7 +223,6 @@ function EditarCarona() {
           <Loader2 size={22} className="editar-carona-spin" />
           <p>Carregando dados da carona...</p>
         </section>
-        <NavegacaoInferior />
       </main>
     );
   }
@@ -240,23 +237,18 @@ function EditarCarona() {
           <h2>Alterações salvas!</h2>
           <p>Redirecionando...</p>
         </section>
-        <NavegacaoInferior />
       </main>
     );
   }
 
   return (
     <main className="editar-carona-page">
-      <header className="editar-carona-topbar">
-        <button type="button" className="editar-carona-back" onClick={voltar}>
-          <ArrowLeft size={20} />
-          Voltar
-        </button>
-        <h1>Editar carona</h1>
-        <p>Atualize os detalhes desta carona.</p>
-      </header>
-
       <section className="editar-carona-shell">
+        <div className="editar-carona-cabecalho">
+          <h1>Editar carona</h1>
+          <p>Atualize os detalhes desta carona.</p>
+        </div>
+
         {erro && (
           <div className="editar-carona-erro" role="alert">
             {erro}
@@ -428,8 +420,6 @@ function EditarCarona() {
           {salvando ? 'Salvando...' : temAlteracoes ? 'Salvar alterações' : 'Sem alterações'}
         </button>
       </div>
-
-      <NavegacaoInferior />
     </main>
   );
 }

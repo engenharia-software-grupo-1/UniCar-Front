@@ -13,7 +13,6 @@ import {
   Star,
   X,
 } from 'lucide-react';
-import NavegacaoInferior from '../../components/layout/NavegacaoInferior.jsx';
 import { buscarCaronas } from '../../services/caronaService.js';
 import './style.css';
 
@@ -190,8 +189,6 @@ function BuscarCarona() {
           ))}
         </div>
       </section>
-
-      <NavegacaoInferior />
 
       {modalAlertasAberto && (
         <div className="buscar-modal-fundo" role="presentation" onMouseDown={() => setModalAlertasAberto(false)}>

@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
   Bell,
   Car,
@@ -107,7 +106,6 @@ const FAQS = [
 ];
 
 function CentralAjuda() {
-  const navigate = useNavigate();
   const [activeCategory, setActiveCategory] = useState(null);
   const [query, setQuery] = useState('');
 
@@ -138,10 +136,6 @@ function CentralAjuda() {
               <h1>Central de Ajuda</h1>
               <p>Encontre respostas rápidas sobre o UniCar</p>
             </div>
-
-            <button type="button" onClick={() => navigate('/home')}>
-              Voltar para Home
-            </button>
           </div>
 
           <label className="ajuda-search">

@@ -1,66 +1,7 @@
 .perfil-page {
   min-height: 100vh;
-  padding-bottom: 104px;
   background: #eef6ff;
   color: #07132b;
-}
-
-.perfil-topbar {
-  height: 100px;
-  border-bottom: 1px solid #dce7f3;
-  background: rgba(248, 251, 255, 0.92);
-  display: grid;
-  grid-template-columns: 1fr minmax(320px, 760px) 1fr;
-  align-items: center;
-  padding: 0 24px;
-}
-
-.perfil-logo {
-  grid-column: 2;
-  grid-row: 1;
-  justify-self: start;
-  display: inline-flex;
-  align-items: center;
-  width: 220px;
-  height: 96px;
-  overflow: visible;
-}
-
-.perfil-logo img {
-  width: auto;
-  max-width: none;
-  height: 78px;
-  object-fit: contain;
-  object-position: left center;
-  transform: none;
-  transform-origin: left center;
-}
-
-.perfil-notification {
-  grid-column: 2;
-  grid-row: 1;
-  justify-self: end;
-  align-self: center;
-  position: relative;
-  width: 40px;
-  height: 40px;
-  border: 0;
-  border-radius: 50%;
-  background: transparent;
-  color: #07132b;
-  display: grid;
-  place-items: center;
-  cursor: pointer;
-}
-
-.perfil-notification span {
-  position: absolute;
-  top: 6px;
-  right: 7px;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: #f97316;
 }
 
 .perfil-shell {
@@ -678,19 +619,6 @@
 }
 
 @media (max-width: 700px) {
-  .perfil-topbar {
-    height: 92px;
-    grid-template-columns: 1fr auto 1fr;
-  }
-
-  .perfil-logo {
-    grid-column: 2;
-  }
-
-  .perfil-notification {
-    grid-column: 3;
-  }
-
   .perfil-shell {
     width: min(var(--app-content-width), calc(100% - var(--app-content-gutter-mobile)));
   }

@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 
 import './App.css';
 
@@ -25,18 +25,23 @@ import TrajetosRecorrentes from './pages/TrajetosRecorrentes/index.jsx';
 import DetalheTrajetosRecorrentes from './pages/DetalheTrajetosRecorrentes/index.jsx';
 import BuscarCarona from './pages/BuscarCarona/index.jsx';
 
+import LayoutApp from './components/layout/LayoutApp.jsx';
 import { isAuthenticated } from './services/authService.js';
 import { hasAcceptedTerms } from './services/termsService.js';
 
-function RequireAuth({ children }) {
+// Só exige sessão (termos/política podem ser acessados antes de aceitar os termos).
+// Sem o shell do app — são páginas de leitura, não fazem parte da navegação logada.
+function RequireAuth() {
   if (!isAuthenticated()) {
     return <Navigate to="/login" replace />;
   }
 
-  return children;
+  return <Outlet />;
 }
 
-function RequireAuthAndTerms({ children }) {
+// Layout do app autenticado: exige sessão + termos aceitos e monta o shell global
+// (topbar + barra inferior) em volta de cada página filha.
+function AppAutenticado() {
   if (!isAuthenticated()) {
     return <Navigate to="/login" replace />;
   }
@@ -45,199 +50,45 @@ function RequireAuthAndTerms({ children }) {
     return <Navigate to="/termos-de-uso" replace />;
   }
 
-  return children;
+  return <LayoutApp />;
 }
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
+        {/* Públicas — mantêm identidade própria, sem o shell do app. */}
         <Route path="/" element={<Home />} />
-
+        <Route path="/home" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/cadastro" element={<Login mode="cadastro" />} />
 
-        <Route
-          path="/termos-de-uso"
-          element={
-            <RequireAuth>
-              <TermosUso />
-            </RequireAuth>
-          }
-        />
+        {/* Autenticadas sem shell (só sessão). */}
+        <Route element={<RequireAuth />}>
+          <Route path="/termos-de-uso" element={<TermosUso />} />
+          <Route path="/politica-de-privacidade" element={<PoliticaPrivacidade />} />
+        </Route>
 
-        <Route
-          path="/politica-de-privacidade"
-          element={
-            <RequireAuth>
-              <PoliticaPrivacidade />
-            </RequireAuth>
-          }
-        />
-
-        <Route path="/home" element={<Home />} />
-
-        <Route
-          path="/inicio"
-          element={
-            <RequireAuthAndTerms>
-              <Inicio />
-            </RequireAuthAndTerms>
-          }
-        />
-
-        <Route
-          path="/perfil"
-          element={
-            <RequireAuthAndTerms>
-              <Perfil />
-            </RequireAuthAndTerms>
-          }
-        />
-
-        <Route
-          path="/trajetos-recorrentes"
-          element={
-            <RequireAuthAndTerms>
-              <TrajetosRecorrentes />
-            </RequireAuthAndTerms>
-          }
-        />
-
-        <Route
-          path="/trajetos-recorrentes/:id"
-          element={
-            <RequireAuthAndTerms>
-              <DetalheTrajetosRecorrentes />
-            </RequireAuthAndTerms>
-          }
-        />
-
-        <Route
-          path="/buscar-carona"
-          element={
-            <RequireAuthAndTerms>
-              <BuscarCarona />
-            </RequireAuthAndTerms>
-          }
-        />
-
-        <Route
-          path="/ofertar"
-          element={
-            <RequireAuthAndTerms>
-              <OfertarCarona />
-            </RequireAuthAndTerms>
-          }
-        />
-
-        <Route
-          path="/meus-veiculos"
-          element={
-            <RequireAuthAndTerms>
-              <MeusVeiculos />
-            </RequireAuthAndTerms>
-          }
-        />
-
-        <Route
-          path="/ofertar-carona"
-          element={
-            <RequireAuthAndTerms>
-              <OfertarCarona />
-            </RequireAuthAndTerms>
-          }
-        />
-
-        <Route
-          path="/minhas-caronas"
-          element={
-            <RequireAuthAndTerms>
-              <MinhasCaronas />
-            </RequireAuthAndTerms>
-          }
-        />
-
-        <Route
-          path="/minhas-caronas/:id"
-          element={
-            <RequireAuthAndTerms>
-              <DetalheCarona />
-            </RequireAuthAndTerms>
-          }
-        />
-
-        <Route
-          path="/minhas-caronas/:id/editar"
-          element={
-            <RequireAuthAndTerms>
-              <EditarCarona />
-            </RequireAuthAndTerms>
-          }
-        />
-
-        <Route
-          path="/historico-caronas"
-          element={
-            <RequireAuthAndTerms>
-              <HistoricoCaronas />
-            </RequireAuthAndTerms>
-          }
-        />
-
-        <Route
-          path="/historico/:id"
-          element={
-            <RequireAuthAndTerms>
-              <HistoricoDetalhes />
-            </RequireAuthAndTerms>
-          }
-        />
-
-        <Route
-          path="/usuarios/:usuarioId"
-          element={
-            <RequireAuthAndTerms>
-              <PerfilPublico />
-            </RequireAuthAndTerms>
-          }
-        />
-
-        <Route
-          path="/avaliacoes-recebidas"
-          element={
-            <RequireAuthAndTerms>
-              <AvaliacoesRecebidas />
-            </RequireAuthAndTerms>
-          }
-        />
-
-        <Route
-          path="/notificacoes"
-          element={
-            <RequireAuthAndTerms>
-              <Notificacoes />
-            </RequireAuthAndTerms>
-          }
-        />
-
-        <Route
-          path="/central-ajuda"
-          element={
-            <RequireAuthAndTerms>
-              <CentralAjuda />
-            </RequireAuthAndTerms>
-          }
-        />
-
-        <Route
-          path="/bloqueados"
-          element={
-            <RequireAuthAndTerms>
-              <UsuariosBloqueados />
-            </RequireAuthAndTerms>
-          }
-        />
+        {/* App autenticado com o shell global (topbar + barra inferior). */}
+        <Route element={<AppAutenticado />}>
+          <Route path="/inicio" element={<Inicio />} />
+          <Route path="/perfil" element={<Perfil />} />
+          <Route path="/trajetos-recorrentes" element={<TrajetosRecorrentes />} />
+          <Route path="/trajetos-recorrentes/:id" element={<DetalheTrajetosRecorrentes />} />
+          <Route path="/buscar-carona" element={<BuscarCarona />} />
+          <Route path="/ofertar-carona" element={<OfertarCarona />} />
+          <Route path="/meus-veiculos" element={<MeusVeiculos />} />
+          <Route path="/minhas-caronas" element={<MinhasCaronas />} />
+          <Route path="/minhas-caronas/:id" element={<DetalheCarona />} />
+          <Route path="/minhas-caronas/:id/editar" element={<EditarCarona />} />
+          <Route path="/historico-caronas" element={<HistoricoCaronas />} />
+          <Route path="/historico/:id" element={<HistoricoDetalhes />} />
+          <Route path="/usuarios/:usuarioId" element={<PerfilPublico />} />
+          <Route path="/avaliacoes-recebidas" element={<AvaliacoesRecebidas />} />
+          <Route path="/notificacoes" element={<Notificacoes />} />
+          <Route path="/central-ajuda" element={<CentralAjuda />} />
+          <Route path="/bloqueados" element={<UsuariosBloqueados />} />
+        </Route>
 
         <Route path="*" element={<NaoEncontrada />} />
       </Routes>

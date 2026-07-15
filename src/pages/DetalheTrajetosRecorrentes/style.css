@@ -37,29 +37,6 @@ body {
   gap: 10px;
 }
 
-.voltar-btn {
-  width: 36px;
-  height: 36px;
-  border-radius: 999px;
-  border: 1px solid oklch(0.929 0.013 255.508);
-  background: oklch(1 0 0);
-  color: oklch(0.18 0.06 265);
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex: 0 0 auto;
-  transition: background 0.2s, transform 0.2s;
-}
-
-.voltar-btn:hover {
-  background: oklch(0.968 0.007 247.896);
-}
-
-.voltar-btn:active {
-  transform: scale(0.96);
-}
-
 .detalhe-title {
   min-width: 0;
   flex: 1;

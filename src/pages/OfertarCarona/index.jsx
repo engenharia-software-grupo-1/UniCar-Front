@@ -12,7 +12,6 @@ import {
   Repeat,
   Users,
 } from 'lucide-react';
-import NavegacaoInferior from '../../components/layout/NavegacaoInferior.jsx';
 import { listarVeiculos } from '../../services/vehicleService.js';
 import {
   geocodificarEndereco,
@@ -939,8 +938,6 @@ function OfertarCarona() {
           </div>
         )}
       </section>
-
-      <NavegacaoInferior />
     </main>
   );
 }

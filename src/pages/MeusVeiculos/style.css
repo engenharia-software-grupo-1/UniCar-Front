@@ -1,7 +1,7 @@
 .veiculos-page {
   min-height: 100vh;
   background-color: #f4f7fb;
-  padding: 40px 20px 120px;
+  padding: 40px 20px;
   display: flex;
   justify-content: center;
 }

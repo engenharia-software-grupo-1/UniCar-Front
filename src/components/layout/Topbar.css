@@ -1,0 +1,93 @@
+/* Barra superior global: flutuante e translúcida, fixada no topo enquanto o
+   conteúdo rola por baixo. Mesma família visual da .nav-inferior. */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: rgba(248, 251, 255, 0.82);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid #dce7f3;
+}
+
+/* Largura total com padding que centraliza o conteúdo na mesma faixa de 760px da
+   .nav-inferior — assim voltar+logo alinham à esquerda dessa faixa e o sino à
+   direita, em qualquer largura de tela (não usar max-width + padding juntos: em
+   telas largas o padding vira metade da viewport e esmaga tudo para o centro). */
+.topbar__conteudo {
+  width: 100%;
+  box-sizing: border-box;
+  height: 86px;
+  padding: 0 max(18px, calc((100vw - var(--app-content-width, 760px)) / 2));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.topbar__esquerda {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.topbar__voltar,
+.topbar__sino {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  padding: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: #07132b;
+  cursor: pointer;
+}
+
+.topbar__voltar:hover,
+.topbar__sino:hover {
+  background: rgba(7, 19, 43, 0.06);
+}
+
+/* Setinha fica à esquerda da logo; a logo segue a linha lateral do conteúdo. */
+.topbar__voltar {
+  margin-left: -8px;
+}
+
+.topbar__logo {
+  display: inline-flex;
+  align-items: center;
+}
+
+.topbar__logo img {
+  height: 54px;
+  width: auto;
+  display: block;
+}
+
+.topbar__sino {
+  position: relative;
+  margin-right: -8px;
+  color: #587091;
+}
+
+.topbar__badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #f47a22;
+  border: 2px solid rgba(248, 251, 255, 0.95);
+}
+
+/* Em telas estreitas, encosta mais nas bordas — mesmo gutter da .nav-inferior,
+   para as duas barras terem exatamente a mesma largura. */
+@media (max-width: 700px) {
+  .topbar__conteudo {
+    padding-inline: 6px;
+  }
+}

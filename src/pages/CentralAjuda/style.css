@@ -59,23 +59,6 @@
   font-size: 13px;
 }
 
-.ajuda-hero__top button {
-  margin-left: auto;
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  border-radius: 12px;
-  background-color: rgba(255, 255, 255, 0.1);
-  color: #ffffff;
-  padding: 11px 16px;
-  font-weight: 800;
-  cursor: pointer;
-  transition: background-color 0.2s, border-color 0.2s;
-}
-
-.ajuda-hero__top button:hover {
-  background-color: rgba(255, 255, 255, 0.16);
-  border-color: rgba(255, 255, 255, 0.38);
-}
-
 .ajuda-search {
   position: relative;
   display: block;
@@ -362,11 +345,6 @@
   .ajuda-hero__top {
     align-items: flex-start;
     flex-wrap: wrap;
-  }
-
-  .ajuda-hero__top button {
-    width: 100%;
-    margin-left: 0;
   }
 
   .ajuda-category-grid {

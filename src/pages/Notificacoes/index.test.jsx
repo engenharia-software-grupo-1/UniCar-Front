@@ -16,6 +16,11 @@ import {
   marcarTodasNotificacoesComoLidas,
 } from '../../services/notificationService.js';
 
+// A contagem de não-lidas fica no <p> do titlebar (ex.: "2 não lidas"); o texto
+// é dividido em nós ({total} + rótulo), então casamos pelo textContent do <p>.
+const contagemNaoLidas = (texto) => (_conteudo, el) =>
+  el?.tagName === 'P' && el.textContent.trim() === texto;
+
 const NOTIFICACOES = [
   {
     id: 1,
@@ -106,7 +111,7 @@ describe('Notificacoes', () => {
     renderPagina();
 
     expect(
-      await screen.findByLabelText('2 notificações não lidas'),
+      await screen.findByText(contagemNaoLidas('2 não lidas')),
     ).toBeInTheDocument();
 
     await userEvent.click(screen.getByRole('button', { name: /Vaga confirmada/ }));
@@ -121,20 +126,20 @@ describe('Notificacoes', () => {
     expect(within(lista).getByText('Vaga confirmada').closest('li')).toHaveClass(
       'notificacoes-card--lida',
     );
-    expect(screen.getByLabelText('1 notificações não lidas')).toBeInTheDocument();
+    expect(screen.getByText(contagemNaoLidas('1 não lida'))).toBeInTheDocument();
   });
 
   it('marca todas as notificações como lidas', async () => {
     renderPagina();
 
     expect(
-      await screen.findByLabelText('2 notificações não lidas'),
+      await screen.findByText(contagemNaoLidas('2 não lidas')),
     ).toBeInTheDocument();
 
     await userEvent.click(screen.getByRole('button', { name: 'Marcar todas como lidas' }));
 
     expect(marcarTodasNotificacoesComoLidas).toHaveBeenCalledTimes(1);
-    expect(screen.getByLabelText('0 notificações não lidas')).toBeInTheDocument();
+    expect(screen.getByText(contagemNaoLidas('0 não lidas'))).toBeInTheDocument();
     expect(screen.queryByLabelText('Notificação não lida')).not.toBeInTheDocument();
   });
 });

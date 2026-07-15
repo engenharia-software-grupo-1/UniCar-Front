@@ -8,7 +8,6 @@ import {
   Star,
   X,
 } from 'lucide-react';
-import Logo from '../../components/common/Logo.jsx';
 import {
   listarNotificacoes,
   marcarNotificacaoComoLida,
@@ -117,26 +116,6 @@ function Notificacoes() {
 
   return (
     <main className="notificacoes-page">
-      <header className="notificacoes-topbar">
-        <button
-          type="button"
-          className="notificacoes-logo"
-          aria-label="Voltar para o início"
-          onClick={() => navigate('/inicio')}
-        >
-          <Logo />
-        </button>
-
-        <button
-          type="button"
-          className="notificacoes-bell"
-          aria-label={`${totalNaoLidas} notificações não lidas`}
-        >
-          <Bell size={26} />
-          {totalNaoLidas > 0 && <span />}
-        </button>
-      </header>
-
       <section className="notificacoes-shell">
         <div className="notificacoes-titlebar">
           <div>

@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import {
-  ArrowLeft,
   ArrowRight,
   CalendarDays,
   CarFront,
@@ -15,7 +14,6 @@ import {
   Users,
   XCircle,
 } from 'lucide-react';
-import NavegacaoInferior from '../../components/layout/NavegacaoInferior.jsx';
 import { getSession } from '../../services/authService.js';
 import { obterDetalhesHistorico } from '../../services/historicoDetalhesService.js';
 import './style.css';
@@ -30,7 +28,6 @@ const STATUS = {
 
 function HistoricoDetalhes() {
   const { id } = useParams();
-  const navigate = useNavigate();
   const [detalhe, setDetalhe] = useState(null);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState(null);
@@ -72,11 +69,6 @@ function HistoricoDetalhes() {
   return (
     <main className="historico-detalhes-page">
       <section className="historico-detalhes-shell">
-        <button type="button" className="historico-detalhes-voltar" onClick={() => navigate(-1)}>
-          <ArrowLeft size={20} aria-hidden="true" />
-          Voltar
-        </button>
-
         {carregando && <p className="historico-detalhes-feedback">Carregando detalhes...</p>}
 
         {!carregando && erro?.status === 403 && (
@@ -99,8 +91,6 @@ function HistoricoDetalhes() {
 
         {!carregando && detalhe && !erro && <ConteudoDetalhe detalhe={detalhe} />}
       </section>
-
-      <NavegacaoInferior />
     </main>
   );
 }

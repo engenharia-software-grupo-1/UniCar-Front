@@ -1,7 +1,5 @@
-.perfil-publico-page { min-height:100vh; padding-bottom:104px; background:#f8fafc; color:#0f172a; font-family:"Nunito",ui-sans-serif,system-ui,sans-serif; }
+.perfil-publico-page { min-height:100vh; background:#f8fafc; color:#0f172a; font-family:"Nunito",ui-sans-serif,system-ui,sans-serif; }
 .perfil-publico-shell { width:min(var(--app-content-width),calc(100% - var(--app-content-gutter))); margin:auto; padding-top:20px; }
-.perfil-publico-voltar { min-height:34px; margin:0 0 12px; padding:0; border:0; background:none; color:#64748b; font:inherit; font-size:14px; display:inline-flex; align-items:center; gap:8px; cursor:pointer; }
-.perfil-publico-voltar:hover { color:#0f172a; }
 .perfil-publico-card,.perfil-publico-avaliacoes,.perfil-publico-state { border:1px solid #e2e8f0; border-radius:16px; background:#fff; }
 .perfil-publico-card { padding:20px; }
 .perfil-publico-header { display:flex; align-items:center; gap:16px; }

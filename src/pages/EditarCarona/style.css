@@ -1,39 +1,20 @@
 .editar-carona-page {
   min-height: 100vh;
-  padding-bottom: 122px;
   background: #eef6ff;
   color: #07132b;
 }
 
-.editar-carona-topbar {
-  padding: 22px max(18px, calc((100vw - var(--app-content-width)) / 2)) 18px;
-  background: rgba(248, 251, 255, 0.94);
-  border-bottom: 1px solid #dce7f3;
+.editar-carona-cabecalho {
+  margin-bottom: 22px;
 }
 
-.editar-carona-back {
-  min-height: 36px;
-  margin: 0 0 8px;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: #587091;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font: inherit;
-  font-size: 15px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.editar-carona-topbar h1 {
+.editar-carona-cabecalho h1 {
   margin: 0;
   font-size: var(--app-font-page-title);
   font-weight: 800;
 }
 
-.editar-carona-topbar p {
+.editar-carona-cabecalho p {
   margin: 4px 0 0;
   color: #587091;
   font-size: 15px;

@@ -1,9 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { Link, useLocation, useParams } from 'react-router-dom';
 import {
-  ArrowLeft,
   Ban,
-  Bell,
   Car,
   CheckCircle,
   Clock,
@@ -18,8 +16,6 @@ import {
   UserMinus,
   Users,
 } from 'lucide-react';
-import Logo from '../../components/common/Logo.jsx';
-import NavegacaoInferior from '../../components/layout/NavegacaoInferior.jsx';
 import { obterCarona, removerReservaCarona } from '../../services/caronaService.js';
 import { getPerfilUsuarioAutenticado } from '../../services/profileService.js';
 import './style.css';
@@ -51,7 +47,6 @@ const MOTIVOS_DENUNCIA = [
 function DetalheCarona() {
   const { id } = useParams();
   const location = useLocation();
-  const navigate = useNavigate();
   const [carona, setCarona] = useState(null);
   const [perfil, setPerfil] = useState(null);
   const [carregando, setCarregando] = useState(true);
@@ -229,23 +224,7 @@ function DetalheCarona() {
 
   return (
     <main className="detalhe-carona-page">
-      <header className="detalhe-carona-topbar">
-        <Link to="/inicio" className="detalhe-carona-logo" aria-label="UniCar">
-          <Logo />
-        </Link>
-
-        <button type="button" className="detalhe-carona-notification" aria-label="Notificações">
-          <Bell size={24} />
-          <span />
-        </button>
-      </header>
-
       <section className="detalhe-carona-shell">
-        <button type="button" className="detalhe-carona-back" onClick={() => navigate('/minhas-caronas')}>
-          <ArrowLeft size={20} />
-          Voltar
-        </button>
-
         {carregando ? (
           <section className="detalhe-carona-state">
             <p>Carregando detalhes da carona...</p>
@@ -552,8 +531,6 @@ function DetalheCarona() {
           </div>
         </Modal>
       )}
-
-      <NavegacaoInferior />
     </main>
   );
 }

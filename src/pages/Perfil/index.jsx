@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import {
   Bell,
   Camera,
@@ -18,7 +18,6 @@ import {
   Trash2,
 } from 'lucide-react';
 import Confirmacao from '../../components/common/Confirmacao.jsx';
-import NavegacaoInferior from '../../components/layout/NavegacaoInferior.jsx';
 import BlockUserButton from './BlockUserButton.jsx';
 import ConfirmBlockModal from './ConfirmBlockModal.jsx';
 import AvaliarUsuarioModal from './AvaliarUsuarioModal.jsx';
@@ -31,8 +30,6 @@ import { getSession, logout } from '../../services/authService.js';
 import { listarVeiculos } from '../../services/vehicleService.js';
 import { criarAvaliacao, listarAvaliacoesRecebidas } from '../../services/avaliacaoService.js';
 import { bloquearUsuario } from '../../services/blockUserService.js';
-import { listarNotificacoes } from '../../services/notificationService.js';
-import Logo from '../../components/common/Logo.jsx';
 import './style.css';
 
 // TODO temporário: alvo fixo usado apenas para exercitar o POST /avaliacoes.
@@ -62,7 +59,6 @@ function Perfil() {
   const [excluindoConta, setExcluindoConta] = useState(false);
   const [bloqueandoUsuario, setBloqueandoUsuario] = useState(false);
   const [totalVeiculos, setTotalVeiculos] = useState(null);
-  const [temNotificacaoNaoLida, setTemNotificacaoNaoLida] = useState(false);
   const [resumoAvaliacoes, setResumoAvaliacoes] = useState(() => ({
     media: Number(perfil.avaliacao) || 0,
     total: 0,
@@ -76,11 +72,10 @@ function Perfil() {
 
     async function carregarPerfil() {
       try {
-        const [dados, veiculos, avaliacoes, notificacoes] = await Promise.all([
+        const [dados, veiculos, avaliacoes] = await Promise.all([
           getPerfilUsuarioAutenticado(),
           listarVeiculos().catch(() => null),
           listarAvaliacoesRecebidas().catch(() => []),
-          listarNotificacoes().catch(() => []),
         ]);
 
         if (!ativo) {
@@ -95,9 +90,6 @@ function Perfil() {
         setFotoPreview(dados.fotoUrl || '');
         setTotalVeiculos(Array.isArray(veiculos) ? veiculos.length : null);
         setResumoAvaliacoes(calcularResumoAvaliacoes(avaliacoes, dados.avaliacao));
-        setTemNotificacaoNaoLida(
-          Array.isArray(notificacoes) && notificacoes.some((notificacao) => !notificacao.lida),
-        );
         setErro('');
       } catch (error) {
         if (ativo) {
@@ -258,22 +250,6 @@ function Perfil() {
 
   return (
     <main className="perfil-page">
-      <header className="perfil-topbar">
-        <Link to="/inicio" className="perfil-logo" aria-label="UniCar">
-          <Logo />
-        </Link>
-
-        <button
-          type="button"
-          className="perfil-notification"
-          aria-label="Notificações"
-          onClick={() => navigate('/notificacoes')}
-        >
-          <Bell size={24} />
-          {temNotificacaoNaoLida && <span />}
-        </button>
-      </header>
-
       <section className="perfil-shell">
         <section className="perfil-hero">
           <div className="perfil-avatar">
@@ -422,8 +398,6 @@ function Perfil() {
           </button>
         </section>
       </section>
-
-      <NavegacaoInferior />
 
       <Confirmacao
         open={modalSairAberto}

@@ -15,11 +15,16 @@ import {
 } from 'lucide-react';
 import NavegacaoInferior from '../../components/layout/NavegacaoInferior.jsx';
 import { editarCarona, obterCarona, OBSERVACAO_MAX } from '../../services/caronaService.js';
-import { geocodificarEndereco } from '../../services/geocodingService.js';
+import {
+  geocodificarEndereco,
+  calcularTetoContribuicao,
+  contribuicaoMaxima,
+} from '../../services/geocodingService.js';
 import './style.css';
 
 const STATUS_BLOQUEADOS = ['EM_ANDAMENTO', 'FINALIZADA', 'CANCELADA'];
-const CONTRIBUICAO_MAX = 20;
+// Fallback para caronas legadas sem coordenadas: sem cap falso, o backend ainda valida.
+const CONTRIBUICAO_MAX_FALLBACK = 20;
 
 const FORM_INICIAL = {
   origem: '',
@@ -90,10 +95,25 @@ function EditarCarona() {
   const minimoVagas = Math.max(1, passageirosConfirmados);
   const bloqueada = STATUS_BLOQUEADOS.includes(carona?.status);
 
-  const preenchimentoContribuicao = useMemo(
-    () => `${(Number(form.valorContribuicao || 0) / CONTRIBUICAO_MAX) * 100}%`,
-    [form.valorContribuicao],
+  // Teto de contribuição pelo trajeto. Origem/destino são read-only, então as
+  // coordenadas vêm prontas do backend — sem geocodificar. Carona legada sem
+  // coordenadas cai no fallback (sem cap falso; o backend ainda valida).
+  const tetoContribuicao = useMemo(
+    () =>
+      form.origemCoordenadas && form.destinoCoordenadas
+        ? calcularTetoContribuicao(form.origemCoordenadas, form.destinoCoordenadas)
+        : null,
+    [form.origemCoordenadas, form.destinoCoordenadas],
   );
+  const contribuicaoMax =
+    tetoContribuicao == null
+      ? Math.max(Number(form.valorContribuicao) || 0, CONTRIBUICAO_MAX_FALLBACK)
+      : contribuicaoMaxima(tetoContribuicao);
+
+  const preenchimentoContribuicao = useMemo(() => {
+    const valor = Number(form.valorContribuicao) || 0;
+    return `${contribuicaoMax > 0 ? (valor / contribuicaoMax) * 100 : 0}%`;
+  }, [form.valorContribuicao, contribuicaoMax]);
   const temAlteracoes = useMemo(() => {
     if (!formOriginal) {
       return false;
@@ -355,14 +375,25 @@ function EditarCarona() {
                 <DollarSign size={14} />
                 Contribuição por passageiro: {formatarValor(form.valorContribuicao)}
               </span>
-              <input
-                type="range"
-                min={0}
-                max={CONTRIBUICAO_MAX}
-                value={form.valorContribuicao}
-                style={{ '--preenchido': preenchimentoContribuicao }}
-                onChange={(event) => atualizar('valorContribuicao', Number(event.target.value))}
-              />
+              {contribuicaoMax > 0 ? (
+                <input
+                  type="range"
+                  min={0}
+                  max={contribuicaoMax}
+                  step={0.5}
+                  value={form.valorContribuicao}
+                  style={{ '--preenchido': preenchimentoContribuicao }}
+                  onChange={(event) => atualizar('valorContribuicao', Number(event.target.value))}
+                  aria-label="Contribuição por passageiro"
+                />
+              ) : null}
+              {tetoContribuicao != null && (
+                <span className="editar-carona-dica">
+                  {contribuicaoMax > 0
+                    ? `Máximo de ${formatarValor(tetoContribuicao)} para este trajeto.`
+                    : 'Trajeto muito curto para cobrar contribuição — será gratuita (R$ 0).'}
+                </span>
+              )}
             </div>
           </section>
 
@@ -426,6 +457,19 @@ function toForm(carona) {
   const { data, horario } = separarDataHora(carona.dataHoraSaida);
   const tipoVeiculo = carona.veiculo?.tipo === 'moto' ? 'moto' : 'carro';
 
+  const origemCoordenadas = carona.origemCoordenadas || null;
+  const destinoCoordenadas = carona.destinoCoordenadas || null;
+
+  // Caronas criadas sob a regra antiga (R$20) podem ter valor acima do teto atual
+  // do trajeto; clampa já no carregamento quando há coordenadas para o cálculo.
+  let valorContribuicao = Number(carona.valorContribuicao ?? 0);
+  if (origemCoordenadas && destinoCoordenadas) {
+    const maximo = contribuicaoMaxima(
+      calcularTetoContribuicao(origemCoordenadas, destinoCoordenadas),
+    );
+    valorContribuicao = Math.min(valorContribuicao, maximo);
+  }
+
   return {
     origem: carona.origem || '',
     destino: carona.destino || '',
@@ -435,10 +479,10 @@ function toForm(carona) {
     tipoVeiculo,
     veiculoId: carona.veiculo?.id || '',
     quantidadeVagas: carona.quantidadeVagas || 1,
-    valorContribuicao: Number(carona.valorContribuicao ?? 0),
+    valorContribuicao,
     observacao: carona.observacao || '',
-    origemCoordenadas: carona.origemCoordenadas || null,
-    destinoCoordenadas: carona.destinoCoordenadas || null,
+    origemCoordenadas,
+    destinoCoordenadas,
   };
 }
 

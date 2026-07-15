@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { ArrowRight, Bell, Pencil, Play, X, Square} from 'lucide-react';
+import { ArrowRight, Bell, Pencil, Play, Square, Users, X } from 'lucide-react';
 import Logo from '../../components/common/Logo.jsx';
 import NavegacaoInferior from '../../components/layout/NavegacaoInferior.jsx';
 import Confirmacao from '../../components/common/Confirmacao.jsx';
+import StatusReservaBadge from '../../components/common/StatusReservaBadge.jsx';
 import { cancelarCarona, iniciarCarona, finalizarCarona, listarMinhasCaronas } from '../../services/caronaService.js';
+import { listarReservasEnviadas } from '../../services/reservaService.js';
 import './style.css';
 
 const STATUS = {
@@ -57,6 +59,10 @@ function MinhasCaronas() {
   const [caronas, setCaronas] = useState([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState('');
+  const [reservas, setReservas] = useState([]);
+  const [carregandoReservas, setCarregandoReservas] = useState(false);
+  const [erroReservas, setErroReservas] = useState('');
+  const [reservasCarregadas, setReservasCarregadas] = useState(false);
   const [caronaParaCancelar, setCaronaParaCancelar] = useState(null);
   const [cancelando, setCancelando] = useState(false);
   const [caronaParaIniciar, setCaronaParaIniciar] = useState(null);
@@ -122,6 +128,31 @@ function MinhasCaronas() {
       ativo = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (aba !== 'passageiro' || reservasCarregadas) return undefined;
+
+    let ativo = true;
+
+    async function carregarReservas() {
+      try {
+        setCarregandoReservas(true);
+        setErroReservas('');
+        const dados = await listarReservasEnviadas();
+        if (ativo) {
+          setReservas(dados);
+          setReservasCarregadas(true);
+        }
+      } catch (error) {
+        if (ativo) setErroReservas(error.message || 'Não foi possível carregar suas reservas.');
+      } finally {
+        if (ativo) setCarregandoReservas(false);
+      }
+    }
+
+    carregarReservas();
+    return () => { ativo = false; };
+  }, [aba, reservasCarregadas]);
 
   // A mensagem de sucesso é temporária: some sozinha após alguns segundos.
   useEffect(() => {
@@ -295,10 +326,12 @@ function MinhasCaronas() {
             onFinalizar={confirmaFinalizarCarona}
           />
         ) : (
-          <div className="caronas-vazio">
-            <p>Nenhuma carona como passageiro por aqui ainda.</p>
-            <span>Em breve você verá as caronas que reservou.</span>
-          </div>
+          <ConteudoPassageiro
+            carregando={carregandoReservas}
+            erro={erroReservas}
+            reservas={reservas}
+            onTentarNovamente={() => setReservasCarregadas(false)}
+          />
         )}
       </section>
 
@@ -355,6 +388,51 @@ function MinhasCaronas() {
 
       <NavegacaoInferior />
     </main>
+  );
+}
+
+function ConteudoPassageiro({ carregando, erro, reservas, onTentarNovamente }) {
+  if (carregando) return <p className="caronas-loading">Carregando suas reservas...</p>;
+
+  if (erro) {
+    return <div className="caronas-erro" role="alert"><p>{erro}</p><button type="button" onClick={onTentarNovamente}>Tentar novamente</button></div>;
+  }
+
+  if (reservas.length === 0) {
+    return <div className="caronas-vazio"><p>Nenhuma carona como passageiro por aqui ainda.</p><span>As caronas que você reservar aparecerão aqui.</span></div>;
+  }
+
+  const confirmadas = reservas.filter((reserva) => ['ACEITA', 'ATIVA', 'CONFIRMADA'].includes(reserva.status));
+  const pendentes = reservas.filter((reserva) => reserva.status === 'PENDENTE');
+  const outras = reservas.filter((reserva) => !['ACEITA', 'ATIVA', 'CONFIRMADA', 'PENDENTE'].includes(reserva.status));
+
+  return (
+    <div className="reservas-grupos">
+      <GrupoReservas titulo="Confirmadas" reservas={confirmadas} />
+      <GrupoReservas titulo="Solicitações pendentes" reservas={pendentes} pendente />
+      <GrupoReservas titulo="Outras reservas" reservas={outras} />
+    </div>
+  );
+}
+
+function GrupoReservas({ titulo, reservas, pendente = false }) {
+  if (reservas.length === 0) return null;
+  return <section className="reservas-grupo"><h2>{titulo}</h2><ul className="reservas-lista">{reservas.map((reserva) => <li key={reserva.id}><ReservaCard reserva={reserva} pendente={pendente} /></li>)}</ul></section>;
+}
+
+function ReservaCard({ reserva, pendente = false }) {
+  return (
+    <article className="reserva-card">
+      <Link className="reserva-card__abrir" to={`/reservas/${reserva.id}`} state={{ reserva }} aria-label={`Ver detalhes da reserva com ${reserva.motorista?.nome || 'motorista'}`} />
+      <div className="reserva-card__topo">
+        <StatusReservaBadge status={reserva.status} compacto />
+        <span className="reserva-card__data">{formatarDataReserva(reserva.dataViagem)}</span>
+      </div>
+      <strong className="reserva-card__motorista">{reserva.motorista?.nome || 'Motorista'}</strong>
+      <p className="reserva-card__rota">{reserva.carona.origem || 'Origem'} <ArrowRight size={14} /> {reserva.carona.destino || 'Destino'}</p>
+      <span className="reserva-card__quantidade"><Users size={14} /> {formatarQuantidadeReserva(reserva.quantidadePassageiros)}</span>
+      {pendente && <Link className="reserva-card__cancelar" to={`/reservas/${reserva.id}`} state={{ abrirCancelamento: true, reserva }}>Cancelar solicitação</Link>}
+    </article>
   );
 }
 
@@ -481,7 +559,7 @@ function CaronaCard({ carona, onCancelar, onIniciar, onFinalizar }) {
       )}
       </div>
 
-      <Link to={`/minhas-caronas/${carona.id}`} className="carona-card__detalhes">
+      <Link to={`/minhas-caronas/${carona.id}`} state={{ minhaCarona: true, carona }} className="carona-card__detalhes">
         Ver detalhes da carona
       </Link>
     </article>
@@ -533,6 +611,21 @@ function mesmoDia(a, b) {
     a.getMonth() === b.getMonth() &&
     a.getDate() === b.getDate()
   );
+}
+
+function formatarDataReserva(valor) {
+  if (!valor) return 'Data não informada';
+  const data = new Date(valor);
+  if (Number.isNaN(data.getTime())) return valor;
+  const hoje = new Date();
+  const hora = data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  if (mesmoDia(data, hoje)) return `Hoje • ${hora}`;
+  return data.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+}
+
+function formatarQuantidadeReserva(valor) {
+  const quantidade = Number(valor) || 1;
+  return `${quantidade} ${quantidade === 1 ? 'passageiro(a)' : 'passageiros(as)'}`;
 }
 
 export default MinhasCaronas;

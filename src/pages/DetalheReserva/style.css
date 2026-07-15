@@ -1,0 +1,80 @@
+.detalhe-reserva-page { min-height:100vh; padding-bottom:104px; background:#edf5ff; color:#0b1531; font-family:"Nunito",ui-sans-serif,system-ui,sans-serif; }
+.detalhe-reserva-shell { width:min(var(--app-content-width),calc(100% - var(--app-content-gutter))); margin:auto; padding-top:14px; }
+.detalhe-reserva-voltar { margin:0 0 20px; padding:0; border:0; background:none; color:#64748b; display:inline-flex; align-items:center; gap:7px; font:inherit; cursor:pointer; }
+.detalhe-reserva-cabecalho { margin-bottom:16px; padding:20px; border:1px solid #dfe5ed; border-radius:18px; background:#fff; display:flex; align-items:center; justify-content:space-between; gap:16px; }
+.detalhe-reserva-cabecalho span { color:#64748b; font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; }
+.detalhe-reserva-cabecalho h1 { margin:5px 0 0; display:flex; align-items:center; gap:8px; font-size:20px; }
+.detalhe-reserva-cabecalho h1 svg { color:#94a3b8; flex:none; }
+.detalhe-reserva-hero { margin:0 0 16px; padding:20px; border:1px solid #86efc1; border-radius:18px; background:#ecfdf5; color:#007f5f; display:flex; align-items:center; gap:13px; }
+.detalhe-reserva-hero > svg { width:32px; height:32px; }
+.detalhe-reserva-hero h1 { margin:0 0 5px; font-size:19px; }
+.detalhe-reserva-hero .detalhe-reserva-papel { width:max-content; padding:4px 10px; border:1px solid #d5dce7; border-radius:999px; background:#fff; color:#0b1531; display:flex; align-items:center; gap:6px; font-size:13px; font-weight:800; }
+.detalhe-reserva-hero-metas { display:flex; align-items:center; flex-wrap:wrap; gap:7px; }
+.detalhe-reserva-hero--cancelada,.detalhe-reserva-hero--recusada { border-color:#fecdd3; background:#fff1f2; color:#be123c; }
+.detalhe-reserva-status { padding:6px 11px; border-radius:999px; font-size:12px; white-space:nowrap; }
+.detalhe-reserva-status--pendente { background:#fef3c7; color:#a16207; }
+.detalhe-reserva-status--confirmada,.detalhe-reserva-status--finalizada { background:#d1fae5; color:#047857; }
+.detalhe-reserva-status--cancelada,.detalhe-reserva-status--recusada { background:#ffe4e6; color:#be123c; }
+.detalhe-reserva-card,.detalhe-reserva-feedback,.detalhe-reserva-erro { margin-bottom:16px; padding:18px; border:1px solid #dfe5ed; border-radius:18px; background:#fff; }
+.detalhe-reserva-card h2 { margin:0 0 14px; font-size:15px; }
+.detalhe-reserva-trajeto { padding:0; overflow:hidden; }
+.detalhe-reserva-mapa { height:200px; position:relative; background:#f3f4f6; color:#6b7280; }
+.detalhe-reserva-mapa > span { position:absolute; top:15px; left:15px; z-index:1; padding:7px 12px; border-radius:999px; background:#fff; color:#0b1531; display:flex; align-items:center; gap:5px; font-size:12px; font-weight:800; }
+.detalhe-reserva-mapa > svg { width:100%; height:100%; }
+.detalhe-reserva-mapa > svg path { fill:none; stroke:currentColor; stroke-width:4; stroke-dasharray:12 12; }
+.detalhe-reserva-mapa > svg circle { fill:currentColor; }
+.detalhe-reserva-trajeto-corpo { padding:20px; }
+.detalhe-reserva-trajeto-corpo > h2 { display:flex; align-items:center; gap:9px; font-size:20px; }
+.detalhe-reserva-metricas { margin:16px 0; display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+.detalhe-reserva-metricas .detalhe-reserva-item { min-height:94px; justify-content:center; text-align:center; flex-direction:column; }
+.detalhe-reserva-metricas .detalhe-reserva-item > div { display:grid; justify-items:center; }
+.detalhe-reserva-paradas h3 { margin:16px 0 10px; color:#56708f; font-size:11px; text-transform:uppercase; }
+.detalhe-reserva-paradas ol { margin:0; padding:0; list-style:none; display:grid; gap:10px; color:#56708f; }
+.detalhe-reserva-paradas li { display:flex; align-items:center; gap:10px; }
+.detalhe-reserva-paradas b { width:25px; height:25px; border-radius:50%; background:#e2e8f0; color:#0b1531; display:grid; place-items:center; font-size:11px; }
+.detalhe-reserva-valor { margin-top:18px; padding-top:18px; border-top:1px solid #d8e0ea; display:flex; justify-content:space-between; color:#56708f; }
+.detalhe-reserva-valor strong { color:#0b1531; font-size:18px; }
+.detalhe-reserva-grid { margin:0; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+.detalhe-reserva-item { padding:12px; border-radius:12px; background:#f1f5f9; display:flex; align-items:center; gap:10px; }
+.detalhe-reserva-item > span { color:#3456d1; display:flex; }
+.detalhe-reserva-item svg { width:18px; height:18px; }
+.detalhe-reserva-item dt { color:#64748b; font-size:11px; }
+.detalhe-reserva-item dd { margin:3px 0 0; font-size:13px; font-weight:700; }
+.detalhe-reserva-motorista { display:flex; align-items:center; gap:12px; }
+.detalhe-reserva-motorista img,.detalhe-reserva-avatar { width:48px; height:48px; border-radius:50%; object-fit:cover; background:#e8eeff; color:#3456d1; display:grid; place-items:center; font-weight:800; }
+.detalhe-reserva-avatar-link { border-radius:50%; color:inherit; display:inline-flex; flex:none; text-decoration:none; }
+.detalhe-reserva-avatar-link:focus-visible { outline:3px solid rgba(52,86,209,.3); outline-offset:3px; }
+.detalhe-reserva-motorista > div { display:grid; gap:4px; }
+.detalhe-reserva-motorista > div span { color:#64748b; display:flex; align-items:center; gap:4px; font-size:12px; }
+.detalhe-reserva-motorista > div span svg { color:#e9a317; }
+.detalhe-reserva-reservas-topo { margin-top:-32px; margin-bottom:14px; display:flex; justify-content:flex-end; color:#56708f; }
+.detalhe-reserva-reservas-topo span { display:flex; align-items:center; gap:5px; }
+.detalhe-reserva-reservas { margin:0; padding:0; list-style:none; display:grid; gap:10px; }
+.detalhe-reserva-reservas li { padding:12px; border:1px solid #d8e0ea; border-radius:18px; background:#f8fbff; display:flex; align-items:center; gap:14px; }
+.detalhe-reserva-reservas li > div { display:grid; gap:3px; }
+.detalhe-reserva-reservas li > div span { color:#56708f; display:flex; align-items:center; gap:4px; font-size:12px; }
+.detalhe-reserva-reservas li > div svg { color:#f59e0b; }
+.detalhe-reserva-reservas em { margin-left:auto; padding:5px 12px; border-radius:999px; background:#d1fae5; color:#047857; font-size:11px; font-style:normal; font-weight:800; }
+.detalhe-reserva-cancelar { width:100%; min-height:48px; border:1px solid #be123c; border-radius:12px; color:#fff; background:#be123c; display:flex; align-items:center; justify-content:center; text-decoration:none; font-weight:800; cursor:pointer; }
+.detalhe-reserva-cancelar:hover { background:#9f1239; border-color:#9f1239; }
+.detalhe-reserva-sucesso { margin:0 0 16px; padding:12px 16px; border:1px solid #86efac; border-radius:12px; background:#ecfdf5; color:#047857; font-weight:700; }
+.detalhe-reserva-modal-fundo { position:fixed; inset:0; z-index:50; padding:24px; background:rgba(11,21,49,.48); display:grid; place-items:center; }
+.detalhe-reserva-modal { width:min(460px,100%); border-radius:20px; background:#fff; padding:20px; box-shadow:0 24px 60px rgba(11,21,49,.28); }
+.detalhe-reserva-modal header { margin-bottom:16px; display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.detalhe-reserva-modal h2 { margin:0; font-size:20px; }
+.detalhe-reserva-modal header button { width:38px; height:38px; border:0; border-radius:50%; background:#edf5ff; color:#0b1531; padding:0; display:grid; place-items:center; cursor:pointer; }
+.detalhe-reserva-modal > p { margin:0 0 14px; color:#56708f; font-size:14px; line-height:1.45; }
+.detalhe-reserva-modal-resumo { border-radius:14px; background:#edf5ff; padding:14px; display:grid; gap:6px; }
+.detalhe-reserva-modal-resumo span { color:#0b1531; font-size:14px; font-weight:800; }
+.detalhe-reserva-modal-resumo strong { color:#56708f; font-size:13px; }
+.detalhe-reserva-modal .detalhe-reserva-modal-erro { margin:12px 0 0; color:#b91c1c; font-weight:700; }
+.detalhe-reserva-modal-acoes { margin-top:18px; display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.detalhe-reserva-modal-acoes button { min-height:46px; border-radius:13px; padding:0 12px; font:inherit; font-size:13px; font-weight:800; cursor:pointer; }
+.detalhe-reserva-modal-acoes .voltar { border:1px solid #d8e0ea; background:#fff; color:#0b1531; }
+.detalhe-reserva-modal-acoes .confirmar { border:0; background:#be123c; color:#fff; }
+.detalhe-reserva-modal button:disabled { opacity:.6; cursor:wait; }
+.detalhe-reserva-erro { color:#b91c1c; background:#fff1f2; border-color:#fecdd3; text-align:center; }
+.detalhe-reserva-erro h1 { margin:0 0 6px; font-size:19px; }
+.detalhe-reserva-erro p { margin:0 0 14px; color:#64748b; }
+.detalhe-reserva-erro a { color:#3456d1; font-weight:700; }
+@media (max-width:560px) { .detalhe-reserva-shell{width:calc(100% - 24px)} .detalhe-reserva-cabecalho{align-items:flex-start;flex-direction:column} .detalhe-reserva-cabecalho h1{font-size:17px} .detalhe-reserva-grid{grid-template-columns:1fr} }

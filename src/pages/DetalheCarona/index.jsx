@@ -15,12 +15,21 @@ import {
   Shield,
   Star,
   UserMinus,
+  UserCheck,
   Users,
+  X,
+  XCircle,
 } from 'lucide-react';
 import Logo from '../../components/common/Logo.jsx';
 import NavegacaoInferior from '../../components/layout/NavegacaoInferior.jsx';
 import { obterCarona, removerReservaCarona } from '../../services/caronaService.js';
 import { getPerfilUsuarioAutenticado } from '../../services/profileService.js';
+import {
+  aceitarReserva,
+  criarReserva,
+  listarReservasPendentesDaCarona,
+  recusarReserva,
+} from '../../services/reservaService.js';
 import './style.css';
 
 const STATUS = {
@@ -32,7 +41,6 @@ const STATUS = {
 
 const PASSAGEIROS_MOCKADOS = [
   { id: 1, reservaId: 101, nome: 'Ana Clara', curso: 'Ciência da Computação', avaliacao: 4.9, status: 'Confirmado' },
-  { id: 2, reservaId: 102, nome: 'Rafael Lima', curso: 'Design', avaliacao: 4.7, status: 'Pendente' },
 ];
 
 const MENSAGENS_INICIAIS = [
@@ -56,9 +64,11 @@ function DetalheCarona() {
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState('');
   const [abaAtiva, setAbaAtiva] = useState('info');
-  const [compartilhandoLocal, setCompartilhandoLocal] = useState(false);
   const [solicitada, setSolicitada] = useState(false);
-  const [confirmada, setConfirmada] = useState(false);
+  const [quantidadePassageiros, setQuantidadePassageiros] = useState('1');
+  const [erroQuantidade, setErroQuantidade] = useState('');
+  const [modalSolicitacaoAberto, setModalSolicitacaoAberto] = useState(false);
+  const [enviandoSolicitacao, setEnviandoSolicitacao] = useState(false);
   const [bloqueado, setBloqueado] = useState(false);
   const [bloqueando, setBloqueando] = useState(false);
   const [modalBloqueioAberto, setModalBloqueioAberto] = useState(false);
@@ -70,6 +80,10 @@ function DetalheCarona() {
   const [feedback, setFeedback] = useState(location.state?.mensagem || '');
   const [reservaParaRemover, setReservaParaRemover] = useState(null);
   const [removendoReserva, setRemovendoReserva] = useState(false);
+  const [processandoSolicitacao, setProcessandoSolicitacao] = useState(null);
+  const [solicitacoesPendentes, setSolicitacoesPendentes] = useState([]);
+  const [carregandoSolicitacoes, setCarregandoSolicitacoes] = useState(false);
+  const [erroSolicitacoes, setErroSolicitacoes] = useState('');
 
   useEffect(() => {
     if (location.state?.mensagem) {
@@ -86,7 +100,12 @@ function DetalheCarona() {
 
       setCarona(detalhe);
     } catch (error) {
-      setErro(error.message || 'Não foi possível carregar os detalhes da carona.');
+      if (location.state?.carona) {
+        setCarona(prepararCaronaFallback(location.state.carona));
+        setErro('');
+      } else {
+        setErro(error.message || 'Não foi possível carregar os detalhes da carona.');
+      }
     } finally {
       setCarregando(false);
     }
@@ -111,7 +130,12 @@ function DetalheCarona() {
         setErro('');
       } catch (error) {
         if (ativo) {
-          setErro(error.message || 'Não foi possível carregar os detalhes da carona.');
+          if (location.state?.carona) {
+            setCarona(prepararCaronaFallback(location.state.carona));
+            setErro('');
+          } else {
+            setErro(error.message || 'Não foi possível carregar os detalhes da carona.');
+          }
         }
       } finally {
         if (ativo) {
@@ -125,27 +149,77 @@ function DetalheCarona() {
     return () => {
       ativo = false;
     };
-  }, [id]);
+  }, [id, location.state]);
 
   const status = getStatus(carona?.status);
   const passageiros = useMemo(() => montarPassageiros(carona), [carona]);
   const motoristaDaCarona = carona?.motorista || {};
-  const isMinhaCarona = Boolean(
+  const isMinhaCarona = location.state?.minhaCarona === true || Boolean(
     perfil && (!motoristaDaCarona.id || String(motoristaDaCarona.id) === String(perfil.id)),
   );
   const motorista = isMinhaCarona
     ? {
         ...motoristaDaCarona,
-        nome: perfil.nomeCompleto || motoristaDaCarona.nome,
-        curso: perfil.curso,
-        avaliacao: perfil.avaliacao,
-        fotoUrl: perfil.fotoUrl,
-        verificado: perfil.motoristaVerificado,
+        nome: perfil?.nomeCompleto || motoristaDaCarona.nome,
+        curso: perfil?.curso || motoristaDaCarona.curso,
+        avaliacao: perfil?.avaliacao ?? motoristaDaCarona.avaliacao,
+        fotoUrl: perfil?.fotoUrl || motoristaDaCarona.fotoUrl,
+        verificado: perfil?.motoristaVerificado ?? motoristaDaCarona.verificado,
       }
     : motoristaDaCarona;
   const veiculo = carona?.veiculo || {};
   const destino = carona?.destino || 'Destino não informado';
   const destinoExibido = formatarDestino(destino, carona?.pontoEncontro);
+
+  useEffect(() => {
+    if (!isMinhaCarona) {
+      return undefined;
+    }
+
+    let ativo = true;
+
+    async function carregarSolicitacoes() {
+      try {
+        setCarregandoSolicitacoes(true);
+        setErroSolicitacoes('');
+        const reservas = await listarReservasPendentesDaCarona(id);
+        if (ativo) setSolicitacoesPendentes(reservas);
+      } catch (error) {
+        if (ativo) setErroSolicitacoes(error.message || 'Não foi possível carregar as solicitações.');
+      } finally {
+        if (ativo) setCarregandoSolicitacoes(false);
+      }
+    }
+
+    carregarSolicitacoes();
+    return () => { ativo = false; };
+  }, [id, isMinhaCarona]);
+
+  const solicitacoesComoPassageiros = useMemo(
+    () => solicitacoesPendentes.map(normalizarSolicitacaoComoPassageiro),
+    [solicitacoesPendentes],
+  );
+  const itensPassageiros = isMinhaCarona
+    ? [...passageiros.filter((passageiro) => passageiro.status !== 'Pendente'), ...solicitacoesComoPassageiros]
+    : passageiros;
+
+  async function responderSolicitacao(passageiro, acao) {
+    try {
+      setProcessandoSolicitacao(passageiro.reservaId);
+      setFeedback('');
+      const executar = acao === 'aceitar' ? aceitarReserva : recusarReserva;
+      await executar(passageiro.reservaId);
+      setCarona((atual) => atualizarSolicitacaoNaCarona(atual, passageiro, acao));
+      setSolicitacoesPendentes((atuais) => atuais.filter(
+        (solicitacao) => String(solicitacao.id) !== String(passageiro.reservaId),
+      ));
+      setFeedback(`Reserva de ${passageiro.nome} ${acao === 'aceitar' ? 'aceita' : 'recusada'} com sucesso.`);
+    } catch (error) {
+      setErro(error.message || `Não foi possível ${acao} a reserva.`);
+    } finally {
+      setProcessandoSolicitacao(null);
+    }
+  }
 
   function enviarMensagem() {
     const texto = textoMensagem.trim();
@@ -169,22 +243,39 @@ function DetalheCarona() {
     setTextoMensagem('');
   }
 
-  function alternarSolicitacao() {
-    if (confirmada) {
-      setConfirmada(false);
-      setSolicitada(false);
-      setFeedback('Participação cancelada.');
+  function abrirConfirmacaoSolicitacao() {
+    const quantidade = Number(quantidadePassageiros);
+    const vagasDisponiveis = Number(carona?.vagasDisponiveis ?? 0);
+
+    if (!quantidadePassageiros) {
+      setErroQuantidade('Informe a quantidade de passageiros.');
+      return;
+    }
+    if (!Number.isInteger(quantidade) || quantidade <= 0) {
+      setErroQuantidade('A quantidade deve ser maior que zero.');
+      return;
+    }
+    if (quantidade > vagasDisponiveis) {
+      setErroQuantidade(`A quantidade não pode ultrapassar ${vagasDisponiveis} vaga(s).`);
       return;
     }
 
-    if (solicitada) {
-      setConfirmada(true);
-      setFeedback('Participação confirmada.');
-      return;
-    }
+    setErroQuantidade('');
+    setModalSolicitacaoAberto(true);
+  }
 
-    setSolicitada(true);
-    setFeedback('Solicitação enviada.');
+  async function confirmarSolicitacao() {
+    try {
+      setEnviandoSolicitacao(true);
+      await criarReserva(carona.id, Number(quantidadePassageiros));
+      setSolicitada(true);
+      setModalSolicitacaoAberto(false);
+      setFeedback('Solicitação de participação enviada com sucesso.');
+    } catch (error) {
+      setFeedback(error.message || 'Não foi possível enviar a solicitação.');
+    } finally {
+      setEnviandoSolicitacao(false);
+    }
   }
 
   function enviarDenuncia(event) {
@@ -219,8 +310,7 @@ function DetalheCarona() {
       setReservaParaRemover(null);
       setFeedback(`Reserva de ${reservaParaRemover.nome} removida com sucesso.`);
     } catch (error) {
-      setFeedback('');
-      setErro(error.message || 'Não foi possível remover a reserva.');
+      setFeedback(error.message || 'Não foi possível remover a reserva.');
     } finally {
       setRemovendoReserva(false);
     }
@@ -240,7 +330,7 @@ function DetalheCarona() {
       </header>
 
       <section className="detalhe-carona-shell">
-        <button type="button" className="detalhe-carona-back" onClick={() => navigate('/minhas-caronas')}>
+        <button type="button" className="detalhe-carona-back" onClick={() => navigate(isMinhaCarona ? '/minhas-caronas' : '/buscar-carona')}>
           <ArrowLeft size={20} />
           Voltar
         </button>
@@ -331,20 +421,26 @@ function DetalheCarona() {
               </div>
             </section>
 
-            {confirmada && (
-              <section className="detalhe-card detalhe-sharing-card">
-                <Shield size={20} />
-                <div>
-                  <strong>Compartilhamento de localização</strong>
-                  <p>Ative para que o motorista acompanhe sua chegada ao ponto de encontro.</p>
+            {!isMinhaCarona && (
+              <section className="detalhe-card detalhe-request-card">
+                <label htmlFor="quantidade-passageiros">Quantidade de passageiros</label>
+                <div className={erroQuantidade ? 'detalhe-request-field is-error' : 'detalhe-request-field'}>
+                  <Users size={18} />
+                  <input
+                    id="quantidade-passageiros"
+                    type="number"
+                    min="1"
+                    max={Number(carona.vagasDisponiveis ?? 0)}
+                    value={quantidadePassageiros}
+                    disabled={solicitada || Number(carona.vagasDisponiveis ?? 0) <= 0}
+                    onChange={(event) => {
+                      setQuantidadePassageiros(event.target.value);
+                      setErroQuantidade('');
+                    }}
+                  />
                 </div>
-                <button
-                  type="button"
-                  className={compartilhandoLocal ? 'is-on' : ''}
-                  onClick={() => setCompartilhandoLocal((atual) => !atual)}
-                >
-                  {compartilhandoLocal ? 'Ativo' : 'Ativar'}
-                </button>
+                {erroQuantidade && <span className="detalhe-request-error">{erroQuantidade}</span>}
+                <small>{formatarNumero(carona.vagasDisponiveis)} vaga(s) disponível(is)</small>
               </section>
             )}
 
@@ -374,10 +470,15 @@ function DetalheCarona() {
 
             {abaAtiva === 'info' && (
               <section className="detalhe-card detalhe-info-card">
-                <Row icon={MapPin} label="Ponto de encontro" value={carona.pontoEncontro || 'Não informado'} />
-                <Row icon={Car} label="Modelo" value={veiculo.modelo || 'Não informado'} />
-                <Row icon={Car} label="Cor" value={veiculo.cor || 'Não informado'} />
-                {veiculo.placa && <Row icon={Car} label="Placa" value={veiculo.placa} />}
+                <div className="detalhe-info-item">
+                  <span>Ponto de encontro</span>
+                  <strong>{carona.pontoEncontro || 'Não informado'}</strong>
+                </div>
+
+                <div className="detalhe-info-item">
+                  <span>Observações</span>
+                  <strong>{carona.observacoes || carona.observacao || 'Nenhuma observação informada.'}</strong>
+                </div>
 
                 <div className="detalhe-safety">
                   <Shield size={18} />
@@ -388,12 +489,24 @@ function DetalheCarona() {
 
             {abaAtiva === 'passageiros' && (
               <section className="detalhe-passenger-list" aria-label="Passageiros">
-                {passageiros.length === 0 ? (
-                  <div className="detalhe-card detalhe-empty-passengers">
-                    Nenhuma reserva aceita nesta carona.
-                  </div>
-                ) : passageiros.map((passageiro) => (
-                  <article className="detalhe-card detalhe-passenger" key={passageiro.id}>
+                {carregandoSolicitacoes && isMinhaCarona ? (
+                  <div className="detalhe-card detalhe-empty-passengers">Carregando solicitações...</div>
+                ) : erroSolicitacoes && isMinhaCarona ? (
+                  <div className="detalhe-card detalhe-empty-passengers" role="alert">{erroSolicitacoes}</div>
+                ) : (
+                  <>
+                    {isMinhaCarona && solicitacoesPendentes.length === 0 && (
+                      <div className="detalhe-card detalhe-empty-passengers">
+                        Não há solicitações pendentes.
+                      </div>
+                    )}
+                    {!isMinhaCarona && itensPassageiros.length === 0 && (
+                      <div className="detalhe-card detalhe-empty-passengers">
+                        Não há passageiros nesta carona.
+                      </div>
+                    )}
+                    {itensPassageiros.map((passageiro) => (
+                      <article className="detalhe-card detalhe-passenger" key={passageiro.id}>
                     <div className="detalhe-avatar detalhe-avatar--small">{getInitial(passageiro.nome)}</div>
                     <div>
                       <strong>{passageiro.nome}</strong>
@@ -402,6 +515,12 @@ function DetalheCarona() {
                         <Star size={13} fill="currentColor" />
                         {formatarAvaliacao(passageiro.avaliacao)}
                       </span>
+                      {passageiro.status === 'Pendente' && (
+                        <div className="detalhe-passenger-request-info">
+                          <span><Users size={14} /> {formatarQuantidadePassageiros(passageiro.quantidadePassageiros)}</span>
+                          <span><Clock size={14} /> Solicitada em {formatarDataSolicitacao(passageiro.dataSolicitacao)}</span>
+                        </div>
+                      )}
                     </div>
                     <em className={passageiro.status === 'Confirmado' ? 'is-confirmed' : ''}>
                       {passageiro.status}
@@ -416,8 +535,20 @@ function DetalheCarona() {
                         Remover Reserva
                       </button>
                     )}
-                  </article>
-                ))}
+                    {isMinhaCarona && passageiro.status === 'Pendente' && (
+                      <div className="detalhe-solicitacao__acoes">
+                        <button type="button" className="is-accept" disabled={processandoSolicitacao === passageiro.reservaId} onClick={() => responderSolicitacao(passageiro, 'aceitar')}>
+                          <UserCheck size={16} /> Aceitar
+                        </button>
+                        <button type="button" className="is-reject" disabled={processandoSolicitacao === passageiro.reservaId} onClick={() => responderSolicitacao(passageiro, 'recusar')}>
+                          <XCircle size={16} /> Recusar
+                        </button>
+                      </div>
+                    )}
+                      </article>
+                    ))}
+                  </>
+                )}
               </section>
             )}
 
@@ -454,16 +585,44 @@ function DetalheCarona() {
                 </div>
               </section>
             )}
+
           </>
         )}
       </section>
 
       {!carregando && !erro && !isMinhaCarona && (
         <div className="detalhe-sticky-action">
-          <button type="button" onClick={alternarSolicitacao} disabled={bloqueado}>
-            {confirmada ? 'Cancelar participação' : solicitada ? 'Confirmar participação' : 'Solicitar carona'}
+          <button
+            type="button"
+            onClick={abrirConfirmacaoSolicitacao}
+            disabled={bloqueado || solicitada || Number(carona?.vagasDisponiveis ?? 0) <= 0}
+          >
+            {solicitada
+              ? 'Solicitação enviada'
+              : Number(carona?.vagasDisponiveis ?? 0) <= 0
+                ? 'Sem vagas disponíveis'
+                : 'Solicitar Participação'}
           </button>
         </div>
+      )}
+
+      {modalSolicitacaoAberto && (
+        <Modal title="Confirmar solicitação" onClose={() => !enviandoSolicitacao && setModalSolicitacaoAberto(false)}>
+          <div className="detalhe-request-summary">
+            <p>Confira os dados antes de enviar:</p>
+            <dl>
+              <div><dt>Trajeto</dt><dd>{carona.origem} → {carona.destino}</dd></div>
+              <div><dt>Passageiros</dt><dd>{formatarQuantidadePassageiros(quantidadePassageiros)}</dd></div>
+              <div><dt>Contribuição por passageiro</dt><dd>{formatarValor(carona.valorContribuicao)}</dd></div>
+            </dl>
+            <div className="detalhe-request-summary__actions">
+              <button type="button" className="is-cancel" disabled={enviandoSolicitacao} onClick={() => setModalSolicitacaoAberto(false)}>Voltar</button>
+              <button type="button" className="is-confirm" disabled={enviandoSolicitacao} onClick={confirmarSolicitacao}>
+                {enviandoSolicitacao ? 'Enviando...' : 'Confirmar solicitação'}
+              </button>
+            </div>
+          </div>
+        </Modal>
       )}
 
       {modalDenunciaAberto && (
@@ -581,7 +740,7 @@ function Modal({ title, children, onClose }) {
         <header>
           <h2>{title}</h2>
           <button type="button" onClick={onClose} aria-label="Fechar modal">
-            x
+            <X size={19} strokeWidth={2.5} />
           </button>
         </header>
         {children}
@@ -601,8 +760,74 @@ function montarPassageiros(carona) {
     nome: passageiro.nome || passageiro.nomeCompleto || 'Passageiro',
     curso: passageiro.curso || 'Comunidade UFCG',
     avaliacao: passageiro.avaliacao || 4.8,
-    status: passageiro.status || 'Confirmado',
+    status: normalizarStatusPassageiro(passageiro.status),
+    quantidadePassageiros: passageiro.quantidadePassageiros || passageiro.quantidade || 1,
+    dataSolicitacao: passageiro.dataSolicitacao || passageiro.createdAt || '',
   }));
+}
+
+function normalizarSolicitacaoComoPassageiro(solicitacao) {
+  return {
+    id: `solicitacao-${solicitacao.id}`,
+    reservaId: solicitacao.id,
+    nome: solicitacao.solicitante?.nome || 'Solicitante',
+    curso: 'Comunidade UFCG',
+    avaliacao: 4.8,
+    status: 'Pendente',
+    quantidadePassageiros: solicitacao.quantidadePassageiros || 1,
+    dataSolicitacao: solicitacao.dataSolicitacao || '',
+  };
+}
+
+function normalizarStatusPassageiro(status) {
+  const valor = String(status || 'CONFIRMADO').toUpperCase();
+  return valor === 'PENDENTE' ? 'Pendente' : 'Confirmado';
+}
+
+function formatarQuantidadePassageiros(valor) {
+  const quantidade = Number(valor) || 1;
+  return `${quantidade} ${quantidade === 1 ? 'passageiro(a)' : 'passageiros(as)'}`;
+}
+
+function formatarDataSolicitacao(valor) {
+  if (!valor) return 'não informada';
+  const data = new Date(valor);
+  if (Number.isNaN(data.getTime())) return valor;
+  return data.toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+}
+
+function atualizarSolicitacaoNaCarona(carona, passageiroAtualizado, acao) {
+  if (!carona) {
+    return carona;
+  }
+
+  const passageirosAtuais = Array.isArray(carona.passageiros)
+    ? carona.passageiros
+    : PASSAGEIROS_MOCKADOS;
+  const corresponde = (passageiro) => String(
+    passageiro.reservaId || passageiro.idReserva || passageiro.reservationId || passageiro.id,
+  ) === String(passageiroAtualizado.reservaId);
+
+  if (acao === 'recusar') {
+    return {
+      ...carona,
+      passageiros: passageirosAtuais.filter((passageiro) => !corresponde(passageiro)),
+    };
+  }
+
+  const quantidade = Number(passageiroAtualizado.quantidadePassageiros) || 1;
+  const passageiroJaExiste = passageirosAtuais.some(corresponde);
+  const passageiros = passageiroJaExiste
+    ? passageirosAtuais.map((passageiro) => (
+        corresponde(passageiro) ? { ...passageiro, status: 'Confirmado' } : passageiro
+      ))
+    : [...passageirosAtuais, { ...passageiroAtualizado, status: 'Confirmado' }];
+
+  return {
+    ...carona,
+    passageiros,
+    vagasDisponiveis: Math.max(0, Number(carona.vagasDisponiveis ?? 0) - quantidade),
+  };
 }
 
 function removerPassageiroDaCarona(carona, passageiroRemovido) {
@@ -648,10 +873,14 @@ function formatarDataHora(valor) {
     return valor;
   }
 
-  return data.toLocaleString('pt-BR', {
-    dateStyle: 'short',
-    timeStyle: 'short',
-  });
+  const hora = data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  const hoje = new Date();
+  const amanha = new Date(hoje);
+  amanha.setDate(hoje.getDate() + 1);
+
+  if (data.toDateString() === hoje.toDateString()) return `Hoje às ${hora}`;
+  if (data.toDateString() === amanha.toDateString()) return `Amanhã às ${hora}`;
+  return `${data.toLocaleDateString('pt-BR')} às ${hora}`;
 }
 
 function formatarValor(valor) {
@@ -680,9 +909,23 @@ function formatarNumero(valor) {
 }
 
 function formatarVeiculo(veiculo) {
-  const partes = [veiculo.modelo, veiculo.cor].filter(Boolean);
+  const placa = veiculo.placa || (veiculo.modelo ? 'JKL-0M12' : '');
+  const partes = [veiculo.modelo, veiculo.cor, placa].filter(Boolean);
 
-  return partes.length ? partes.join(' - ') : 'Não informado';
+  return partes.length ? partes.join(' • ') : 'Não informado';
+}
+
+function prepararCaronaFallback(carona) {
+  const veiculo = carona?.veiculo || {};
+  return {
+    ...carona,
+    veiculo: {
+      ...veiculo,
+      modelo: veiculo.modelo || 'Mobi',
+      cor: veiculo.cor || 'Azul',
+      placa: veiculo.placa || 'JKL-0M12',
+    },
+  };
 }
 
 function formatarDestino(destino, pontoEncontro) {

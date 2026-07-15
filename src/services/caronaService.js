@@ -92,9 +92,16 @@ export async function obterCarona(id) {
     return ajustarCaronaMotorista(carona);
   }
 
-  const carona = await apiRequest(`/caronas/${id}`);
-
-  return ajustarCaronaMotorista(carona);
+  try {
+    const carona = await apiRequest(`/caronas/${id}`);
+    return ajustarCaronaMotorista(carona);
+  } catch (error) {
+    if (import.meta.env.VITE_MOCK_FALTANTES === 'true') {
+      const carona = carregarCaronasMock().find((item) => item.id === Number(id));
+      if (carona) return ajustarCaronaMotorista(carona);
+    }
+    throw error;
+  }
 }
 
 // Cria caronas (POST /caronas). A recorrência não é um atributo da carona: os
@@ -202,46 +209,106 @@ export async function buscarCaronas(filtros = {}) {
   }
 
   if (shouldUseLocalDataMocks()) {
-    let caronas = carregarCaronasMock();
-
-    if (filtros.origem) {
-      caronas = caronas.filter((c) =>
-        c.origem.descricao
-          .toLowerCase()
-          .includes(filtros.origem.toLowerCase())
-      );
-    }
-
-    if (filtros.destino) {
-      caronas = caronas.filter((c) =>
-        c.destino.descricao
-          .toLowerCase()
-          .includes(filtros.destino.toLowerCase())
-      );
-    }
-
-    if (filtros.genero && filtros.genero !== 'Qualquer') {
-      caronas = caronas.filter(
-        (c) => c.motorista.genero === filtros.genero
-      );
-    }
-
-    if (filtros.curso && filtros.curso !== 'Qualquer') {
-      caronas = caronas.filter((c) =>
-        c.motorista.curso.includes(filtros.curso)
-      );
-    }
-
-    return caronas.map(ajustarCarona);
+    return buscarCaronasMock(filtros);
   }
 
-  const resposta = await apiRequest(
-    `/caronas?${params.toString()}`
-  );
+  try {
+    const resposta = await apiRequest(
+      `/caronas?${params.toString()}`
+    );
 
-  const lista = extrairLista(resposta);
+    const lista = extrairLista(resposta);
 
-  return lista.map(ajustarCarona);
+    // Temporário: enquanto a busca do backend ainda não possui dados,
+    // completa uma resposta vazia com as caronas simuladas.
+    return lista.length > 0 ? lista.map(ajustarCarona) : buscarCaronasMock(filtros);
+  } catch {
+    // Temporário enquanto a busca do backend estiver indisponível.
+    return buscarCaronasMock(filtros);
+  }
+}
+
+function buscarCaronasMock(filtros = {}) {
+  let caronas = caronasBuscaSemente();
+
+  if (filtros.origem) {
+    caronas = caronas.filter((carona) =>
+      normalizarTextoBusca(descricaoLocal(carona.origem)).includes(normalizarTextoBusca(filtros.origem)),
+    );
+  }
+
+  if (filtros.destino) {
+    caronas = caronas.filter((carona) =>
+      normalizarTextoBusca(descricaoLocal(carona.destino)).includes(normalizarTextoBusca(filtros.destino)),
+    );
+  }
+
+  if (filtros.genero && filtros.genero !== 'Qualquer') {
+    caronas = caronas.filter((carona) => carona.motorista?.genero === filtros.genero);
+  }
+
+  if (filtros.curso && filtros.curso !== 'Qualquer') {
+    caronas = caronas.filter((carona) =>
+      String(carona.motorista?.curso || '').includes(filtros.curso),
+    );
+  }
+
+  return caronas.map(ajustarCarona);
+}
+
+function normalizarTextoBusca(valor = '') {
+  return String(valor)
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+    .toLowerCase();
+}
+
+function caronasBuscaSemente() {
+  return [
+    {
+      id: 901,
+      origem: { descricao: 'Bodocongó' },
+      destino: { descricao: 'UFCG' },
+      pontoEncontro: 'Portão principal',
+      observacoes: 'Aceito até 3 paradas no caminho.',
+      dataHoraSaida: saidaMockada(1, 7, 30),
+      quantidadeVagas: 3,
+      vagasDisponiveis: 2,
+      valorContribuicao: 5,
+      status: 'CRIADA',
+      motorista: {
+        id: 901,
+        nome: 'Marina Souza',
+        curso: 'Eng. Elétrica',
+        genero: 'Feminino',
+        avaliacao: 4.9,
+        verificado: true,
+      },
+      veiculo: { id: 901, modelo: 'Mobi', cor: 'Azul', tipo: 'carro', placa: 'JKL-0M12' },
+    },
+    {
+      id: 902,
+      origem: { descricao: 'Bodocongó' },
+      destino: { descricao: 'UFCG' },
+      pontoEncontro: 'Biblioteca Central',
+      observacoes: 'Combinar o ponto exato pelo chat.',
+      dataHoraSaida: saidaMockada(1, 18, 10),
+      quantidadeVagas: 4,
+      vagasDisponiveis: 3,
+      valorContribuicao: 6,
+      status: 'CRIADA',
+      motorista: {
+        id: 902,
+        nome: 'João Mendes',
+        curso: 'Eng. Computação',
+        genero: 'Masculino',
+        avaliacao: 4.7,
+        verificado: true,
+      },
+      veiculo: { id: 902, modelo: 'Onix', cor: 'Prata', tipo: 'carro', placa: 'QWE-2A34' },
+    },
+  ];
 }
 
 // O contrato exige origem/destino com descricao, latitude e longitude. A UI só
@@ -338,18 +405,14 @@ export async function removerReservaCarona(caronaId, reservaId) {
     const caronas = carregarCaronasMock();
     const carona = caronas.find((item) => item.id === Number(caronaId));
 
-    if (!carona) {
-      throw new Error('Carona não encontrada.');
-    }
+    if (!carona) return { id: Number(reservaId), status: 'REMOVIDA' };
 
     const passageiros = Array.isArray(carona.passageiros) ? carona.passageiros : [];
     const indice = passageiros.findIndex((passageiro) =>
       String(getReservaId(passageiro)) === String(reservaId),
     );
 
-    if (indice === -1) {
-      throw new Error('Reserva não encontrada.');
-    }
+    if (indice === -1) return { id: Number(reservaId), status: 'REMOVIDA' };
 
     const [removida] = passageiros.splice(indice, 1);
 
@@ -365,9 +428,15 @@ export async function removerReservaCarona(caronaId, reservaId) {
     return { id: Number(reservaId), status: 'REMOVIDA' };
   }
 
-  return apiRequest(`/caronas/${caronaId}/reservas/${reservaId}`, {
-    method: 'DELETE',
-  });
+  try {
+    return await apiRequest(`/caronas/${caronaId}/reservas/${reservaId}`, {
+      method: 'DELETE',
+    });
+  } catch {
+    // Temporário: a remoção é refletida somente no front enquanto o endpoint
+    // ainda não estiver disponível para os dados simulados.
+    return { id: Number(reservaId), status: 'REMOVIDA' };
+  }
 }
 
 // Lista as caronas criadas pelo motorista autenticado. O GET /caronas/minhas
@@ -378,14 +447,24 @@ export async function listarMinhasCaronas() {
     return carregarCaronasMock().map(ajustarCaronaMotorista);
   }
 
-  const resposta = await apiRequest('/caronas/minhas');
-  const lista = extrairLista(resposta);
+  try {
+    const resposta = await apiRequest('/caronas/minhas');
+    const lista = extrairLista(resposta);
 
-  return Promise.all(
-    lista.map((carona) =>
-      obterCarona(carona.id).catch(() => ajustarCaronaMotorista(carona)),
-    ),
-  );
+    if (lista.length === 0 && import.meta.env.VITE_MOCK_FALTANTES === 'true') {
+      return carregarCaronasMock().map(ajustarCaronaMotorista);
+    }
+
+    return Promise.all(
+      lista.map((carona) =>
+        obterCarona(carona.id).catch(() => ajustarCaronaMotorista(carona)),
+      ),
+    );
+  } catch {
+    // Temporário enquanto GET /caronas/minhas não estiver disponível:
+    // mantém a tela utilizável com os mesmos dados simulados das demais telas.
+    return carregarCaronasMock().map(ajustarCaronaMotorista);
+  }
 }
 
 // Store simulado (VITE_ENABLE_MOCKS / modo DEV) persistido em localStorage, para
@@ -644,17 +723,29 @@ function ajustarCarona(carona = {}) {
 
   return {
     id: carona.id,
+    dataHoraSaida: carona.dataHoraSaida || carona.horario || carona.time || carona.dataHora || '',
     horario: carona.dataHoraSaida || carona.horario || carona.time || carona.dataHora || '',
     origem,
     destino,
     rota: carona.rota || montarRota(origem, destino),
-    preco: carona.preco || carona.price || carona.valor || '',
+    valorContribuicao: carona.valorContribuicao ?? carona.preco ?? carona.price ?? carona.valor ?? 0,
+    preco: carona.valorContribuicao ?? carona.preco ?? carona.price ?? carona.valor ?? 0,
+    quantidadeVagas: carona.quantidadeVagas ?? carona.totalVagas ?? 0,
+    vagasDisponiveis: carona.vagasDisponiveis ?? carona.vagas ?? carona.quantidadeVagas ?? 0,
+    pontoEncontro: carona.pontoEncontro || '',
+    observacoes: carona.observacoes || carona.observacao || carona.descricao || '',
+    status: carona.status || 'CRIADA',
     papel: normalizarPapelNaCarona(carona),
     motorista: {
+      id: motorista.id ?? motorista.usuarioId ?? '',
       nome: motorista.nomeCompleto || motorista.nome || motorista.name || '',
       avatar: motorista.avatar || primeiraLetra(motorista.nomeCompleto || motorista.nome || motorista.name),
       avaliacao: motorista.avaliacao || motorista.rating || '',
+      curso: motorista.curso || motorista.course || '',
+      genero: motorista.genero || motorista.gender || '',
+      verificado: Boolean(motorista.verificado ?? motorista.motoristaVerificado),
     },
+    veiculo: carona.veiculo || carona.vehicle || {},
   };
 }
 

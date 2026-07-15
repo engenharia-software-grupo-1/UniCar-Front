@@ -31,7 +31,10 @@ const STATUS_CARONA = {
 };
 
 function HistoricoCaronas() {
-  const [aba, setAba] = useState('passageiro');
+  const [aba, setAba] = useState(() => {
+    const abaSalva = window.sessionStorage.getItem('unicar.historico.aba');
+    return abaSalva === 'motorista' ? 'motorista' : 'passageiro';
+  });
   const [reservas, setReservas] = useState([]);
   const [caronas, setCaronas] = useState([]);
   const [resumo, setResumo] = useState({ avaliacaoMedia: 0, caronasConcluidas: 0 });
@@ -41,6 +44,10 @@ function HistoricoCaronas() {
   const [caronaParaEscolherPassageiro, setCaronaParaEscolherPassageiro] = useState(null);
   const [enviandoAvaliacao, setEnviandoAvaliacao] = useState(false);
   const [mensagemSucesso, setMensagemSucesso] = useState('');
+
+  useEffect(() => {
+    window.sessionStorage.setItem('unicar.historico.aba', aba);
+  }, [aba]);
 
   useEffect(() => {
     let ativo = true;
@@ -306,6 +313,7 @@ function CaronaMotoristaCard({ carona, onAvaliar }) {
     <article className="historico-card historico-card--clicavel historico-card--carona-motorista">
       <Link
         to={`/historico/${carona.id}`}
+        state={{ papel: 'motorista' }}
         className="historico-card__link"
         aria-label={`Ver detalhes da carona de ${carona.origem} para ${montarDestinoMotorista(carona)}`}
       />
@@ -435,7 +443,7 @@ function ReservaPassageiroCard({ reserva, onAvaliarMotorista }) {
   return (
     <article className="historico-card historico-card--clicavel">
       <Link
-        to={`/historico/${reserva.id}`}
+        to={`/reservas/${reserva.id}`}
         className="historico-card__link"
         aria-label={`Ver detalhes da carona de ${reserva.origem} para ${montarDestino(reserva)}`}
       />

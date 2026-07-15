@@ -24,6 +24,7 @@ import NaoEncontrada from './pages/NaoEncontrada/index.jsx';
 import TrajetosRecorrentes from './pages/TrajetosRecorrentes/index.jsx';
 import DetalheTrajetosRecorrentes from './pages/DetalheTrajetosRecorrentes/index.jsx';
 import BuscarCarona from './pages/BuscarCarona/index.jsx';
+import DetalheReserva from './pages/DetalheReserva/index.jsx';
 
 import { isAuthenticated } from './services/authService.js';
 import { hasAcceptedTerms } from './services/termsService.js';
@@ -190,6 +191,24 @@ function App() {
           element={
             <RequireAuthAndTerms>
               <HistoricoDetalhes />
+            </RequireAuthAndTerms>
+          }
+        />
+
+        <Route
+          path="/caronas/:id"
+          element={
+            <RequireAuthAndTerms>
+              <DetalheCarona />
+            </RequireAuthAndTerms>
+          }
+        />
+
+        <Route
+          path="/reservas/:id"
+          element={
+            <RequireAuthAndTerms>
+              <DetalheReserva />
             </RequireAuthAndTerms>
           }
         />

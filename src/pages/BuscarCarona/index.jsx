@@ -269,7 +269,7 @@ function RideCard({ carona, onOpenProfile }) {
   const diasRecorrencia = carona.diasRecorrencia || carona.recurring?.days || [];
 
   return (
-    <Link to={`/minhas-caronas/${carona.id}`} className="ride-card">
+    <Link to={`/caronas/${carona.id}`} state={{ carona, origem: 'busca' }} className="ride-card">
       <span
         role="link"
         tabIndex={0}

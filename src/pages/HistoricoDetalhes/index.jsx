@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import {
   ArrowLeft,
   ArrowRight,
@@ -30,6 +30,7 @@ const STATUS = {
 
 function HistoricoDetalhes() {
   const { id } = useParams();
+  const location = useLocation();
   const navigate = useNavigate();
   const [detalhe, setDetalhe] = useState(null);
   const [carregando, setCarregando] = useState(true);
@@ -97,7 +98,7 @@ function HistoricoDetalhes() {
           </section>
         )}
 
-        {!carregando && detalhe && !erro && <ConteudoDetalhe detalhe={detalhe} />}
+        {!carregando && detalhe && !erro && <ConteudoDetalhe detalhe={detalhe} papel={location.state?.papel} />}
       </section>
 
       <NavegacaoInferior />
@@ -105,11 +106,12 @@ function HistoricoDetalhes() {
   );
 }
 
-function ConteudoDetalhe({ detalhe }) {
+function ConteudoDetalhe({ detalhe, papel }) {
   const status = STATUS[detalhe.status] || { rotulo: detalhe.status, classe: 'pendente' };
   const finalizada = status.classe === 'finalizada' || status.classe === 'confirmada';
-  const usuarioId = getSession()?.usuario?.id;
-  const motorista = String(detalhe.motorista.id) === String(usuarioId);
+  const usuario = getSession()?.usuario || {};
+  const usuarioId = usuario.id ?? usuario.usuarioId ?? usuario.userId;
+  const motorista = papel === 'motorista' || String(detalhe.motorista.id) === String(usuarioId);
   const totalVagas = Number(detalhe.vagasTotais || detalhe.reservas.reduce((total, reserva) => total + Number(reserva.vagas || 1), 0));
   const vagasOcupadas = detalhe.reservas.reduce((total, reserva) => total + Number(reserva.vagas || 1), 0);
 
@@ -118,7 +120,7 @@ function ConteudoDetalhe({ detalhe }) {
       <header className="historico-detalhes-hero">
         {finalizada ? <CheckCircle2 aria-hidden="true" /> : <XCircle aria-hidden="true" />}
         <div>
-          <h1>{finalizada ? 'Viagem concluída' : 'Viagem cancelada'}</h1>
+          <h1>{finalizada ? 'Carona concluída' : 'Carona cancelada'}</h1>
           <span className="historico-detalhes-papel">
             {motorista ? <CarFront size={14} /> : <UserRound size={14} />}
             Você foi {motorista ? 'motorista' : 'passageiro'}

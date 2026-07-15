@@ -25,6 +25,7 @@ export default defineConfig({
       '/trajetos-recorrentes': 'http://localhost:8080',
       '/veiculos': 'http://localhost:8080',
       '/avaliacoes': 'http://localhost:8080',
+      '/reservas': 'http://localhost:8080',
     },
   },
 })

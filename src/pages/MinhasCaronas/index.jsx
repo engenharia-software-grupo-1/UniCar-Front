@@ -1,8 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { ArrowRight, Bell, Pencil, Play, Square, Users, X } from 'lucide-react';
-import Logo from '../../components/common/Logo.jsx';
-import NavegacaoInferior from '../../components/layout/NavegacaoInferior.jsx';
+import { ArrowRight, Pencil, Play, Square, Users, X } from 'lucide-react';
 import Confirmacao from '../../components/common/Confirmacao.jsx';
 import StatusReservaBadge from '../../components/common/StatusReservaBadge.jsx';
 import { cancelarCarona, iniciarCarona, finalizarCarona, listarMinhasCaronas } from '../../services/caronaService.js';
@@ -273,17 +271,6 @@ function MinhasCaronas() {
 
   return (
     <main className="caronas-page">
-      <header className="caronas-topbar">
-        <Link to="/inicio" className="caronas-logo" aria-label="UniCar">
-          <Logo />
-        </Link>
-
-        <button type="button" className="caronas-notification" aria-label="Notificações">
-          <Bell size={24} />
-          <span />
-        </button>
-      </header>
-
       <section className="caronas-shell">
         <h1 className="caronas-title">Minhas caronas</h1>
 
@@ -385,8 +372,6 @@ function MinhasCaronas() {
         onConfirm={confirmarFinalizacao}
         onCancel={() => setCaronaParaFinalizar(null)}
       />
-
-      <NavegacaoInferior />
     </main>
   );
 }

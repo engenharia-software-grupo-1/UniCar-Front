@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ArrowRight,
-  Bell,
   CalendarX,
   CalendarDays,
   CarFront,
@@ -11,8 +10,6 @@ import {
   Star,
   UserRound,
 } from 'lucide-react';
-import Logo from '../../components/common/Logo.jsx';
-import NavegacaoInferior from '../../components/layout/NavegacaoInferior.jsx';
 import { getSession } from '../../services/authService.js';
 import { getPerfilUsuarioAutenticado } from '../../services/profileService.js';
 import {
@@ -72,17 +69,6 @@ function Inicio() {
 
   return (
     <main className="inicio-page">
-      <header className="inicio-topbar">
-        <Link to="/inicio" className="inicio-logo" aria-label="UniCar">
-          <Logo />
-        </Link>
-
-        <button type="button" className="inicio-notification" aria-label="Notificações">
-          <Bell size={24} />
-          <span />
-        </button>
-      </header>
-
       <section className="inicio-shell">
         <div className="inicio-greeting">
           <span>Olá,</span>
@@ -215,8 +201,6 @@ function Inicio() {
           </div>
         </section>
       </section>
-
-      <NavegacaoInferior />
     </main>
   );
 }

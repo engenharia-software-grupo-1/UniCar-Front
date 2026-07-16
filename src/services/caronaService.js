@@ -141,10 +141,10 @@ export async function criarCarona(dados) {
   return Array.isArray(criadas) ? criadas : [criadas];
 }
 
-// Atualiza os dados editáveis de UMA carona (PATCH /caronas/{id}). Cada carona
-// é uma data só — não há recorrência a editar aqui.
+// Atualiza os dados editáveis de UMA carona (PUT /caronas/{id}). Cada carona é
+// uma data só — não há recorrência a editar aqui.
 export async function editarCarona(id, dados) {
-  const payload = { ...montarPayloadBase(dados), dataHoraSaida: dados.dataHoraSaida };
+  const base = montarPayloadBase(dados);
 
   if (shouldUseLocalDataMocks()) {
     const caronas = carregarCaronasMock();
@@ -156,8 +156,9 @@ export async function editarCarona(id, dados) {
 
     const atualizada = {
       ...caronas[indice],
-      ...payload,
-      vagasDisponiveis: recalcularVagasDisponiveis(caronas[indice], payload.quantidadeVagas),
+      ...base,
+      dataHoraSaida: dados.dataHoraSaida,
+      vagasDisponiveis: recalcularVagasDisponiveis(caronas[indice], base.quantidadeVagas),
     };
 
     caronas[indice] = atualizada;
@@ -166,8 +167,12 @@ export async function editarCarona(id, dados) {
     return ajustarCaronaMotorista(atualizada);
   }
 
+  // O PUT reaproveita o CaronaRequestDTO da criação: exige o recurso inteiro e a
+  // data em `datasHorasSaida` (lista de um item só). Payload parcial volta 400.
+  const payload = { ...base, datasHorasSaida: [dados.dataHoraSaida] };
+
   const carona = await apiRequest(`/caronas/${id}`, {
-    method: 'PATCH',
+    method: 'PUT',
     body: JSON.stringify(payload),
   });
 
@@ -177,15 +182,28 @@ export async function editarCarona(id, dados) {
 // Campos comuns a criar e editar. A data fica de fora porque as duas operações
 // a tratam de forma diferente: criar leva `datasHorasSaida` (lista), editar leva
 // `dataHoraSaida` (uma ocorrência).
+//
+// `observacao` é opcional (VARCHAR(255) nullable) e precisa ir SEMPRE no payload
+// do PUT: como a edição substitui o recurso inteiro, omitir o campo apaga a
+// observação já gravada. Vazio vira null, que é o que a API espera.
 function montarPayloadBase(dados = {}) {
   return {
     veiculoId: Number(dados.veiculoId),
     origem: montarLocalContrato(dados.origem),
     destino: montarLocalContrato(dados.destino),
     pontoEncontro: dados.pontoEncontro ?? '',
+    observacao: normalizarObservacao(dados.observacao),
     quantidadeVagas: Number(dados.quantidadeVagas),
     valorContribuicao: Number(dados.valorContribuicao),
   };
+}
+
+export const OBSERVACAO_MAX = 255;
+
+function normalizarObservacao(observacao) {
+  const texto = String(observacao ?? '').trim();
+
+  return texto ? texto.slice(0, OBSERVACAO_MAX) : null;
 }
 
 // Busca uma carona via endpoint GET /caronas
@@ -394,8 +412,17 @@ export async function finalizarCarona(id) {
   });
 }
 
-// Remove uma reserva aceita da carona do motorista
-// (DELETE /caronas/{id}/reservas/{reservaId}) — contrato US7-BACK-07.
+// Remove uma reserva da carona (PATCH /reservas/{reservaId}/remover).
+//
+// A API só autoriza o DONO da reserva (o passageiro) a chamar isto: o
+// `ReservaCaronaService.validarDono` compara o usuário do token com o passageiro
+// e devolve 403 para o motorista, apesar do Swagger anunciar "remove passageiro
+// de uma carona". Verificado contra o backend em 14/07/2026.
+//
+// Ou seja: a remoção pelo MOTORISTA (que é quem chama isto no DetalheCarona) NÃO
+// tem endpoint hoje — em produção ela responde 403. Só funciona porque o MSW
+// intercepta antes. Enquanto o backend não expuser a versão do motorista, esta
+// função só é confiável no fluxo "passageiro cancela a própria reserva".
 export async function removerReservaCarona(caronaId, reservaId) {
   if (!caronaId || !reservaId) {
     throw new Error('Reserva inválida.');
@@ -428,15 +455,12 @@ export async function removerReservaCarona(caronaId, reservaId) {
     return { id: Number(reservaId), status: 'REMOVIDA' };
   }
 
-  try {
-    return await apiRequest(`/caronas/${caronaId}/reservas/${reservaId}`, {
-      method: 'DELETE',
-    });
-  } catch {
-    // Temporário: a remoção é refletida somente no front enquanto o endpoint
-    // ainda não estiver disponível para os dados simulados.
-    return { id: Number(reservaId), status: 'REMOVIDA' };
-  }
+  // A remoção é endereçada pela reserva, não pela carona: PATCH /reservas/{id}/remover
+  // (204 sem corpo, daí devolvermos o status por conta própria). O `caronaId` só
+  // serve ao store mockado acima.
+  await apiRequest(`/reservas/${reservaId}/remover`, { method: 'PATCH' });
+
+  return { id: Number(reservaId), status: 'REMOVIDA' };
 }
 
 // Lista as caronas criadas pelo motorista autenticado. O GET /caronas/minhas
@@ -460,10 +484,11 @@ export async function listarMinhasCaronas() {
         obterCarona(carona.id).catch(() => ajustarCaronaMotorista(carona)),
       ),
     );
-  } catch {
-    // Temporário enquanto GET /caronas/minhas não estiver disponível:
-    // mantém a tela utilizável com os mesmos dados simulados das demais telas.
-    return carregarCaronasMock().map(ajustarCaronaMotorista);
+  } catch (error) {
+    if (import.meta.env.VITE_MOCK_FALTANTES === 'true') {
+      return carregarCaronasMock().map(ajustarCaronaMotorista);
+    }
+    throw error;
   }
 }
 
@@ -640,7 +665,10 @@ function ajustarCaronaMotorista(carona = {}) {
     dataHoraSaida: carona.dataHoraSaida || carona.dataHora || '',
     origem: descricaoLocal(carona.origem),
     destino: descricaoLocal(carona.destino),
+    origemCoordenadas: coordenadasLocal(carona.origem),
+    destinoCoordenadas: coordenadasLocal(carona.destino),
     pontoEncontro: carona.pontoEncontro || '',
+    observacao: carona.observacao || '',
     valorContribuicao: carona.valorContribuicao ?? carona.valor ?? carona.preco ?? null,
     quantidadeVagas,
     vagasDisponiveis,
@@ -714,6 +742,24 @@ function descricaoLocal(local) {
   }
 
   return typeof local === 'string' ? local : local.descricao || '';
+}
+
+// Preserva as coordenadas que o backend devolve no detalhe. São obrigatórias no
+// PUT: quem edita a carona precisa reenviá-las, senão a validação recusa com
+// "Latitude é obrigatória". Devolve null quando o local não tem coordenadas.
+function coordenadasLocal(local) {
+  if (!local || typeof local !== 'object') {
+    return null;
+  }
+
+  const latitude = Number(local.latitude);
+  const longitude = Number(local.longitude);
+
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+    return null;
+  }
+
+  return { latitude, longitude };
 }
 
 function ajustarCarona(carona = {}) {

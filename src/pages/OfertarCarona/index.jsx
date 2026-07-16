@@ -12,14 +12,19 @@ import {
   Repeat,
   Users,
 } from 'lucide-react';
-import NavegacaoInferior from '../../components/layout/NavegacaoInferior.jsx';
 import { listarVeiculos } from '../../services/vehicleService.js';
-import { geocodificarEndereco } from '../../services/geocodingService.js';
+import {
+  geocodificarEndereco,
+  calcularDistanciaKm,
+  calcularTetoContribuicao,
+  contribuicaoMaxima,
+} from '../../services/geocodingService.js';
 import {
   buscarUltimaCaronaDoTrajeto,
   criarCarona,
   listarTrajetosRecorrentes,
   obterTrajetoRecorrente,
+  OBSERVACAO_MAX,
 } from '../../services/caronaService.js';
 import {
   DIAS_SEMANA,
@@ -30,7 +35,6 @@ import './style.css';
 
 const TOTAL_PASSOS = 3;
 const VAGAS_CARRO = [1, 2, 3, 4];
-const CONTRIBUICAO_MAX = 20;
 
 // Veículo pode ter um atributo `tipo` ('carro' ou 'moto'). Quando ausente,
 // tratamos como carro (regra da issue #31).
@@ -62,6 +66,7 @@ function OfertarCarona() {
   const [origem, setOrigem] = useState('');
   const [destino, setDestino] = useState('');
   const [pontoEncontro, setPontoEncontro] = useState('');
+  const [observacao, setObservacao] = useState('');
   const [data, setData] = useState('');
   const [horario, setHorario] = useState('');
   const [recorrente, setRecorrente] = useState(false);
@@ -78,12 +83,28 @@ function OfertarCarona() {
   const [vagas, setVagas] = useState(1);
   const [contribuicao, setContribuicao] = useState(5);
 
+  // Coordenadas resolvidas ao avançar do passo 1: alimentam o teto da contribuição
+  // (passo 2) e são reusadas no publicar, sem geocodificar de novo.
+  const [origemCoord, setOrigemCoord] = useState(null);
+  const [destinoCoord, setDestinoCoord] = useState(null);
+
   const [veiculos, setVeiculos] = useState([]);
   const [carregandoVeiculos, setCarregandoVeiculos] = useState(true);
   const [dropdownAberto, setDropdownAberto] = useState(false);
   const [errosCampos, setErrosCampos] = useState({});
   const [erro, setErro] = useState('');
   const [publicando, setPublicando] = useState(false);
+  const [geocodificando, setGeocodificando] = useState(false);
+
+  const distanciaKm = useMemo(
+    () => (origemCoord && destinoCoord ? calcularDistanciaKm(origemCoord, destinoCoord) : null),
+    [origemCoord, destinoCoord],
+  );
+  const tetoContribuicao = useMemo(
+    () => (origemCoord && destinoCoord ? calcularTetoContribuicao(origemCoord, destinoCoord) : 0),
+    [origemCoord, destinoCoord],
+  );
+  const contribuicaoMax = useMemo(() => contribuicaoMaxima(tetoContribuicao), [tetoContribuicao]);
 
   const dropdownRef = useRef(null);
 
@@ -154,6 +175,10 @@ function OfertarCarona() {
         setPontoEncontro(ultima.pontoEncontro);
       }
 
+      if (ultima.observacao) {
+        setObservacao(ultima.observacao);
+      }
+
       // Moto só admite 1 vaga (regra da issue #31).
       if (ultima.quantidadeVagas) {
         setVagas(
@@ -164,9 +189,9 @@ function OfertarCarona() {
       }
 
       if (ultima.valorContribuicao != null) {
-        setContribuicao(
-          Math.min(Number(ultima.valorContribuicao), CONTRIBUICAO_MAX),
-        );
+        // O clamp ao teto do trajeto acontece em `avancar`, quando as coordenadas
+        // (e portanto o máximo) são conhecidas.
+        setContribuicao(Number(ultima.valorContribuicao));
       }
 
       setSugestaoDoHistorico(true);
@@ -365,7 +390,7 @@ function OfertarCarona() {
     limparErro('veiculo');
   }
 
-  function avancar() {
+  async function avancar() {
     setErro('');
 
     const erros = passo === 1 ? validarPasso1() : validarPasso2();
@@ -376,6 +401,33 @@ function OfertarCarona() {
     }
 
     setErrosCampos({});
+
+    // Ao sair do passo 1, geocodificamos origem/destino para calcular o teto da
+    // contribuição no passo 2. Sem coordenadas não há teto confiável, então
+    // bloqueamos o avanço e pedimos endereços válidos (nada de fallback).
+    if (passo === 1) {
+      setGeocodificando(true);
+
+      try {
+        const origemGeo = await geocodificarEndereco(origem);
+        const destinoGeo = await geocodificarEndereco(destino);
+
+        setOrigemCoord(origemGeo);
+        setDestinoCoord(destinoGeo);
+
+        const maximo = contribuicaoMaxima(calcularTetoContribuicao(origemGeo, destinoGeo));
+        setContribuicao((atual) => Math.min(atual, maximo));
+      } catch (error) {
+        setErrosCampos({
+          origem: error.message || 'Não foi possível localizar o endereço.',
+          destino: error.message || 'Não foi possível localizar o endereço.',
+        });
+        return;
+      } finally {
+        setGeocodificando(false);
+      }
+    }
+
     setPasso((atual) => Math.min(TOTAL_PASSOS, atual + 1));
   }
 
@@ -398,8 +450,10 @@ function OfertarCarona() {
       setPublicando(true);
       setErro('');
 
-      const origemGeocodificada = await geocodificarEndereco(origem);
-      const destinoGeocodificado = await geocodificarEndereco(destino);
+      // As coordenadas já foram resolvidas ao avançar do passo 1; só geocodificamos
+      // de novo se por algum motivo faltarem (fluxo anômalo).
+      const origemGeocodificada = origemCoord ?? (await geocodificarEndereco(origem));
+      const destinoGeocodificado = destinoCoord ?? (await geocodificarEndereco(destino));
 
       // A recorrência vira uma carona por data: o serviço expande os dias
       // marcados e devolve a lista das caronas criadas.
@@ -408,6 +462,7 @@ function OfertarCarona() {
         origem: origemGeocodificada,
         destino: destinoGeocodificado,
         pontoEncontro: pontoEncontro.trim(),
+        observacao: observacao.trim(),
         dataHoraSaida: `${data}T${horario}:00`,
         quantidadeVagas: vagas,
         valorContribuicao: contribuicao,
@@ -441,8 +496,13 @@ function OfertarCarona() {
       )}
 
       {passo < TOTAL_PASSOS ? (
-        <button type="button" className="ofertar-btn-primario" onClick={avancar}>
-          Continuar
+        <button
+          type="button"
+          className="ofertar-btn-primario"
+          onClick={avancar}
+          disabled={geocodificando}
+        >
+          {geocodificando ? 'Localizando...' : 'Continuar'}
         </button>
       ) : (
         <button
@@ -779,30 +839,41 @@ function OfertarCarona() {
                 Contribuição por passageiro
               </span>
 
-              <div className="ofertar-contrib">
-                <span className="ofertar-contrib-valor">R$ {contribuicao}</span>
+              {contribuicaoMax > 0 ? (
+                <>
+                  <div className="ofertar-contrib">
+                    <span className="ofertar-contrib-valor">
+                      R$ {formatarContribuicao(contribuicao)}
+                    </span>
 
-                <input
-                  type="range"
-                  className="ofertar-range"
-                  min={0}
-                  max={CONTRIBUICAO_MAX}
-                  step={1}
-                  value={contribuicao}
-                  onChange={(evento) => setContribuicao(Number(evento.target.value))}
-                  aria-label="Contribuição por passageiro"
-                  style={{ '--preenchido': `${(contribuicao / CONTRIBUICAO_MAX) * 100}%` }}
-                />
+                    <input
+                      type="range"
+                      className="ofertar-range"
+                      min={0}
+                      max={contribuicaoMax}
+                      step={0.5}
+                      value={contribuicao}
+                      onChange={(evento) => setContribuicao(Number(evento.target.value))}
+                      aria-label="Contribuição por passageiro"
+                      style={{ '--preenchido': `${(contribuicao / contribuicaoMax) * 100}%` }}
+                    />
 
-                <div className="ofertar-contrib-limites">
-                  <span>R$ 0</span>
-                  <span>R$ {CONTRIBUICAO_MAX}</span>
-                </div>
-              </div>
+                    <div className="ofertar-contrib-limites">
+                      <span>R$ 0</span>
+                      <span>R$ {formatarReais(contribuicaoMax)}</span>
+                    </div>
+                  </div>
 
-              <span className="ofertar-slider-dica">
-                Sugestão calculada com base na distância e combustível.
-              </span>
+                  <span className="ofertar-slider-dica">
+                    Máximo de R$ {formatarReais(tetoContribuicao)} para{' '}
+                    {formatarKm(distanciaKm)} km (R$ 1,00/km).
+                  </span>
+                </>
+              ) : (
+                <span className="ofertar-slider-dica">
+                  Trajeto muito curto para cobrar contribuição — será publicada como gratuita (R$ 0).
+                </span>
+              )}
             </div>
 
             {acoes}
@@ -820,7 +891,7 @@ function OfertarCarona() {
 
               <p className="ofertar-revisao-detalhe">
                 {formatarDia(data)} às {horario || '—'} • {vagas}{' '}
-                {vagas === 1 ? 'vaga' : 'vagas'} • R$ {contribuicao}
+                {vagas === 1 ? 'vaga' : 'vagas'} • R$ {formatarContribuicao(contribuicao)}
               </p>
 
               <p className="ofertar-revisao-tipo">
@@ -847,14 +918,43 @@ function OfertarCarona() {
               )}
             </div>
 
+            {/* A observação é o último retoque antes de publicar: vale para todas as
+                caronas criadas quando o trajeto é recorrente. */}
+            <label className="ofertar-campo ofertar-observacao">
+              <span>Observações (opcional)</span>
+              <textarea
+                className="ofertar-textarea"
+                value={observacao}
+                onChange={(evento) => setObservacao(evento.target.value)}
+                maxLength={OBSERVACAO_MAX}
+                placeholder="Ex: aceito até 3 paradas, sem fumantes..."
+              />
+              <span className="ofertar-contador">
+                {observacao.length}/{OBSERVACAO_MAX}
+              </span>
+            </label>
+
             {acoes}
           </div>
         )}
       </section>
-
-      <NavegacaoInferior />
     </main>
   );
+}
+
+// Valor escolhido no slider: inteiro sem casas ("5"), fração com vírgula ("5,50").
+function formatarContribuicao(valor) {
+  const numero = Number(valor) || 0;
+  return Number.isInteger(numero) ? String(numero) : numero.toFixed(2).replace('.', ',');
+}
+
+// Teto/limite: sempre 2 casas com vírgula ("5,73").
+function formatarReais(valor) {
+  return (Number(valor) || 0).toFixed(2).replace('.', ',');
+}
+
+function formatarKm(valor) {
+  return (Number(valor) || 0).toFixed(2).replace('.', ',');
 }
 
 function formatarDia(data) {

@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   AlertTriangle,
-  ArrowLeft,
   Bike,
   Calendar,
   Car,
@@ -13,12 +12,17 @@ import {
   Users,
   X,
 } from 'lucide-react';
-import NavegacaoInferior from '../../components/layout/NavegacaoInferior.jsx';
-import { editarCarona, obterCarona } from '../../services/caronaService.js';
+import { editarCarona, obterCarona, OBSERVACAO_MAX } from '../../services/caronaService.js';
+import {
+  geocodificarEndereco,
+  calcularTetoContribuicao,
+  contribuicaoMaxima,
+} from '../../services/geocodingService.js';
 import './style.css';
 
 const STATUS_BLOQUEADOS = ['EM_ANDAMENTO', 'FINALIZADA', 'CANCELADA'];
-const CONTRIBUICAO_MAX = 20;
+// Fallback para caronas legadas sem coordenadas: sem cap falso, o backend ainda valida.
+const CONTRIBUICAO_MAX_FALLBACK = 20;
 
 const FORM_INICIAL = {
   origem: '',
@@ -30,7 +34,9 @@ const FORM_INICIAL = {
   veiculoId: '',
   quantidadeVagas: 1,
   valorContribuicao: 0,
-  observacoes: '',
+  observacao: '',
+  origemCoordenadas: null,
+  destinoCoordenadas: null,
 };
 
 function EditarCarona() {
@@ -87,10 +93,25 @@ function EditarCarona() {
   const minimoVagas = Math.max(1, passageirosConfirmados);
   const bloqueada = STATUS_BLOQUEADOS.includes(carona?.status);
 
-  const preenchimentoContribuicao = useMemo(
-    () => `${(Number(form.valorContribuicao || 0) / CONTRIBUICAO_MAX) * 100}%`,
-    [form.valorContribuicao],
+  // Teto de contribuição pelo trajeto. Origem/destino são read-only, então as
+  // coordenadas vêm prontas do backend — sem geocodificar. Carona legada sem
+  // coordenadas cai no fallback (sem cap falso; o backend ainda valida).
+  const tetoContribuicao = useMemo(
+    () =>
+      form.origemCoordenadas && form.destinoCoordenadas
+        ? calcularTetoContribuicao(form.origemCoordenadas, form.destinoCoordenadas)
+        : null,
+    [form.origemCoordenadas, form.destinoCoordenadas],
   );
+  const contribuicaoMax =
+    tetoContribuicao == null
+      ? Math.max(Number(form.valorContribuicao) || 0, CONTRIBUICAO_MAX_FALLBACK)
+      : contribuicaoMaxima(tetoContribuicao);
+
+  const preenchimentoContribuicao = useMemo(() => {
+    const valor = Number(form.valorContribuicao) || 0;
+    return `${contribuicaoMax > 0 ? (valor / contribuicaoMax) * 100 : 0}%`;
+  }, [form.valorContribuicao, contribuicaoMax]);
   const temAlteracoes = useMemo(() => {
     if (!formOriginal) {
       return false;
@@ -134,14 +155,7 @@ function EditarCarona() {
   function validar() {
     const erros = {};
 
-    if (!form.origem.trim()) {
-      erros.origem = 'Informe o ponto de partida.';
-    }
-
-    if (!form.destino.trim()) {
-      erros.destino = 'Informe o destino.';
-    }
-
+    // Origem e destino são somente leitura (vêm da carona), então não entram aqui.
     if (!form.data) {
       erros.data = 'Informe a data.';
     }
@@ -177,7 +191,17 @@ function EditarCarona() {
       setSalvando(true);
       setErro('');
 
-      await editarCarona(id, montarDadosEditaveis(form, carona));
+      // O PUT exige coordenadas em origem/destino. Como os endereços são somente
+      // leitura, reusamos as que a carona já tinha; a geocodificação em resolverLocal
+      // fica só como fallback para caronas antigas que porventura não tenham lat/long.
+      const origem = await resolverLocal(form.origem, formOriginal.origem, form.origemCoordenadas);
+      const destino = await resolverLocal(
+        form.destino,
+        formOriginal.destino,
+        form.destinoCoordenadas,
+      );
+
+      await editarCarona(id, montarDadosEditaveis(form, carona, { origem, destino }));
 
       setSucesso(true);
       window.setTimeout(() => {
@@ -199,7 +223,6 @@ function EditarCarona() {
           <Loader2 size={22} className="editar-carona-spin" />
           <p>Carregando dados da carona...</p>
         </section>
-        <NavegacaoInferior />
       </main>
     );
   }
@@ -214,23 +237,18 @@ function EditarCarona() {
           <h2>Alterações salvas!</h2>
           <p>Redirecionando...</p>
         </section>
-        <NavegacaoInferior />
       </main>
     );
   }
 
   return (
     <main className="editar-carona-page">
-      <header className="editar-carona-topbar">
-        <button type="button" className="editar-carona-back" onClick={voltar}>
-          <ArrowLeft size={20} />
-          Voltar
-        </button>
-        <h1>Editar carona</h1>
-        <p>Atualize os detalhes desta carona.</p>
-      </header>
-
       <section className="editar-carona-shell">
+        <div className="editar-carona-cabecalho">
+          <h1>Editar carona</h1>
+          <p>Atualize os detalhes desta carona.</p>
+        </div>
+
         {erro && (
           <div className="editar-carona-erro" role="alert">
             {erro}
@@ -250,19 +268,22 @@ function EditarCarona() {
           <section className="editar-carona-card">
             <h2>Trajeto e horário</h2>
 
+            {/* Origem e destino não são editáveis: mudar a rota de uma carona já
+                publicada é criar outra carona. Ficam só de leitura aqui. */}
             <Campo
               icon={MapPin}
               label="Ponto de partida"
               value={form.origem}
-              erro={errosCampos.origem}
-              onChange={(valor) => atualizar('origem', valor)}
+              onChange={() => {}}
+              readOnly
+              dica="Para mudar a rota, crie uma nova carona."
             />
             <Campo
               icon={MapPin}
               label="Destino"
               value={form.destino}
-              erro={errosCampos.destino}
-              onChange={(valor) => atualizar('destino', valor)}
+              onChange={() => {}}
+              readOnly
             />
 
             <div className="editar-carona-linha">
@@ -346,24 +367,39 @@ function EditarCarona() {
                 <DollarSign size={14} />
                 Contribuição por passageiro: {formatarValor(form.valorContribuicao)}
               </span>
-              <input
-                type="range"
-                min={0}
-                max={CONTRIBUICAO_MAX}
-                value={form.valorContribuicao}
-                style={{ '--preenchido': preenchimentoContribuicao }}
-                onChange={(event) => atualizar('valorContribuicao', Number(event.target.value))}
-              />
+              {contribuicaoMax > 0 ? (
+                <input
+                  type="range"
+                  min={0}
+                  max={contribuicaoMax}
+                  step={0.5}
+                  value={form.valorContribuicao}
+                  style={{ '--preenchido': preenchimentoContribuicao }}
+                  onChange={(event) => atualizar('valorContribuicao', Number(event.target.value))}
+                  aria-label="Contribuição por passageiro"
+                />
+              ) : null}
+              {tetoContribuicao != null && (
+                <span className="editar-carona-dica">
+                  {contribuicaoMax > 0
+                    ? `Máximo de ${formatarValor(tetoContribuicao)} para este trajeto.`
+                    : 'Trajeto muito curto para cobrar contribuição — será gratuita (R$ 0).'}
+                </span>
+              )}
             </div>
           </section>
 
           <section className="editar-carona-card">
             <h2>Observações</h2>
             <textarea
-              value={form.observacoes}
-              onChange={(event) => atualizar('observacoes', event.target.value)}
+              value={form.observacao}
+              onChange={(event) => atualizar('observacao', event.target.value)}
+              maxLength={OBSERVACAO_MAX}
               placeholder="Ex: aceito até 3 paradas, sem fumantes..."
             />
+            <p className="editar-carona-contador">
+              {form.observacao.length}/{OBSERVACAO_MAX}
+            </p>
           </section>
         </fieldset>
       </section>
@@ -384,20 +420,24 @@ function EditarCarona() {
           {salvando ? 'Salvando...' : temAlteracoes ? 'Salvar alterações' : 'Sem alterações'}
         </button>
       </div>
-
-      <NavegacaoInferior />
     </main>
   );
 }
 
-function Campo({ icon: Icon, label, value, onChange, erro, type = 'text' }) {
+function Campo({ icon: Icon, label, value, onChange, erro, type = 'text', readOnly = false, dica }) {
   return (
     <label className="editar-carona-campo">
       <span className="editar-carona-label">{label}</span>
-      <div className="editar-carona-input">
+      <div className={`editar-carona-input${readOnly ? ' editar-carona-input--readonly' : ''}`}>
         {Icon && <Icon size={18} />}
-        <input type={type} value={value} onChange={(event) => onChange(event.target.value)} />
+        <input
+          type={type}
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          readOnly={readOnly}
+        />
       </div>
+      {dica && <span className="editar-carona-dica">{dica}</span>}
       {erro && <span className="editar-carona-erro-campo">{erro}</span>}
     </label>
   );
@@ -406,6 +446,19 @@ function Campo({ icon: Icon, label, value, onChange, erro, type = 'text' }) {
 function toForm(carona) {
   const { data, horario } = separarDataHora(carona.dataHoraSaida);
   const tipoVeiculo = carona.veiculo?.tipo === 'moto' ? 'moto' : 'carro';
+
+  const origemCoordenadas = carona.origemCoordenadas || null;
+  const destinoCoordenadas = carona.destinoCoordenadas || null;
+
+  // Caronas criadas sob a regra antiga (R$20) podem ter valor acima do teto atual
+  // do trajeto; clampa já no carregamento quando há coordenadas para o cálculo.
+  let valorContribuicao = Number(carona.valorContribuicao ?? 0);
+  if (origemCoordenadas && destinoCoordenadas) {
+    const maximo = contribuicaoMaxima(
+      calcularTetoContribuicao(origemCoordenadas, destinoCoordenadas),
+    );
+    valorContribuicao = Math.min(valorContribuicao, maximo);
+  }
 
   return {
     origem: carona.origem || '',
@@ -416,20 +469,36 @@ function toForm(carona) {
     tipoVeiculo,
     veiculoId: carona.veiculo?.id || '',
     quantidadeVagas: carona.quantidadeVagas || 1,
-    valorContribuicao: Number(carona.valorContribuicao ?? 0),
-    observacoes: '',
+    valorContribuicao,
+    observacao: carona.observacao || '',
+    origemCoordenadas,
+    destinoCoordenadas,
   };
 }
 
-function montarDadosEditaveis(formulario, carona = null) {
+// Resolve o local para o formato que o PUT exige ({ descricao, latitude, longitude }).
+// Sem mudança no texto, reaproveita as coordenadas preservadas da carona; com
+// mudança (ou sem coordenadas guardadas), geocodifica o endereço atual.
+async function resolverLocal(texto, textoOriginal, coordenadas) {
+  const descricao = texto.trim();
+
+  if (descricao === textoOriginal.trim() && coordenadas) {
+    return { descricao, ...coordenadas };
+  }
+
+  return geocodificarEndereco(descricao);
+}
+
+function montarDadosEditaveis(formulario, carona = null, locais = {}) {
   return {
     veiculoId: Number(formulario.veiculoId || carona?.veiculo?.id || 0),
-    origem: formulario.origem.trim(),
-    destino: formulario.destino.trim(),
+    origem: locais.origem ?? formulario.origem.trim(),
+    destino: locais.destino ?? formulario.destino.trim(),
     pontoEncontro: formulario.pontoEncontro.trim(),
     dataHoraSaida: `${formulario.data}T${formulario.horario}:00`,
     quantidadeVagas: Number(formulario.quantidadeVagas),
     valorContribuicao: Number(formulario.valorContribuicao),
+    observacao: formulario.observacao.trim(),
   };
 }
 

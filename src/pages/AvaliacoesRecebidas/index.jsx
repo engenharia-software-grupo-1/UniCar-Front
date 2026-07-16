@@ -1,12 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Calendar, MessageSquare, Star } from 'lucide-react';
 import { listarAvaliacoesRecebidas } from '../../services/avaliacaoService.js';
 import './style.css';
 
 function AvaliacoesRecebidas() {
-  const navigate = useNavigate();
-
   const [avaliacoes, setAvaliacoes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState('');
@@ -73,11 +70,7 @@ function AvaliacoesRecebidas() {
     return (
       <main className="avaliacoes-page">
         <section className="avaliacoes-shell">
-          <ResumoHeader
-            averageRating={0}
-            onBack={() => navigate('/perfil')}
-            totalReviews={0}
-          />
+          <ResumoHeader averageRating={0} totalReviews={0} />
 
           <div className="avaliacoes-error">{erro}</div>
 
@@ -94,11 +87,7 @@ function AvaliacoesRecebidas() {
   return (
     <main className="avaliacoes-page">
       <section className="avaliacoes-shell">
-        <ResumoHeader
-          averageRating={resumo.media}
-          onBack={() => navigate('/perfil')}
-          totalReviews={resumo.total}
-        />
+        <ResumoHeader averageRating={resumo.media} totalReviews={resumo.total} />
 
         <section className="avaliacoes-section" aria-labelledby="avaliacoes-title">
           <h2 id="avaliacoes-title">Avaliações recebidas</h2>
@@ -125,7 +114,7 @@ function AvaliacoesRecebidas() {
   );
 }
 
-function ResumoHeader({ averageRating, onBack, totalReviews }) {
+function ResumoHeader({ averageRating, totalReviews }) {
   return (
     <header className="avaliacoes-hero">
       <div className="avaliacoes-hero__top">
@@ -137,10 +126,6 @@ function ResumoHeader({ averageRating, onBack, totalReviews }) {
           <h1>Minhas avaliações</h1>
           <p>Veja o que outros usuários disseram sobre você</p>
         </div>
-
-        <button type="button" onClick={onBack}>
-          Voltar para o perfil
-        </button>
       </div>
 
       <section className="avaliacoes-summary" aria-label="Resumo das avaliações">

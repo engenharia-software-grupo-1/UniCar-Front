@@ -24,8 +24,8 @@ function respostaJson(body, { ok = true, status = 200 } = {}) {
 
 const DETALHE_10 = {
   id: 10,
-  origem: { descricao: 'Bodocongó' },
-  destino: { descricao: 'UFCG' },
+  origem: { descricao: 'Bodocongó', latitude: -7.2166, longitude: -35.9095 },
+  destino: { descricao: 'UFCG', latitude: -7.2138, longitude: -35.9092 },
   pontoEncontro: 'Campus Sede',
   dataHoraSaida: '2026-06-25T13:30:00',
   quantidadeVagas: 3,
@@ -95,7 +95,10 @@ describe('listarMinhasCaronas', () => {
         dataHoraSaida: '2026-06-25T13:30:00',
         origem: 'Bodocongó',
         destino: 'UFCG',
+        origemCoordenadas: { latitude: -7.2166, longitude: -35.9095 },
+        destinoCoordenadas: { latitude: -7.2138, longitude: -35.9092 },
         pontoEncontro: 'Campus Sede',
+        observacao: '',
         valorContribuicao: 5,
         quantidadeVagas: 3,
         vagasDisponiveis: 1,
@@ -147,7 +150,10 @@ describe('listarMinhasCaronas', () => {
         dataHoraSaida: '2026-06-26T08:00:00',
         origem: 'Centro',
         destino: 'UFCG',
+        origemCoordenadas: null,
+        destinoCoordenadas: null,
         pontoEncontro: '',
+        observacao: '',
         valorContribuicao: null,
         quantidadeVagas: null,
         vagasDisponiveis: null,
@@ -302,15 +308,15 @@ describe('cancelarCarona', () => {
 });
 
 describe('removerReservaCarona', () => {
-  it('faz DELETE /caronas/{id}/reservas/{reservaId} com o token e sem corpo', async () => {
+  it('faz PATCH /reservas/{reservaId}/remover com o token e sem corpo', async () => {
     fetch.mockResolvedValue(respostaJson({ id: 101, status: 'REMOVIDA' }));
 
     const { removerReservaCarona } = await importarService();
     const resultado = await removerReservaCarona(10, 101);
 
     const [url, opcoes] = fetch.mock.calls[0];
-    expect(url).toBe(`${BASE_URL}/caronas/10/reservas/101`);
-    expect(opcoes.method).toBe('DELETE');
+    expect(url).toBe(`${BASE_URL}/reservas/101/remover`);
+    expect(opcoes.method).toBe('PATCH');
     expect(opcoes.headers.Authorization).toBe(`Bearer ${TOKEN}`);
     expect(opcoes.body).toBeUndefined();
     expect(resultado).toEqual({ id: 101, status: 'REMOVIDA' });
@@ -360,7 +366,10 @@ describe('obterCarona', () => {
       dataHoraSaida: '2026-06-25T13:30:00',
       origem: 'Bodocongó',
       destino: 'UFCG',
+      origemCoordenadas: { latitude: -7.2166, longitude: -35.9095 },
+      destinoCoordenadas: { latitude: -7.2138, longitude: -35.9092 },
       pontoEncontro: 'Campus Sede',
+      observacao: '',
       valorContribuicao: 5,
       quantidadeVagas: 3,
       vagasDisponiveis: 1,
@@ -392,7 +401,9 @@ describe('editarCarona', () => {
     valorContribuicao: 6,
   };
 
-  it('faz PATCH /caronas/{id} com o payload do contrato', async () => {
+  // O PUT reaproveita o CaronaRequestDTO da criação: recurso inteiro e a data em
+  // `datasHorasSaida` (lista de um item), não `dataHoraSaida`.
+  it('faz PUT /caronas/{id} com o payload do contrato', async () => {
     fetch.mockResolvedValue(
       respostaJson({
         ...DETALHE_10,
@@ -406,14 +417,15 @@ describe('editarCarona', () => {
 
     const [url, opcoes] = fetch.mock.calls[0];
     expect(url).toBe(`${BASE_URL}/caronas/10`);
-    expect(opcoes.method).toBe('PATCH');
+    expect(opcoes.method).toBe('PUT');
     expect(opcoes.headers.Authorization).toBe(`Bearer ${TOKEN}`);
     expect(JSON.parse(opcoes.body)).toEqual({
       veiculoId: 1,
       origem: { descricao: 'Bodocongó', latitude: null, longitude: null },
       destino: { descricao: 'UFCG', latitude: null, longitude: null },
       pontoEncontro: 'Biblioteca central',
-      dataHoraSaida: '2026-08-25T07:30:00',
+      observacao: null,
+      datasHorasSaida: ['2026-08-25T07:30:00'],
       quantidadeVagas: 3,
       valorContribuicao: 6,
     });
@@ -422,6 +434,18 @@ describe('editarCarona', () => {
       pontoEncontro: 'Biblioteca central',
       valorContribuicao: 6,
     });
+  });
+
+  // Regressão: o PUT substitui o recurso inteiro, então omitir `observacao` do
+  // payload APAGA a observação já gravada (verificado contra a API real).
+  it('reenvia a observação no PUT em vez de apagá-la', async () => {
+    fetch.mockResolvedValue(respostaJson(DETALHE_10));
+
+    const { editarCarona } = await importarService();
+    await editarCarona(10, { ...DADOS, observacao: 'Sem fumantes.' });
+
+    const [, opcoes] = fetch.mock.calls[0];
+    expect(JSON.parse(opcoes.body).observacao).toBe('Sem fumantes.');
   });
 
   it('atualiza a carona no modo mock sem chamar fetch', async () => {
@@ -481,6 +505,7 @@ describe('criarCarona', () => {
       origem: { descricao: 'Bodocongó', latitude: null, longitude: null },
       destino: { descricao: 'UFCG', latitude: null, longitude: null },
       pontoEncontro: 'Portão principal',
+      observacao: null, // opcional: sem texto, vai null (o contrato aceita)
       quantidadeVagas: 4,
       valorContribuicao: 5,
       datasHorasSaida: ['2026-08-25T07:00:00'],

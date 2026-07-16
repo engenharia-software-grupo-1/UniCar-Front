@@ -113,8 +113,8 @@ describe('PATCH /caronas/{id}/cancelar', () => {
   });
 });
 
-describe('DELETE /caronas/{id}/reservas/{reservaId}', () => {
-  it('remove reserva com 200 e devolve { id, status: REMOVIDA }', async () => {
+describe('PATCH /reservas/{reservaId}/remover', () => {
+  it('remove reserva com 204 e devolve { id, status: REMOVIDA }', async () => {
     const resultado = await removerReservaCarona(10, 101);
 
     expect(resultado).toEqual({ id: 101, status: 'REMOVIDA' });

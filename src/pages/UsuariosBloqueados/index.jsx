@@ -1,8 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Ban, ChevronLeft, ShieldOff } from 'lucide-react';
-import Logo from '../../components/common/Logo.jsx';
-import NavegacaoInferior from '../../components/layout/NavegacaoInferior.jsx';
+import { useNavigate } from 'react-router-dom';
+import { Ban, ShieldOff } from 'lucide-react';
 import BlockedUserListItem from './BlockedUserListItem.jsx';
 import ConfirmUnblockModal from './ConfirmUnblockModal.jsx';
 import {
@@ -83,16 +81,6 @@ function UsuariosBloqueados() {
 
   return (
     <main className="bloqueados-page">
-      <header className="bloqueados-topbar">
-        <Link to="/perfil" className="bloqueados-back" aria-label="Voltar para perfil">
-          <ChevronLeft size={24} />
-        </Link>
-
-        <Link to="/inicio" className="bloqueados-logo" aria-label="UniCar">
-          <Logo />
-        </Link>
-      </header>
-
       <section className="bloqueados-shell">
         <section className="bloqueados-hero">
           <div className="bloqueados-hero-icon">
@@ -150,8 +138,6 @@ function UsuariosBloqueados() {
         onConfirm={confirmarDesbloqueio}
         onCancel={() => setTarget(null)}
       />
-
-      <NavegacaoInferior />
     </main>
   );
 }

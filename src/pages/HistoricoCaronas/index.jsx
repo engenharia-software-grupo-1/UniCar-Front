@@ -1,8 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Bell, Inbox, Star, Users, X } from 'lucide-react';
-import Logo from '../../components/common/Logo.jsx';
-import NavegacaoInferior from '../../components/layout/NavegacaoInferior.jsx';
+import { ArrowRight, Inbox, Star, Users, X } from 'lucide-react';
 import AvaliarUsuarioModal from '../Perfil/AvaliarUsuarioModal.jsx';
 import {
   listarHistoricoComoPassageiro,
@@ -163,17 +161,6 @@ function HistoricoCaronas() {
 
   return (
     <main className="historico-page">
-      <header className="historico-topbar">
-        <Link to="/inicio" className="historico-logo" aria-label="UniCar">
-          <Logo />
-        </Link>
-
-        <button type="button" className="historico-notification" aria-label="Notificações">
-          <Bell size={24} />
-          <span />
-        </button>
-      </header>
-
       <section className="historico-shell">
         <h1 className="historico-title">Histórico</h1>
 
@@ -259,8 +246,6 @@ function HistoricoCaronas() {
           onClose={() => setCaronaParaAvaliar(null)}
         />
       )}
-
-      <NavegacaoInferior />
     </main>
   );
 }

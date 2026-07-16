@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
-  ArrowLeft,
   ArrowRight,
   MapPin,
   Clock,
@@ -123,14 +122,6 @@ function DetalheTrajetoRecorrente() {
   return (
     <main className="detalhe-page">
       <header className="detalhe-header">
-        <button
-          className="voltar-btn"
-          onClick={() => navigate('/trajetos-recorrentes')}
-          aria-label="Voltar"
-        >
-          <ArrowLeft size={16} />
-        </button>
-
         <div className="detalhe-title">
           <h1>Detalhes da rota</h1>
           <p>Rota recorrente #{trajeto.id}</p>

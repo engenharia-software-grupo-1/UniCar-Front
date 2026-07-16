@@ -1,15 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { Link, useLocation, useParams } from 'react-router-dom';
 import {
-  ArrowLeft,
   Ban,
-  Bell,
   Car,
   CheckCircle,
   Clock,
   Flag,
   MapPin,
   MessageCircle,
+  MessageSquareText,
   Pencil,
   Send,
   Shield,
@@ -20,8 +19,6 @@ import {
   X,
   XCircle,
 } from 'lucide-react';
-import Logo from '../../components/common/Logo.jsx';
-import NavegacaoInferior from '../../components/layout/NavegacaoInferior.jsx';
 import { obterCarona, removerReservaCarona } from '../../services/caronaService.js';
 import { getPerfilUsuarioAutenticado } from '../../services/profileService.js';
 import {
@@ -58,7 +55,6 @@ const MOTIVOS_DENUNCIA = [
 function DetalheCarona() {
   const { id } = useParams();
   const location = useLocation();
-  const navigate = useNavigate();
   const [carona, setCarona] = useState(null);
   const [perfil, setPerfil] = useState(null);
   const [carregando, setCarregando] = useState(true);
@@ -69,6 +65,7 @@ function DetalheCarona() {
   const [erroQuantidade, setErroQuantidade] = useState('');
   const [modalSolicitacaoAberto, setModalSolicitacaoAberto] = useState(false);
   const [enviandoSolicitacao, setEnviandoSolicitacao] = useState(false);
+  const [erroSolicitacao, setErroSolicitacao] = useState('');
   const [bloqueado, setBloqueado] = useState(false);
   const [bloqueando, setBloqueando] = useState(false);
   const [modalBloqueioAberto, setModalBloqueioAberto] = useState(false);
@@ -261,18 +258,20 @@ function DetalheCarona() {
     }
 
     setErroQuantidade('');
+    setErroSolicitacao('');
     setModalSolicitacaoAberto(true);
   }
 
   async function confirmarSolicitacao() {
     try {
       setEnviandoSolicitacao(true);
+      setErroSolicitacao('');
       await criarReserva(carona.id, Number(quantidadePassageiros));
       setSolicitada(true);
       setModalSolicitacaoAberto(false);
       setFeedback('Solicitação de participação enviada com sucesso.');
     } catch (error) {
-      setFeedback(error.message || 'Não foi possível enviar a solicitação.');
+      setErroSolicitacao(error.message || 'Não foi possível enviar a solicitação.');
     } finally {
       setEnviandoSolicitacao(false);
     }
@@ -318,23 +317,7 @@ function DetalheCarona() {
 
   return (
     <main className="detalhe-carona-page">
-      <header className="detalhe-carona-topbar">
-        <Link to="/inicio" className="detalhe-carona-logo" aria-label="UniCar">
-          <Logo />
-        </Link>
-
-        <button type="button" className="detalhe-carona-notification" aria-label="Notificações">
-          <Bell size={24} />
-          <span />
-        </button>
-      </header>
-
       <section className="detalhe-carona-shell">
-        <button type="button" className="detalhe-carona-back" onClick={() => navigate(isMinhaCarona ? '/minhas-caronas' : '/buscar-carona')}>
-          <ArrowLeft size={20} />
-          Voltar
-        </button>
-
         {carregando ? (
           <section className="detalhe-carona-state">
             <p>Carregando detalhes da carona...</p>
@@ -470,15 +453,21 @@ function DetalheCarona() {
 
             {abaAtiva === 'info' && (
               <section className="detalhe-card detalhe-info-card">
-                <div className="detalhe-info-item">
-                  <span>Ponto de encontro</span>
-                  <strong>{carona.pontoEncontro || 'Não informado'}</strong>
-                </div>
-
-                <div className="detalhe-info-item">
-                  <span>Observações</span>
-                  <strong>{carona.observacoes || carona.observacao || 'Nenhuma observação informada.'}</strong>
-                </div>
+                <Row icon={MapPin} label="Ponto de encontro" value={carona.pontoEncontro || 'Não informado'} />
+                {carona.observacao && (
+                  <div className="detalhe-row detalhe-observacao">
+                    <span>
+                      <MessageSquareText size={17} />
+                    </span>
+                    <div>
+                      <p>Observações do motorista</p>
+                      <span className="detalhe-observacao-texto">{carona.observacao}</span>
+                    </div>
+                  </div>
+                )}
+                <Row icon={Car} label="Modelo" value={veiculo.modelo || 'Não informado'} />
+                <Row icon={Car} label="Cor" value={veiculo.cor || 'Não informado'} />
+                {veiculo.placa && <Row icon={Car} label="Placa" value={veiculo.placa} />}
 
                 <div className="detalhe-safety">
                   <Shield size={18} />
@@ -615,6 +604,11 @@ function DetalheCarona() {
               <div><dt>Passageiros</dt><dd>{formatarQuantidadePassageiros(quantidadePassageiros)}</dd></div>
               <div><dt>Contribuição por passageiro</dt><dd>{formatarValor(carona.valorContribuicao)}</dd></div>
             </dl>
+            {erroSolicitacao && (
+              <p className="detalhe-request-submit-error" role="alert">
+                {erroSolicitacao}
+              </p>
+            )}
             <div className="detalhe-request-summary__actions">
               <button type="button" className="is-cancel" disabled={enviandoSolicitacao} onClick={() => setModalSolicitacaoAberto(false)}>Voltar</button>
               <button type="button" className="is-confirm" disabled={enviandoSolicitacao} onClick={confirmarSolicitacao}>
@@ -699,8 +693,6 @@ function DetalheCarona() {
           </div>
         </Modal>
       )}
-
-      <NavegacaoInferior />
     </main>
   );
 }

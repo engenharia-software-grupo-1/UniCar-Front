@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import {
   Bell,
   Camera,
@@ -10,7 +10,6 @@ import {
   History,
   LogOut,
   RefreshCw,
-  Shield,
   ShieldCheck,
   ShieldOff,
   Star,
@@ -18,10 +17,8 @@ import {
   Trash2,
 } from 'lucide-react';
 import Confirmacao from '../../components/common/Confirmacao.jsx';
-import NavegacaoInferior from '../../components/layout/NavegacaoInferior.jsx';
 import BlockUserButton from './BlockUserButton.jsx';
 import ConfirmBlockModal from './ConfirmBlockModal.jsx';
-import AvaliarUsuarioModal from './AvaliarUsuarioModal.jsx';
 import {
   atualizarPerfilUsuarioAutenticado,
   excluirContaUsuarioAutenticado,
@@ -29,16 +26,10 @@ import {
 } from '../../services/profileService.js';
 import { getSession, logout } from '../../services/authService.js';
 import { listarVeiculos } from '../../services/vehicleService.js';
-import { criarAvaliacao, listarAvaliacoesRecebidas } from '../../services/avaliacaoService.js';
+import { listarAvaliacoesRecebidas } from '../../services/avaliacaoService.js';
 import { bloquearUsuario } from '../../services/blockUserService.js';
-import { listarNotificacoes } from '../../services/notificationService.js';
-import Logo from '../../components/common/Logo.jsx';
 import './style.css';
 
-// TODO temporário: alvo fixo usado apenas para exercitar o POST /avaliacoes.
-// Remover quando o modal for acionado a partir de uma carona concluída, com
-// caronaId/avaliadoId reais (ver README > "Avaliação de usuário (temporário)").
-const AVALIAR_TESTE = { nome: 'Marina Souza', caronaId: 10, avaliadoId: 5 };
 const FOTO_PERFIL_TAMANHO_MAXIMO = 2 * 1024 * 1024;
 
 function Perfil() {
@@ -57,12 +48,9 @@ function Perfil() {
   const [modalSairAberto, setModalSairAberto] = useState(false);
   const [modalExcluirAberto, setModalExcluirAberto] = useState(false);
   const [modalBloquearAberto, setModalBloquearAberto] = useState(false);
-  const [modalAvaliarAberto, setModalAvaliarAberto] = useState(false);
-  const [enviandoAvaliacao, setEnviandoAvaliacao] = useState(false);
   const [excluindoConta, setExcluindoConta] = useState(false);
   const [bloqueandoUsuario, setBloqueandoUsuario] = useState(false);
   const [totalVeiculos, setTotalVeiculos] = useState(null);
-  const [temNotificacaoNaoLida, setTemNotificacaoNaoLida] = useState(false);
   const [resumoAvaliacoes, setResumoAvaliacoes] = useState(() => ({
     media: Number(perfil.avaliacao) || 0,
     total: 0,
@@ -76,11 +64,10 @@ function Perfil() {
 
     async function carregarPerfil() {
       try {
-        const [dados, veiculos, avaliacoes, notificacoes] = await Promise.all([
+        const [dados, veiculos, avaliacoes] = await Promise.all([
           getPerfilUsuarioAutenticado(),
           listarVeiculos().catch(() => null),
           listarAvaliacoesRecebidas().catch(() => []),
-          listarNotificacoes().catch(() => []),
         ]);
 
         if (!ativo) {
@@ -95,9 +82,6 @@ function Perfil() {
         setFotoPreview(dados.fotoUrl || '');
         setTotalVeiculos(Array.isArray(veiculos) ? veiculos.length : null);
         setResumoAvaliacoes(calcularResumoAvaliacoes(avaliacoes, dados.avaliacao));
-        setTemNotificacaoNaoLida(
-          Array.isArray(notificacoes) && notificacoes.some((notificacao) => !notificacao.lida),
-        );
         setErro('');
       } catch (error) {
         if (ativo) {
@@ -232,48 +216,8 @@ function Perfil() {
     }
   }
 
-  // TODO temporário: acionado pelo botão de teste na tela de perfil.
-  async function enviarAvaliacaoTeste({ nota, comentario }) {
-    try {
-      setEnviandoAvaliacao(true);
-      setErro('');
-      setMensagemSucesso('');
-
-      await criarAvaliacao({
-        caronaId: AVALIAR_TESTE.caronaId,
-        avaliadoId: AVALIAR_TESTE.avaliadoId,
-        nota,
-        comentario,
-      });
-
-      setModalAvaliarAberto(false);
-      setMensagemSucesso('Avaliação enviada com sucesso.');
-    } catch (error) {
-      setModalAvaliarAberto(false);
-      setErro(error.message || 'Não foi possível enviar a avaliação.');
-    } finally {
-      setEnviandoAvaliacao(false);
-    }
-  }
-
   return (
     <main className="perfil-page">
-      <header className="perfil-topbar">
-        <Link to="/inicio" className="perfil-logo" aria-label="UniCar">
-          <Logo />
-        </Link>
-
-        <button
-          type="button"
-          className="perfil-notification"
-          aria-label="Notificações"
-          onClick={() => navigate('/notificacoes')}
-        >
-          <Bell size={24} />
-          {temNotificacaoNaoLida && <span />}
-        </button>
-      </header>
-
       <section className="perfil-shell">
         <section className="perfil-hero">
           <div className="perfil-avatar">
@@ -396,14 +340,6 @@ function Perfil() {
             label="Central de ajuda"
             onClick={() => navigate('/central-ajuda')}
           />
-          <ProfileRow icon={Shield} label="Preferências de notificação" />
-          {/* TODO temporário: gatilho de teste do POST /avaliacoes. Remover quando o
-              modal for acionado a partir de uma carona concluída (ver README). */}
-          <ProfileRow
-            icon={Star}
-            label="Avaliar usuário (temporário)"
-            onClick={() => setModalAvaliarAberto(true)}
-          />
         </section>
 
         <section className="perfil-account-menu" aria-label="Conta">
@@ -422,8 +358,6 @@ function Perfil() {
           </button>
         </section>
       </section>
-
-      <NavegacaoInferior />
 
       <Confirmacao
         open={modalSairAberto}
@@ -453,16 +387,6 @@ function Perfil() {
         onConfirm={confirmarBloqueioUsuario}
         onCancel={() => setModalBloquearAberto(false)}
       />
-
-      {/* TODO temporário: modal de avaliação acionado pelo botão de teste. */}
-      {modalAvaliarAberto && (
-        <AvaliarUsuarioModal
-          userName={AVALIAR_TESTE.nome}
-          loading={enviandoAvaliacao}
-          onSubmit={enviarAvaliacaoTeste}
-          onClose={() => setModalAvaliarAberto(false)}
-        />
-      )}
 
       {editando && (
         <div className="perfil-modal-overlay" onClick={fecharEdicaoPerfil}>

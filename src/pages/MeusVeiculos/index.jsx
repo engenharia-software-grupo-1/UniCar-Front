@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Car, Bike } from 'lucide-react';
 import Confirmacao from '../../components/common/Confirmacao.jsx';
-import NavegacaoInferior from '../../components/layout/NavegacaoInferior.jsx';
 import {
   listarVeiculos,
   criarVeiculo,
@@ -170,7 +169,6 @@ function MeusVeiculos() {
         <section className="veiculos-card">
           <p className="veiculos-loading">Carregando veículos...</p>
         </section>
-        <NavegacaoInferior />
       </main>
     );
   }
@@ -197,7 +195,6 @@ function MeusVeiculos() {
             </button>
           </div>
         </section>
-        <NavegacaoInferior />
       </main>
     );
   }
@@ -284,7 +281,6 @@ function MeusVeiculos() {
             </div>
           </form>
         </section>
-        <NavegacaoInferior />
       </main>
     );
   }
@@ -297,14 +293,6 @@ function MeusVeiculos() {
             <h1>Meus veículos</h1>
             <p>Gerencie os veículos cadastrados na sua conta.</p>
           </div>
-
-          <button
-            type="button"
-            className="secondary"
-            onClick={() => navigate('/perfil')}
-          >
-            Voltar
-          </button>
         </div>
 
         <div className="veiculos-toolbar">
@@ -373,7 +361,6 @@ function MeusVeiculos() {
         onConfirm={confirmarExclusao}
         onCancel={() => setConfirmandoExclusao(null)}
       />
-      <NavegacaoInferior />
     </main>
   );
 }

@@ -14,23 +14,42 @@ vi.mock('../../services/vehicleService.js', () => ({
   listarVeiculos: vi.fn(),
 }));
 
-vi.mock('../../services/geocodingService.js', () => ({
-  geocodificarEndereco: vi.fn(async (descricao) => ({
-    descricao,
-    latitude: descricao === 'UFCG' ? -7.2159 : -7.21456,
-    longitude: descricao === 'UFCG' ? -35.9095 : -35.90872,
-  })),
-}));
+// Mantém as funções puras de cálculo reais (distância/teto) e mocka só a rede.
+// As coordenadas ficam ~16 km apart → teto ≈ R$16, cobrindo os valores dos testes.
+vi.mock('../../services/geocodingService.js', async (importOriginal) => {
+  const real = await importOriginal();
+  return {
+    ...real,
+    geocodificarEndereco: vi.fn(async (descricao) => {
+      const ehDestino = descricao.includes('UFCG');
+      return {
+        descricao,
+        latitude: ehDestino ? -7.07 : -7.21456,
+        longitude: ehDestino ? -35.9095 : -35.90872,
+      };
+    }),
+  };
+});
 
 vi.mock('../../services/caronaService.js', () => ({
   buscarUltimaCaronaDoTrajeto: vi.fn(),
   criarCarona: vi.fn(),
   listarTrajetosRecorrentes: vi.fn(),
   obterTrajetoRecorrente: vi.fn(),
+  OBSERVACAO_MAX: 255,
 }));
 
 import OfertarCarona from './index.jsx';
+import {
+  geocodificarEndereco,
+  calcularTetoContribuicao,
+  contribuicaoMaxima,
+} from '../../services/geocodingService.js';
 import { listarVeiculos } from '../../services/vehicleService.js';
+
+// Coordenadas que o mock de geocoding devolve (Bodocongó → UFCG, ~16 km).
+const COORD_ORIGEM = { latitude: -7.21456, longitude: -35.90872 };
+const COORD_DESTINO = { latitude: -7.07, longitude: -35.9095 };
 import {
   buscarUltimaCaronaDoTrajeto,
   criarCarona,
@@ -93,6 +112,8 @@ async function preencherPasso1(user) {
     'Portão principal',
   );
   await user.click(screen.getByRole('button', { name: 'Continuar' }));
+  // Avançar geocodifica origem/destino (async); espera a transição ao passo 2.
+  await screen.findByText('Passo 2 de 3');
 }
 
 async function abrirDropdownVeiculo(user) {
@@ -297,6 +318,62 @@ describe('passo 2 — veículo e vagas', () => {
 
     expect(screen.getByText('R$ 12')).toBeInTheDocument();
   });
+
+  it('limita o slider ao teto do trajeto (distância), com passo de R$ 0,50', async () => {
+    const user = userEvent.setup();
+    renderPagina();
+
+    await preencherPasso1(user);
+
+    const max = contribuicaoMaxima(calcularTetoContribuicao(COORD_ORIGEM, COORD_DESTINO));
+    const slider = screen.getByLabelText('Contribuição por passageiro');
+
+    expect(slider).toHaveAttribute('max', String(max));
+    expect(slider).toHaveAttribute('step', '0.5');
+  });
+
+  it('bloqueia o avanço e mostra erro quando não consegue localizar o endereço', async () => {
+    const user = userEvent.setup();
+    geocodificarEndereco.mockRejectedValueOnce(
+      new Error('Não foi possível localizar o endereço.'),
+    );
+    renderPagina();
+
+    await user.type(screen.getByPlaceholderText('De onde você sai'), 'Bodocongó');
+    await user.type(screen.getByPlaceholderText('Para onde você vai'), 'Endereço inexistente');
+    fireEvent.change(screen.getByLabelText('Data'), { target: { value: DATA_FUTURA } });
+    fireEvent.change(screen.getByLabelText('Horário'), { target: { value: '07:00' } });
+    await user.type(
+      screen.getByPlaceholderText('Onde os passageiros te encontram'),
+      'Portão principal',
+    );
+    await user.click(screen.getByRole('button', { name: 'Continuar' }));
+
+    expect(
+      (await screen.findAllByText('Não foi possível localizar o endereço.')).length,
+    ).toBeGreaterThan(0);
+    expect(screen.getByText('Passo 1 de 3')).toBeInTheDocument();
+  });
+
+  it('desabilita a barra e avisa quando o trajeto é curto demais (teto R$ 0)', async () => {
+    const user = userEvent.setup();
+    renderPagina();
+
+    // Origem e destino sem "UFCG" caem na mesma coordenada do mock → distância 0.
+    await user.type(screen.getByPlaceholderText('De onde você sai'), 'Bodocongó');
+    await user.type(screen.getByPlaceholderText('Para onde você vai'), 'Bodocongó Centro');
+    fireEvent.change(screen.getByLabelText('Data'), { target: { value: DATA_FUTURA } });
+    fireEvent.change(screen.getByLabelText('Horário'), { target: { value: '07:00' } });
+    await user.type(
+      screen.getByPlaceholderText('Onde os passageiros te encontram'),
+      'Portão principal',
+    );
+    await user.click(screen.getByRole('button', { name: 'Continuar' }));
+    await screen.findByText('Passo 2 de 3');
+
+    expect(screen.getByText(/Trajeto muito curto/)).toBeInTheDocument();
+    expect(screen.queryByLabelText('Contribuição por passageiro')).not.toBeInTheDocument();
+  });
 });
 
 describe('passo 3 — revisão e publicação', () => {
@@ -324,16 +401,15 @@ describe('passo 3 — revisão e publicação', () => {
     expect(screen.getByText(/1 vaga • R\$ 5/)).toBeInTheDocument();
   });
 
-  it('não exibe a caixa de observações no último passo', async () => {
+  it('exibe a caixa de observações no último passo', async () => {
     const user = userEvent.setup();
     renderPagina();
 
     await chegarNoResumo(user);
 
-    expect(screen.queryByLabelText('Observações')).not.toBeInTheDocument();
     expect(
-      screen.queryByPlaceholderText(/aceito até 3 paradas/i),
-    ).not.toBeInTheDocument();
+      screen.getByPlaceholderText(/aceito até 3 paradas/i),
+    ).toBeInTheDocument();
   });
 
   it('publica a carona com o payload correto e navega para minhas caronas', async () => {
@@ -354,10 +430,11 @@ describe('passo 3 — revisão e publicação', () => {
         },
         destino: {
           descricao: 'UFCG',
-          latitude: -7.2159,
+          latitude: -7.07,
           longitude: -35.9095,
         },
         pontoEncontro: 'Portão principal',
+        observacao: '',
         dataHoraSaida: `${DATA_FUTURA}T07:00:00`,
         quantidadeVagas: 1,
         valorContribuicao: 5,
@@ -369,6 +446,28 @@ describe('passo 3 — revisão e publicação', () => {
     expect(navigateMock).toHaveBeenCalledWith('/minhas-caronas', {
       state: { mensagem: 'Carona publicada com sucesso.' },
     });
+  });
+
+  // A observação é opcional no contrato, mas quando o motorista escreve algo na
+  // revisão ela precisa chegar ao POST.
+  it('envia a observação escrita na revisão', async () => {
+    const user = userEvent.setup();
+    criarCarona.mockResolvedValue([{ id: 42, status: 'CRIADA' }]);
+    renderPagina();
+
+    await chegarNoResumo(user);
+
+    await user.type(
+      screen.getByPlaceholderText(/aceito até 3 paradas/i),
+      'Sem fumantes, por favor.',
+    );
+    await user.click(screen.getByRole('button', { name: 'Publicar carona' }));
+
+    await waitFor(() =>
+      expect(criarCarona).toHaveBeenCalledWith(
+        expect.objectContaining({ observacao: 'Sem fumantes, por favor.' }),
+      ),
+    );
   });
 
   it('avisa quantas caronas foram criadas quando havia recorrência', async () => {
@@ -485,12 +584,31 @@ describe('recriar viagem a partir de um trajeto recorrente', () => {
     fireEvent.change(screen.getByLabelText('Data'), { target: { value: DATA_FUTURA } });
     fireEvent.change(screen.getByLabelText('Horário'), { target: { value: '07:00' } });
     await user.click(screen.getByRole('button', { name: 'Continuar' }));
+    await screen.findByText('Passo 2 de 3');
 
     expect(
       screen.getByRole('button', { name: /Onix • Prata • ABC-1D23/ }),
     ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '3', pressed: true })).toBeInTheDocument();
     expect(screen.getByText('R$ 8')).toBeInTheDocument();
+  });
+
+  it('clampa a sugestão do histórico ao teto do trajeto', async () => {
+    const user = userEvent.setup();
+    obterTrajetoRecorrente.mockResolvedValue(TRAJETO);
+    // Última viagem sugere R$30, muito acima do teto (~R$16) do trajeto.
+    buscarUltimaCaronaDoTrajeto.mockResolvedValue({ ...ULTIMA_CARONA, valorContribuicao: 30 });
+
+    renderPagina({ trajetoId: 7 });
+
+    await screen.findByText(/com base na sua última viagem/i);
+    fireEvent.change(screen.getByLabelText('Data'), { target: { value: DATA_FUTURA } });
+    fireEvent.change(screen.getByLabelText('Horário'), { target: { value: '07:00' } });
+    await user.click(screen.getByRole('button', { name: 'Continuar' }));
+    await screen.findByText('Passo 2 de 3');
+
+    const max = contribuicaoMaxima(calcularTetoContribuicao(COORD_ORIGEM, COORD_DESTINO));
+    expect(screen.getByLabelText('Contribuição por passageiro')).toHaveValue(String(max));
   });
 
   it('limita a sugestão a 1 vaga quando a última viagem foi de moto', async () => {

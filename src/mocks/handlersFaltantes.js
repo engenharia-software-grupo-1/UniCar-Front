@@ -465,12 +465,18 @@ export const handlersFaltantes = [
     comCarona(params.id, (carona) => HttpResponse.json(carona, { status: 200 })),
   ),
 
-  // PATCH /caronas/{id} — edição.
-  http.patch('/caronas/:id', async ({ request, params }) => {
-    const alteracoes = await request.json();
+  // PUT /caronas/{id} — edição. O contrato manda o recurso inteiro, com a data em
+  // `datasHorasSaida` (lista de um item); aqui guardamos a ocorrência única.
+  http.put('/caronas/:id', async ({ request, params }) => {
+    const { datasHorasSaida, ...alteracoes } = await request.json();
 
     return comCarona(params.id, (carona) => {
       Object.assign(carona, alteracoes);
+
+      if (Array.isArray(datasHorasSaida) && datasHorasSaida.length > 0) {
+        carona.dataHoraSaida = datasHorasSaida[0];
+      }
+
       return HttpResponse.json(carona, { status: 200 });
     });
   }),
@@ -496,34 +502,35 @@ export const handlersFaltantes = [
     }),
   ),
 
-  // DELETE /caronas/{id}/reservas/{reservaId} — motorista remove um passageiro.
-  http.delete('/caronas/:id/reservas/:reservaId', ({ params }) =>
-    comCarona(params.id, (carona) => {
-      const passageiros = Array.isArray(carona.passageiros) ? carona.passageiros : [];
-      const indice = passageiros.findIndex(
-        (passageiro) =>
-          String(passageiro.reservaId ?? passageiro.id) === String(params.reservaId),
+  // PATCH /reservas/{reservaId}/remover — motorista remove um passageiro (204 sem
+  // corpo). A reserva se endereça sozinha: achamos a carona dona varrendo o store.
+  http.patch('/reservas/:reservaId/remover', ({ params }) => {
+    const pertenceAReserva = (passageiro) =>
+      String(passageiro.reservaId ?? passageiro.id) === String(params.reservaId);
+
+    const caronas = carregar();
+    const carona = caronas.find(
+      (item) => Array.isArray(item.passageiros) && item.passageiros.some(pertenceAReserva),
+    );
+
+    if (!carona) {
+      return HttpResponse.json({ message: 'Reserva não encontrada' }, { status: 404 });
+    }
+
+    const indice = carona.passageiros.findIndex(pertenceAReserva);
+    const [removida] = carona.passageiros.splice(indice, 1);
+
+    if (/confirmad|aceit/i.test(String(removida.status || ''))) {
+      carona.vagasDisponiveis = Math.min(
+        Number(carona.quantidadeVagas ?? 0),
+        Number(carona.vagasDisponiveis ?? 0) + 1,
       );
+    }
 
-      if (indice === -1) {
-        return HttpResponse.json({ message: 'Reserva não encontrada' }, { status: 404 });
-      }
+    salvar(caronas);
 
-      const [removida] = passageiros.splice(indice, 1);
-
-      if (/confirmad|aceit/i.test(String(removida.status || ''))) {
-        carona.vagasDisponiveis = Math.min(
-          Number(carona.quantidadeVagas ?? 0),
-          Number(carona.vagasDisponiveis ?? 0) + 1,
-        );
-      }
-
-      return HttpResponse.json(
-        { id: Number(params.reservaId), status: 'REMOVIDA' },
-        { status: 200 },
-      );
-    }),
-  ),
+    return new HttpResponse(null, { status: 204 });
+  }),
 
   // GET /usuarios/me/avaliacoes — avaliações recebidas.
   http.get('/usuarios/me/avaliacoes', () =>

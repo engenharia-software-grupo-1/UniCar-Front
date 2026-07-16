@@ -186,12 +186,5 @@ describe('recriar viagem', () => {
     });
   });
 
-  it('volta para a lista de trajetos', async () => {
-    const user = userEvent.setup();
-    renderPagina();
-
-    await user.click(await screen.findByRole('button', { name: 'Voltar' }));
-
-    expect(navigateMock).toHaveBeenCalledWith('/trajetos-recorrentes');
-  });
+  // O "voltar" deixou de ser da página: agora é global, na Topbar do shell.
 });

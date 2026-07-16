@@ -1,6 +1,5 @@
 .ofertar-page {
   min-height: 100vh;
-  padding-bottom: 100px;
   background: #eef6ff;
   color: #07132b;
 }
@@ -119,6 +118,38 @@
   font-size: 15px;
   color: #07132b;
   outline: none;
+}
+
+.ofertar-observacao {
+  margin-top: 18px;
+}
+
+.ofertar-textarea {
+  width: 100%;
+  min-height: 96px;
+  box-sizing: border-box;
+  resize: vertical;
+  border: 1px solid #dbe6f4;
+  border-radius: 14px;
+  background: #f6faff;
+  padding: 14px;
+  color: #07132b;
+  font: inherit;
+  font-size: 15px;
+  outline: none;
+}
+
+.ofertar-textarea:focus {
+  border-color: #07132b;
+  background: #ffffff;
+}
+
+.ofertar-contador {
+  display: block;
+  margin-top: 6px;
+  color: #6b7f9e;
+  font-size: 13px;
+  text-align: right;
 }
 
 .ofertar-input-simples {

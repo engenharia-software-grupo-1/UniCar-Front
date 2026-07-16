@@ -19,15 +19,10 @@ export async function criarReserva(caronaId, quantidadePassageiros) {
     return { id: `mock-${Date.now()}`, status: 'PENDENTE', ...payload };
   }
 
-  try {
-    return await apiRequest('/reservas', {
-      method: 'POST',
-      body: JSON.stringify(payload),
-    });
-  } catch {
-    // Temporário enquanto US10-BACK-01 não estiver disponível.
-    return { id: `mock-${Date.now()}`, status: 'PENDENTE', ...payload };
-  }
+  return apiRequest('/reservas', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
 }
 
 export async function cancelarReserva(reservaId) {
@@ -35,14 +30,9 @@ export async function cancelarReserva(reservaId) {
     return { id: reservaId, status: 'CANCELADA' };
   }
 
-  try {
-    return await apiRequest(`/reservas/${encodeURIComponent(reservaId)}/cancelar`, {
-      method: 'PATCH',
-    });
-  } catch {
-    // Temporário enquanto US10-BACK-06 não estiver disponível.
-    return { id: reservaId, status: 'CANCELADA' };
-  }
+  return apiRequest(`/reservas/${encodeURIComponent(reservaId)}/cancelar`, {
+    method: 'PATCH',
+  });
 }
 
 const SOLICITACOES_MOCK = [
@@ -56,32 +46,22 @@ export async function listarReservasPendentesDaCarona(caronaId) {
     const resposta = await apiRequest(`/caronas/${encodeURIComponent(caronaId)}/reservas`);
     const lista = Array.isArray(resposta) ? resposta : resposta?.content || resposta?.reservas || resposta?.items || [];
     return lista.map(normalizarSolicitacao).filter((reserva) => reserva.status === 'PENDENTE');
-  } catch {
-    // Temporário: US7-BACK-06 ainda não está disponível no backend.
-    // Quando o endpoint existir, este fallback pode voltar a depender apenas
-    // de VITE_MOCK_FALTANTES.
-    return SOLICITACOES_MOCK.map(normalizarSolicitacao);
+  } catch (error) {
+    if (import.meta.env.VITE_MOCK_FALTANTES === 'true') {
+      return SOLICITACOES_MOCK.map(normalizarSolicitacao);
+    }
+    throw error;
   }
 }
 
 export async function aceitarReserva(reservaId) {
   if (shouldUseLocalDataMocks()) return { status: 'ACEITA' };
-  try {
-    return await apiRequest(`/reservas/${encodeURIComponent(reservaId)}/aceitar`, { method: 'PATCH' });
-  } catch {
-    // Temporário enquanto US10-BACK-04 não estiver disponível.
-    return { status: 'ACEITA' };
-  }
+  return apiRequest(`/reservas/${encodeURIComponent(reservaId)}/aceitar`, { method: 'PATCH' });
 }
 
 export async function recusarReserva(reservaId) {
   if (shouldUseLocalDataMocks()) return { status: 'RECUSADA' };
-  try {
-    return await apiRequest(`/reservas/${encodeURIComponent(reservaId)}/recusar`, { method: 'PATCH' });
-  } catch {
-    // Temporário enquanto US10-BACK-05 não estiver disponível.
-    return { status: 'RECUSADA' };
-  }
+  return apiRequest(`/reservas/${encodeURIComponent(reservaId)}/recusar`, { method: 'PATCH' });
 }
 
 function normalizarSolicitacao(reserva = {}) {
@@ -227,20 +207,12 @@ export async function listarReservasEnviadas() {
       ? resposta
       : resposta?.content || resposta?.reservas || resposta?.items || [];
 
-    if (reservas.length === 0) {
+    return reservas.map(normalizarResumoReserva);
+  } catch (error) {
+    if (import.meta.env.VITE_MOCK_FALTANTES === 'true') {
       return DETALHES_RESERVA_MOCK.map(ajustarReserva);
     }
-
-    // O resumo de /reservas/enviadas não traz motorista nem data da viagem.
-    // Completa cada item com GET /caronas/{id}, pois esses campos são exigidos
-    // no card de "Como passageiro".
-    const reservasDaApi = await Promise.all(reservas.map(enriquecerReservaComCarona));
-
-    // Temporário para demonstração visual dos seis estados da US10-FRONT.
-    // Os IDs textuais evitam colisão com reservas reais retornadas pelo back.
-    return [...reservasDaApi, ...DETALHES_RESERVA_MOCK.map(ajustarReserva)];
-  } catch {
-    return DETALHES_RESERVA_MOCK.map(ajustarReserva);
+    throw error;
   }
 }
 
@@ -252,21 +224,19 @@ export async function listarReservasAceitas() {
   return reservas.filter((reserva) => reserva.status === RESERVA_ACEITA);
 }
 
-async function enriquecerReservaComCarona(reserva = {}) {
-  const caronaResumo = reserva.carona || {};
-  const caronaId = caronaResumo.id ?? reserva.caronaId;
-
-  if (!caronaId) return ajustarReserva(reserva);
-
-  try {
-    const caronaCompleta = await apiRequest(`/caronas/${encodeURIComponent(caronaId)}`);
-    return ajustarReserva({
-      ...reserva,
-      carona: { ...caronaResumo, ...caronaCompleta },
-    });
-  } catch {
-    return ajustarReserva(reserva);
-  }
+function normalizarResumoReserva(reserva = {}) {
+  const carona = reserva.carona || {};
+  return {
+    id: reserva.id ?? reserva.reservaId,
+    status: String(reserva.status || '').toUpperCase(),
+    quantidadePassageiros: Number(reserva.quantidadePassageiros ?? 1),
+    valorContribuicao: reserva.valorContribuicao ?? null,
+    carona: {
+      id: carona.id ?? reserva.caronaId,
+      origem: descricao(carona.origem ?? reserva.origem),
+      destino: descricao(carona.destino ?? reserva.destino),
+    },
+  };
 }
 
 // GET /reservas/{id} — detalhes completos de uma solicitação do passageiro.

@@ -210,9 +210,6 @@ function MinhasCaronas() {
     }
   }
 
-  // TODO (para quando o Histórico for implementado)
-  // Após a implementação da tela de Histórico, redirecionar o motorista
-  // para avaliar os passageiros.
   async function confirmarFinalizacao() {
     if (!caronaParaFinalizar) return;
 

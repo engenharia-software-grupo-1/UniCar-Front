@@ -94,7 +94,7 @@ function BuscarCarona() {
       setCarregando(false);
     }
   }
-  
+
   async function handleRegistrarInteresse() {
     try {
       await registrarInteresse({
@@ -117,7 +117,7 @@ function BuscarCarona() {
         <header className="buscar-cabecalho">
           <h1 className="buscar-title">Buscar caronas</h1>
           <Link
-            to="/meus-interesses"
+            to="/interesses"
             className="buscar-alertas-botao"
           >
             <BellRing size={15} />
@@ -197,7 +197,7 @@ function BuscarCarona() {
               </p>
 
               <Link
-                to="/meus-interesses"
+                to="/interesses"
                 className="buscar-vazio-botao"
                 state={{
                   origem,

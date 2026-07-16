@@ -204,7 +204,7 @@ function App() {
         />
 
         <Route
-          path="/meus-interesses"
+          path="/interesses"
           element={
             <RequireAuthAndTerms>
               <Interesses />

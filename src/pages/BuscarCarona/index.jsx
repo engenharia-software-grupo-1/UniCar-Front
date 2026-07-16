@@ -76,18 +76,25 @@ function BuscarCarona() {
     try {
       setCarregando(true);
       setErroBusca('');
-      // MOCK TEMPORÁRIO
-const resultado = [];
 
-setCaronas(resultado);
+      const resultado = await buscarCaronas({
+        origem,
+        destino,
+        curso,
+        genero,
+      });
+
+      setCaronas(resultado);
       setBuscaRealizada(true);
     } catch (erro) {
-      setErroBusca(erro.message || 'Não foi possível buscar as caronas.');
+      setErroBusca(
+        erro.message || 'Não foi possível buscar as caronas.'
+      );
     } finally {
       setCarregando(false);
     }
   }
-
+  
   async function handleRegistrarInteresse() {
     try {
       await registrarInteresse({

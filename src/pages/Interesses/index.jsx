@@ -20,47 +20,17 @@ import {
 import './style.css';
 
 function Interesses() {
-    // MOCK TEMPORARIO
-  const [interesses, setInteresses] = useState([
-  {
-    id: 1,
-    origem: 'Centro',
-    destino: 'UFCG',
-    horario: 'Seg, Ter • 07:00–08:00',
-    criadoEm: '15/06/2025',
-  },
-  {
-    id: 2,
-    origem: 'Catolé',
-    destino: 'UFCG',
-    horario: 'Seg, Qua, Sex • 18:00–19:00',
-    criadoEm: '17/06/2025',
-  },
-  {
-    id: 3,
-    origem: 'UFCG',
-    destino: 'Bodocongó',
-    horario: 'Seg • 12:00–13:00',
-    criadoEm: '18/06/2025',
-  },
-  {
-    id: 4,
-    origem: 'jose pinheiro',
-    destino: 'ufcg',
-    horario: 'Sex • 12:00–13:00',
-    criadoEm: '18/06/2025',
-  },
-]);
+  const [interesses, setInteresses] = useState([]);
   const [interesseSelecionado, setInteresseSelecionado] = useState(null);
   const [carregando, setCarregando] = useState(false);
   const location = useLocation();
   const origemRecebida = location.state?.origem;
   const destinoRecebido = location.state?.destino;
   const [mostrarModalCriacao, setMostrarModalCriacao] = useState(Boolean(origemRecebida && destinoRecebido));
- /*
+ 
   useEffect(() => {
     carregarInteresses();
-  }, []);*/
+  }, []);
 
   async function carregarInteresses() {
     try {

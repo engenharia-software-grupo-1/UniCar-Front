@@ -230,9 +230,16 @@ function MinhasCaronas() {
             )
         );
 
-        setMensagemSucesso('Carona finalizada com sucesso. Para fazer suas avaliações, siga para Histórico de Caronas.');
+      setMensagemSucesso(
+        'Carona finalizada com sucesso. Redirecionando para o Histórico de Caronas...'
+      );
 
-        setCaronaParaFinalizar(null);
+      setCaronaParaFinalizar(null);
+
+      setTimeout(() => {
+        navigate('/historico-caronas');
+      }, 2500);
+
     } catch (error) {
         setErro(error.message || 'Não foi possível finalizar a carona.');
     } finally {

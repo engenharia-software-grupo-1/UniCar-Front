@@ -21,9 +21,9 @@
 .buscar-alertas-botao {
   display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0;
   padding: 7px 12px; border: 1px solid #b8c7e0; border-radius: 999px;
-  background: #fff; color: #16284c; font-size: .74rem; font-weight: 800; cursor: pointer;
+  background: #fff; color: #16284c; font-size: .74rem; font-weight: 800; cursor: pointer; text-decoration: none;
 }
-.buscar-alertas-botao:hover { background: #f1f5fb; }
+.buscar-alertas-botao:hover { background: #f1f5fb; text-decoration: none; }
 
 .buscar-formulario { padding: 16px; margin-bottom: 18px; border: 1px solid #e2e8f0; border-radius: 16px; background: #fff; box-shadow: 0 2px 5px rgba(15, 23, 42, .05); }
 .buscar-field-wrapper + .buscar-field-wrapper { margin-top: 12px; }
@@ -87,25 +87,16 @@
 .ride-footer {margin-top: 6px; display: flex; align-items: center; gap: 8px;}
 .ride-vagas {display: inline-flex; align-items: center; gap: 4px; padding: 2px 7px; border-radius: 5px; background: #eef8f1; color: #1f7a45; font-size: .60rem; font-weight: 800}
 
-.buscar-vazio { padding: 32px 20px; border: 1px dashed #cbd5e1; border-radius: 16px; background: #fff; text-align: center; }
+.buscar-vazio{background:#fff; border:1px solid #e2e8f0; border-radius:18px; padding:32px 24px; text-align:center;}
 .buscar-vazio p { margin: 0; color: #6f7887; font-size: .8rem; }
 .buscar-vazio button { display: inline-flex; align-items: center; gap: 6px; margin-top: 12px; border: 0; background: transparent; color: #16284c; font-size: .72rem; font-weight: 800; cursor: pointer; }
-
-.buscar-modal-fundo { position: fixed; inset: 0; z-index: 60; display: flex; align-items: center; justify-content: center; padding: 20px; background: rgba(8, 15, 30, .52); }
-.buscar-modal { width: min(100%, 390px); padding: 20px; border-radius: 18px; background: #fff; box-shadow: 0 24px 60px rgba(0, 0, 0, .2); }
-.buscar-modal-cabecalho { display: flex; align-items: center; justify-content: space-between; }
-.buscar-modal-cabecalho h2 { display: flex; align-items: center; gap: 8px; margin: 0; color: #172033; font-size: .95rem; font-weight: 800; }
-.buscar-modal-cabecalho h2 svg { color: #16284c; }
-.buscar-modal-cabecalho > button { border: 0; background: transparent; color: #566174; cursor: pointer; }
-.buscar-modal-descricao { margin: 12px 0; color: #737d8d; font-size: .72rem; line-height: 1.45; }
-.buscar-alertas-lista { display: flex; flex-direction: column; gap: 8px; }
-.buscar-alerta-item { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px; border: 1px solid #e1e7ee; border-radius: 11px; }
-.buscar-alerta-item div { min-width: 0; }
-.buscar-alerta-item strong { display: flex; align-items: center; gap: 4px; color: #253149; font-size: .76rem; }
-.buscar-alerta-item span { display: block; margin-top: 3px; color: #7a8392; font-size: .65rem; }
-.buscar-alerta-item > button { padding: 4px 8px; border: 0; border-radius: 999px; background: #eef0f3; color: #697386; font-size: .62rem; font-weight: 800; cursor: pointer; }
-.buscar-alerta-item > button.ativo { background: #def5e9; color: #197049; }
-.buscar-novo-alerta { width: 100%; min-height: 40px; margin-top: 14px; border: 1px dashed #8294b2; border-radius: 10px; background: #fff; color: #16284c; display: flex; align-items: center; justify-content: center; gap: 7px; font-size: .76rem; font-weight: 800; cursor: pointer; }
+.buscar-vazio-titulo {margin:0; font-size:15px; font-weight:700; color:#172033;}
+.buscar-vazio-descricao {margin-top:8px; color:#6b7280; font-size:13px; line-height:1.5;}
+.buscar-vazio button{ margin-top:20px; display:inline-flex; align-items:center; gap:8px; padding:10px 18px; border:none; border-radius:10px; background:#07132b; color:#fff; font-weight:700; cursor:pointer;}
+.buscar-vazio button:hover{background:#0b1f3b;}
+.buscar-vazio-botao {display: inline-flex;align-items: center;justify-content: center;gap: 6px;margin-top: 12px;color: #16284c;font-size: .72rem;font-weight: 800;text-decoration: none;cursor: pointer;}
+.buscar-vazio-botao:hover {color: #0f2142;text-decoration: none;}
+.buscar-vazio-botao:visited {color: #16284c;}
 
 @media (max-width: 520px) {
   .buscar-shell { padding: 20px 16px 28px; }

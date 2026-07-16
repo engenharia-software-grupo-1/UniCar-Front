@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import NavegacaoInferior from '../../components/layout/NavegacaoInferior.jsx';
 import { buscarCaronas } from '../../services/caronaService.js';
+import { registrarInteresse } from '../../services/interesseService.js';
 import './style.css';
 
 const VEICULOS = ['Qualquer', 'Carro', 'Moto'];
@@ -46,12 +47,8 @@ function BuscarCarona() {
   const [precoMaximo, setPrecoMaximo] = useState(20);
   const [veiculo, setVeiculo] = useState('Qualquer');
   const [apenasVerificados, setApenasVerificados] = useState(false);
-  const [modalAlertasAberto, setModalAlertasAberto] = useState(false);
-  const [alertas, setAlertas] = useState([
-    { id: 1, origem: 'Centro', destino: 'UFCG', horario: 'Dias úteis • 07:00–08:00', ativo: true },
-    { id: 2, origem: 'UFCG', destino: 'Catolé', horario: 'Seg, Qua e Sex • após 17:00', ativo: false },
-  ]);
 
+  
 
   const caronasFiltradas = useMemo(() => caronas.filter((carona) => {
     const vagas = Number(carona.vagasDisponiveis ?? carona.quantidadeVagas ?? 0);
@@ -79,8 +76,10 @@ function BuscarCarona() {
     try {
       setCarregando(true);
       setErroBusca('');
-      const resultado = await buscarCaronas({ origem, destino, curso, genero });
-      setCaronas(resultado);
+      // MOCK TEMPORÁRIO
+const resultado = [];
+
+setCaronas(resultado);
       setBuscaRealizada(true);
     } catch (erro) {
       setErroBusca(erro.message || 'Não foi possível buscar as caronas.');
@@ -89,21 +88,34 @@ function BuscarCarona() {
     }
   }
 
-  function alternarAlerta(id) {
-    setAlertas((atuais) => atuais.map((alerta) => (
-      alerta.id === id ? { ...alerta, ativo: !alerta.ativo } : alerta
-    )));
+  async function handleRegistrarInteresse() {
+    try {
+      await registrarInteresse({
+        origem,
+        destino,
+      });
+      alert('Interesse registrado com sucesso!');
+    } catch (erro) {
+      alert(
+        erro.message ||
+        'Não foi possível registrar o interesse.'
+      );
+    }
   }
+
 
   return (
     <main className="buscar-page">
       <section className="buscar-shell">
         <header className="buscar-cabecalho">
           <h1 className="buscar-title">Buscar caronas</h1>
-          <button type="button" className="buscar-alertas-botao" onClick={() => setModalAlertasAberto(true)}>
+          <Link
+            to="/meus-interesses"
+            className="buscar-alertas-botao"
+          >
             <BellRing size={15} />
             Meus alertas
-          </button>
+          </Link>
         </header>
 
         <div className="buscar-formulario">
@@ -157,50 +169,45 @@ function BuscarCarona() {
 
         {erroBusca && <div className="buscar-erro" role="alert">{erroBusca}</div>}
 
-        <div className="buscar-resultado-topo">
-          <p>{caronasFiltradas.length} caronas encontradas</p>
-        </div>
+        {buscaRealizada && (
+          <div className="buscar-resultado-topo">
+            <p>
+              {caronasFiltradas.length} carona
+              {caronasFiltradas.length !== 1 && 's'} encontradas
+            </p>
+          </div>
+        )}
 
         <div className="buscar-lista">
           {!carregando && buscaRealizada && caronasFiltradas.length === 0 && (
             <div className="buscar-vazio">
-              <p>Nenhuma carona encontrada com esses filtros.</p>
-              <button type="button" onClick={() => setModalAlertasAberto(true)}>
-                <BellPlus size={15} /> Criar alerta para este trajeto
-              </button>
+              <p className="buscar-vazio-titulo">
+                Nenhuma carona encontrada para este trajeto.
+              </p>
+
+              <p className="buscar-vazio-descricao">
+                Deseja ser notificado quando alguém oferecer?
+              </p>
+
+              <Link
+                to="/meus-interesses"
+                className="buscar-vazio-botao"
+                state={{
+                  origem,
+                  destino,
+                }}
+              >
+                <BellPlus size={15} />
+                Criar alerta para este trajeto
+              </Link>
             </div>
           )} 
           {!carregando && caronasFiltradas.map((carona) => <RideCard key={carona.id} carona={carona} />)}
         </div>
+        
       </section>
 
       <NavegacaoInferior />
-
-      {modalAlertasAberto && (
-        <div className="buscar-modal-fundo" role="presentation" onMouseDown={() => setModalAlertasAberto(false)}>
-          <section className="buscar-modal" role="dialog" aria-modal="true" aria-labelledby="titulo-alertas" onMouseDown={(evento) => evento.stopPropagation()}>
-            <div className="buscar-modal-cabecalho">
-              <h2 id="titulo-alertas"><BellRing size={17} /> Alertas de carona</h2>
-              <button type="button" aria-label="Fechar" onClick={() => setModalAlertasAberto(false)}><X size={18} /></button>
-            </div>
-            <p className="buscar-modal-descricao">Seja notificado quando novas caronas compatíveis forem publicadas.</p>
-            <div className="buscar-alertas-lista">
-              {alertas.map((alerta) => (
-                <article className="buscar-alerta-item" key={alerta.id}>
-                  <div>
-                    <strong>{alerta.origem} <ArrowRight size={13} /> {alerta.destino}</strong>
-                    <span>{alerta.horario}</span>
-                  </div>
-                  <button type="button" className={alerta.ativo ? 'ativo' : ''} onClick={() => alternarAlerta(alerta.id)}>
-                    {alerta.ativo ? 'Ativo' : 'Pausado'}
-                  </button>
-                </article>
-              ))}
-            </div>
-            <button type="button" className="buscar-novo-alerta"><BellPlus size={16} /> Novo alerta</button>
-          </section>
-        </div>
-      )}
     </main>
   );
 }

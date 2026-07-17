@@ -220,85 +220,70 @@ describe('obterDetalhesHistorico — 403 é a exceção da regra de fallback', (
   });
 });
 
-describe('obterDetalhesHistorico — fallback para o mock nos demais erros', () => {
-  it('cai para o mock quando a API responde 500', async () => {
+describe('obterDetalhesHistorico — sem fallback em teste: demais erros propagam', () => {
+  // O fallback de mock é gated por shouldUseDevelopmentFallbacks(), que exige
+  // import.meta.env.DEV — sempre false em teste. Logo, todo erro que não seja
+  // 403 sobe até a página em vez de virar um detalhe mockado.
+  it('propaga o erro quando a API responde 500', async () => {
     comSessao();
     fetch.mockResolvedValue(respostaSemJson({ status: 500 }));
 
-    const detalhe = await obterDetalhesHistorico(ID_MOCK);
+    const erro = await obterDetalhesHistorico(ID_MOCK).catch((e) => e);
 
-    expect(detalhe.id).toBe(ID_MOCK);
-    expect(detalhe.origem).toBe('Prata');
+    expect(erro.message).toBe('Erro ao comunicar com o servidor.');
+    expect(erro.status).toBe(500);
   });
 
-  // COMPORTAMENTO ATUAL, não um endosso: um 404 do backend não vira "não
-  // encontrado" na tela — vira o detalhe mockado do mesmo id.
-  it('cai para o mock quando a API responde 404 para um id que existe no mock', async () => {
+  it('propaga o erro quando a API responde 404 para um id que existe no mock', async () => {
     comSessao();
     fetch.mockResolvedValue(
       respostaJson({ message: 'Não encontrado' }, { ok: false, status: 404 }),
     );
 
-    const detalhe = await obterDetalhesHistorico(ID_MOCK);
+    const erro = await obterDetalhesHistorico(ID_MOCK).catch((e) => e);
 
-    expect(detalhe.id).toBe(ID_MOCK);
+    expect(erro.message).toBe('Não encontrado');
+    expect(erro.status).toBe(404);
   });
 
-  it('cai para o mock quando a API responde 401', async () => {
+  it('propaga o erro quando a API responde 401', async () => {
     comSessao();
     fetch.mockResolvedValue(
       respostaJson({ message: 'Não autenticado' }, { ok: false, status: 401 }),
     );
 
-    await expect(obterDetalhesHistorico(ID_MOCK)).resolves.toMatchObject({
-      id: ID_MOCK,
-    });
+    const erro = await obterDetalhesHistorico(ID_MOCK).catch((e) => e);
+
+    expect(erro.message).toBe('Não autenticado');
+    expect(erro.status).toBe(401);
   });
 
-  it('cai para o mock quando a conexão falha (erro sem status)', async () => {
+  it('propaga o erro quando a conexão falha (erro sem status)', async () => {
     comSessao();
     fetch.mockRejectedValue(new TypeError('Failed to fetch'));
 
-    await expect(obterDetalhesHistorico(ID_MOCK)).resolves.toMatchObject({
-      id: ID_MOCK,
-    });
+    await expect(obterDetalhesHistorico(ID_MOCK)).rejects.toThrow(
+      'Não foi possível conectar ao servidor. Tente novamente.',
+    );
   });
 
-  it('não valida participação no fallback: entrega o detalhe a quem não participou', async () => {
-    // validarAcesso: false no caminho de fallback. O id '403' do mock tem
-    // participantes 'outro-motorista'/'outro-passageiro'.
-    comSessao({ id: 1 });
-    fetch.mockResolvedValue(respostaSemJson({ status: 500 }));
-
-    const detalhe = await obterDetalhesHistorico('403');
-
-    expect(detalhe.motorista.nome).toBe('Outro Motorista');
-  });
-
-  it('cai para o mock e devolve o detalhe mesmo sem sessão', async () => {
+  it('propaga o erro mesmo sem sessão', async () => {
     fetch.mockRejectedValue(new TypeError('Failed to fetch'));
 
-    await expect(obterDetalhesHistorico(ID_MOCK)).resolves.toMatchObject({
-      id: ID_MOCK,
-    });
+    await expect(obterDetalhesHistorico(ID_MOCK)).rejects.toThrow(
+      'Não foi possível conectar ao servidor. Tente novamente.',
+    );
   });
 
-  it('vira 404 quando o erro da API é de um id que nem o mock tem', async () => {
+  it('propaga o 500 tal como veio, mesmo para um id que nem o mock tem', async () => {
     comSessao();
     fetch.mockResolvedValue(respostaSemJson({ status: 500 }));
 
     const erro = await obterDetalhesHistorico(ID_INEXISTENTE).catch((e) => e);
 
-    // O 500 do backend é mascarado: a tela recebe "não encontrado".
-    expect(erro.message).toBe('Detalhes da carona não encontrados.');
-    expect(erro.status).toBe(404);
-  });
-
-  it('compara o id como string ao procurar no mock', async () => {
-    comSessao();
-    fetch.mockRejectedValue(new TypeError('Failed to fetch'));
-
-    await expect(obterDetalhesHistorico(2)).resolves.toMatchObject({ id: '2' });
+    // Sem fallback, o 500 não é mais mascarado como "não encontrado".
+    expect(erro.message).toBe('Erro ao comunicar com o servidor.');
+    expect(erro.status).toBe(500);
   });
 });
 

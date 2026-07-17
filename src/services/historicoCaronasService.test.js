@@ -151,50 +151,52 @@ describe('listarHistoricoComoMotorista — chamada à API', () => {
   });
 });
 
-describe('listarHistoricoComoMotorista — os dois gatilhos de fallback', () => {
-  // Gatilho 1: erro na requisição.
-  it('cai para o mock quando a API responde 500', async () => {
+describe('listarHistoricoComoMotorista — erros propagam, sem fallback', () => {
+  // O fallback de mock foi removido: qualquer erro do backend sobe até a página.
+  it('propaga o erro quando a API responde 500', async () => {
     comSessao();
     fetch.mockResolvedValue(respostaSemJson({ status: 500 }));
 
-    const resultado = await listarHistoricoComoMotorista();
-
-    expect(ehDadoMockado(resultado)).toBe(true);
-    expect(resultado).toHaveLength(3);
+    await expect(listarHistoricoComoMotorista()).rejects.toThrow(
+      'Erro ao comunicar com o servidor.',
+    );
   });
 
-  it('cai para o mock quando a API responde 404', async () => {
+  it('propaga o erro quando a API responde 404', async () => {
     comSessao();
     fetch.mockResolvedValue(
       respostaJson({ message: 'Não encontrado' }, { ok: false, status: 404 }),
     );
 
-    const resultado = await listarHistoricoComoMotorista();
-
-    expect(ehDadoMockado(resultado)).toBe(true);
+    await expect(listarHistoricoComoMotorista()).rejects.toThrow('Não encontrado');
   });
 
-  it('cai para o mock quando a API responde 403 (não há exceção aqui)', async () => {
+  it('propaga o erro quando a API responde 403', async () => {
     comSessao();
     fetch.mockResolvedValue(
       respostaJson({ message: 'Acesso negado' }, { ok: false, status: 403 }),
     );
 
-    const resultado = await listarHistoricoComoMotorista();
+    const erro = await listarHistoricoComoMotorista().catch((e) => e);
 
-    expect(ehDadoMockado(resultado)).toBe(true);
+    expect(erro.message).toBe('Acesso negado');
+    expect(erro.status).toBe(403);
   });
 
-  it('cai para o mock quando a conexão falha', async () => {
+  it('propaga o erro quando a conexão falha', async () => {
     comSessao();
     fetch.mockRejectedValue(new TypeError('Failed to fetch'));
 
-    const resultado = await listarHistoricoComoMotorista();
-
-    expect(ehDadoMockado(resultado)).toBe(true);
+    await expect(listarHistoricoComoMotorista()).rejects.toThrow(
+      'Não foi possível conectar ao servidor. Tente novamente.',
+    );
   });
+});
 
-  it('cai para o mock quando o corpo de sucesso não é JSON (data = null)', async () => {
+describe('listarHistoricoComoMotorista — listas vazias/ausentes viram []', () => {
+  // Sem fallback, um motorista que nunca ofertou carona recebe uma lista vazia
+  // real, e não mais 3 caronas inventadas.
+  it('devolve [] quando o corpo de sucesso não é JSON (data = null)', async () => {
     comSessao();
     fetch.mockResolvedValue({
       ok: true,
@@ -205,75 +207,38 @@ describe('listarHistoricoComoMotorista — os dois gatilhos de fallback', () => 
       },
     });
 
-    const resultado = await listarHistoricoComoMotorista();
-
-    expect(ehDadoMockado(resultado)).toBe(true);
+    await expect(listarHistoricoComoMotorista()).resolves.toEqual([]);
   });
 
-  // Gatilho 2: lista vazia — distinto do erro, e discutível.
-  // COMPORTAMENTO ATUAL, não um endosso: um motorista que legitimamente nunca
-  // ofertou carona recebe 3 caronas inventadas em vez de uma lista vazia.
-  // A tela não tem como distinguir "sem histórico" de "backend fora do ar".
-  it('cai para o mock quando o backend devolve uma lista vazia legítima', async () => {
+  it('devolve [] quando o backend manda uma lista vazia legítima', async () => {
     comSessao();
     fetch.mockResolvedValue(respostaJson([]));
 
     const resultado = await listarHistoricoComoMotorista();
 
     expect(fetch).toHaveBeenCalledTimes(1);
-    expect(ehDadoMockado(resultado)).toBe(true);
-    expect(resultado).toHaveLength(3);
+    expect(resultado).toEqual([]);
   });
 
-  it('cai para o mock quando o backend devolve um envelope paginado vazio', async () => {
+  it('devolve [] quando o backend manda um envelope paginado vazio', async () => {
     comSessao();
     fetch.mockResolvedValue(respostaJson({ content: [] }));
 
-    const resultado = await listarHistoricoComoMotorista();
-
-    expect(ehDadoMockado(resultado)).toBe(true);
+    await expect(listarHistoricoComoMotorista()).resolves.toEqual([]);
   });
 
-  it('cai para o mock quando a resposta é null', async () => {
+  it('devolve [] quando a resposta é null', async () => {
     comSessao();
     fetch.mockResolvedValue(respostaJson(null));
 
-    const resultado = await listarHistoricoComoMotorista();
-
-    expect(ehDadoMockado(resultado)).toBe(true);
+    await expect(listarHistoricoComoMotorista()).resolves.toEqual([]);
   });
 
-  it('cai para o mock quando a resposta é um objeto sem lista reconhecível', async () => {
+  it('devolve [] quando a resposta é um objeto sem lista reconhecível', async () => {
     comSessao();
     fetch.mockResolvedValue(respostaJson({ total: 0 }));
 
-    const resultado = await listarHistoricoComoMotorista();
-
-    expect(ehDadoMockado(resultado)).toBe(true);
-  });
-
-  it('o mock devolvido também passa pela normalização', async () => {
-    comSessao();
-    fetch.mockRejectedValue(new TypeError('Failed to fetch'));
-
-    const [primeira] = await listarHistoricoComoMotorista();
-
-    expect(primeira).toEqual({
-      id: 101,
-      status: 'FINALIZADA',
-      dataHoraSaida: '2026-05-28T07:20:00',
-      origem: 'Centenário',
-      destino: 'UFCG',
-      pontoEncontro: 'Campus Sede',
-      vagasOcupadas: 4,
-      vagasTotal: 4,
-      passageiros: [
-        { id: 5, nome: 'Marina Souza' },
-        { id: 8, nome: 'João Mendes' },
-        { id: 9, nome: 'Beatriz Lima' },
-        { id: 10, nome: 'Rafael Costa' },
-      ],
-    });
+    await expect(listarHistoricoComoMotorista()).resolves.toEqual([]);
   });
 });
 

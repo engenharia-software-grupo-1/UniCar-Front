@@ -25,7 +25,9 @@ describe('contrato offline', () => {
   });
 
   it('não toca na rede nem quando o perfil não existe', async () => {
-    await expect(obterPerfilPublicoUsuario('ninguem')).rejects.toThrow();
+    await expect(obterPerfilPublicoUsuario('ninguem')).resolves.toMatchObject({
+      nome: 'Usuário UniCar',
+    });
 
     expect(fetch).not.toHaveBeenCalled();
   });
@@ -50,6 +52,12 @@ describe('obterPerfilPublicoUsuario — busca por id', () => {
 
     expect(perfil.id).toBe(id);
     expect(perfil.nome).toBe(nome);
+  });
+
+  it('encontra o novo perfil ana-clara', async () => {
+    const perfil = await obterPerfilPublicoUsuario('ana-clara');
+
+    expect(perfil).toMatchObject({ id: 'ana-clara', nome: 'Ana Clara' });
   });
 
   it('devolve o shape que a página PerfilPublico consome', async () => {
@@ -157,49 +165,76 @@ describe('obterPerfilPublicoUsuario — normalização do id', () => {
   });
 });
 
-describe('obterPerfilPublicoUsuario — id inexistente', () => {
-  it('lança "Perfil não encontrado." para um id desconhecido', async () => {
-    await expect(obterPerfilPublicoUsuario('ninguem')).rejects.toThrow(
-      'Perfil não encontrado.',
-    );
+describe('obterPerfilPublicoUsuario — id desconhecido devolve perfil genérico', () => {
+  const ANO_ATUAL = new Date().getFullYear();
+
+  // Mudança de comportamento: um id fora do mock não lança mais; devolve um
+  // perfil público genérico e gracioso, para o link sempre abrir uma página
+  // válida em vez de um erro.
+  it('devolve o perfil genérico completo para um id desconhecido, sem lançar', async () => {
+    const perfil = await obterPerfilPublicoUsuario('ninguem');
+
+    expect(perfil).toEqual({
+      id: 'ninguem',
+      nome: 'Usuário UniCar',
+      curso: 'Comunidade UniCar',
+      instituicao: 'UFCG',
+      verificado: false,
+      avaliacao: 0,
+      totalCaronas: 0,
+      membroDesde: ANO_ATUAL,
+      biografia: 'Membro da comunidade UniCar.',
+      avaliacoes: [],
+    });
   });
 
   it.each([
-    ['undefined', undefined],
-    ['null', null],
-    ['string vazia', ''],
-    ['só espaços', '   '],
-    ['zero', 0],
-    ['id numérico fora da tabela', 99],
-    ['objeto', {}],
-    ['array vazio', []],
-  ])('lança para id inválido: %s', async (_rotulo, id) => {
-    await expect(obterPerfilPublicoUsuario(id)).rejects.toThrow(
-      'Perfil não encontrado.',
-    );
+    ['undefined', undefined, 'undefined'],
+    ['null', null, 'null'],
+    ['string vazia', '', ''],
+    ['só espaços', '   ', '   '],
+    ['zero', 0, '0'],
+    ['id numérico fora da tabela', 99, '99'],
+    ['objeto', {}, '[object Object]'],
+    ['array vazio', [], ''],
+  ])('devolve o genérico para id inválido: %s', async (_rotulo, id, esperado) => {
+    const perfil = await obterPerfilPublicoUsuario(id);
+
+    expect(perfil.nome).toBe('Usuário UniCar');
+    expect(perfil.id).toBe(esperado);
   });
 
-  it('lança quando chamada sem argumento', async () => {
-    await expect(obterPerfilPublicoUsuario()).rejects.toThrow(
-      'Perfil não encontrado.',
-    );
+  it('devolve o genérico quando chamada sem argumento', async () => {
+    expect((await obterPerfilPublicoUsuario()).nome).toBe('Usuário UniCar');
   });
 
-  // Regressão: a tabela de aliases é um objeto literal, então chaves herdadas do
-  // Object.prototype não podem vazar um "perfil" nem um erro diferente.
+  // Regressão de segurança: a tabela de aliases é um objeto literal, então chaves
+  // herdadas do Object.prototype não podem vazar o construtor nem o protótipo.
+  // Antes elas escapavam; agora caem no perfil genérico ('Usuário UniCar'), o que
+  // prova que nada do prototype é devolvido.
   it.each(['constructor', 'toString', 'hasOwnProperty', '__proto__'])(
     'não vaza propriedade herdada do prototype: %s',
     async (id) => {
-      await expect(obterPerfilPublicoUsuario(id)).rejects.toThrow(
-        'Perfil não encontrado.',
-      );
+      const perfil = await obterPerfilPublicoUsuario(id);
+
+      expect(perfil.nome).toBe('Usuário UniCar');
+      expect(perfil.avaliacoes).toEqual([]);
+      expect(typeof perfil).toBe('object');
     },
   );
 
-  it('rejeita com um Error de verdade', async () => {
-    await expect(obterPerfilPublicoUsuario('ninguem')).rejects.toBeInstanceOf(
-      Error,
+  it('nunca lança para um id desconhecido', async () => {
+    await expect(obterPerfilPublicoUsuario('ninguem')).resolves.toBeInstanceOf(
+      Object,
     );
+  });
+
+  // A página faz `perfil.avaliacoes.map(...)`: o genérico precisa trazer a lista.
+  it('o perfil genérico sempre traz uma lista de avaliações vazia', async () => {
+    const perfil = await obterPerfilPublicoUsuario('ninguem');
+
+    expect(Array.isArray(perfil.avaliacoes)).toBe(true);
+    expect(perfil.avaliacoes).toHaveLength(0);
   });
 });
 

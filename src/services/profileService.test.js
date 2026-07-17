@@ -42,12 +42,15 @@ function respostaSemConteudo() {
   };
 }
 
+// A sessão agora vive em sessionStorage (via sessionStore.saveSession). O
+// readStoredSession ainda tem fallback para localStorage, mas a escrita é sempre
+// no sessionStorage — por isso montamos e lemos a sessão lá.
 function comSessao(usuario = { id: 1, nome: 'Fulano' }) {
-  localStorage.setItem('unicar.session', JSON.stringify({ token: TOKEN, usuario }));
+  sessionStorage.setItem('unicar.session', JSON.stringify({ token: TOKEN, usuario }));
 }
 
 function sessaoSalva() {
-  return JSON.parse(localStorage.getItem('unicar.session'));
+  return JSON.parse(sessionStorage.getItem('unicar.session'));
 }
 
 function chaveFoto(identificador) {
@@ -673,21 +676,32 @@ describe('atualizarPerfilUsuarioAutenticado — foto de perfil', () => {
     expect(chavesDeFoto).toEqual([]);
   });
 
-  // BUG (ver relatório): sem fotoUrl no objeto, salvarFotoPerfil recebe undefined
-  // e APAGA a foto guardada — atualizar só o curso destrói a foto do usuário.
-  it('apaga a foto salva quando fotoUrl não é informada (comportamento atual)', async () => {
+  // Correção do bug da foto: uma atualização parcial (curso, gênero ou
+  // preferências) que NÃO traz a chave fotoUrl preserva a foto já salva.
+  // A remoção só acontece com fotoUrl enviada explicitamente (Object.hasOwn).
+  it('preserva a foto salva quando fotoUrl não é informada', async () => {
     comSessao();
     localStorage.setItem(chaveFoto(1), FOTO);
     fetch.mockResolvedValue(respostaJson({ id: 1 }));
 
     await atualizarPerfilUsuarioAutenticado({ curso: 'Engenharia' });
 
+    expect(localStorage.getItem(chaveFoto(1))).toBe(FOTO);
+  });
+
+  // Distinção importante: passar fotoUrl: undefined EXPLICITAMENTE conta como
+  // informado (Object.hasOwn === true) e ainda apaga a foto guardada.
+  it('apaga a foto quando fotoUrl vem como undefined explícito', async () => {
+    comSessao();
+    localStorage.setItem(chaveFoto(1), FOTO);
+    fetch.mockResolvedValue(respostaJson({ id: 1 }));
+
+    await atualizarPerfilUsuarioAutenticado({ curso: 'Engenharia', fotoUrl: undefined });
+
     expect(localStorage.getItem(chaveFoto(1))).toBeNull();
   });
 
-  // ...mas o perfil devolvido ainda mostra a foto que veio da sessão, então a
-  // perda só aparece no próximo carregamento.
-  it('ainda devolve a foto da sessão quando fotoUrl não é informada', async () => {
+  it('devolve a foto da sessão numa atualização parcial sem fotoUrl', async () => {
     comSessao({ id: 1, fotoUrl: FOTO });
     fetch.mockResolvedValue(respostaJson({ id: 1 }));
 
@@ -742,6 +756,7 @@ describe('excluirContaUsuarioAutenticado', () => {
 
     await excluirContaUsuarioAutenticado();
 
+    expect(sessionStorage.getItem('unicar.session')).toBeNull();
     expect(localStorage.getItem('unicar.session')).toBeNull();
     expect(localStorage.getItem('unicar.terms.acceptance')).toBeNull();
     expect(localStorage.getItem(chaveFoto(1))).toBeNull();

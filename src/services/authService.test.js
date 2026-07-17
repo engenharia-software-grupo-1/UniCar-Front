@@ -33,7 +33,9 @@ function respostaSemJson({ status = 500 } = {}) {
 }
 
 function sessaoSalva() {
-  return JSON.parse(localStorage.getItem('unicar.session'));
+  // A sessão agora é gravada em sessionStorage (sessionStore.saveSession);
+  // o localStorage só é lido como fallback legado.
+  return JSON.parse(sessionStorage.getItem('unicar.session'));
 }
 
 beforeEach(async () => {
@@ -132,7 +134,7 @@ describe('login — chamada à API', () => {
       login({ matricula: '121110111', senha: 'errada' }),
     ).rejects.toThrow('Matrícula ou senha inválida.');
 
-    expect(localStorage.getItem('unicar.session')).toBeNull();
+    expect(sessionStorage.getItem('unicar.session')).toBeNull();
   });
 
   it('usa mensagem genérica quando o corpo do erro não é JSON', async () => {
@@ -158,7 +160,7 @@ describe('login — chamada à API', () => {
       login({ matricula: '121110111', senha: 'segredo' }),
     ).rejects.toThrow('Resposta de autenticação inválida.');
 
-    expect(localStorage.getItem('unicar.session')).toBeNull();
+    expect(sessionStorage.getItem('unicar.session')).toBeNull();
   });
 
   it('rejeita quando a resposta é nula', async () => {
@@ -171,7 +173,7 @@ describe('login — chamada à API', () => {
 });
 
 describe('login — persistência da sessão', () => {
-  it('grava a sessão normalizada em unicar.session', async () => {
+  it('grava a sessão normalizada em sessionStorage', async () => {
     fetch.mockResolvedValue(
       respostaJson({
         token: TOKEN,

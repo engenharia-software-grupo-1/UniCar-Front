@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   ArrowRight,
   BellPlus,
@@ -29,8 +29,9 @@ const GENEROS = ['Qualquer', 'Feminino', 'Masculino', 'Outro'];
 
 function BuscarCarona() {
   const navigate = useNavigate();
-  const [origem, setOrigem] = useState('');
-  const [destino, setDestino] = useState('');
+  const location = useLocation();
+  const [origem, setOrigem] = useState(() => new URLSearchParams(location.search).get('origem') ?? '');
+  const [destino, setDestino] = useState(() => new URLSearchParams(location.search).get('destino') ?? '');
   const [curso, setCurso] = useState('Qualquer');
   const [genero, setGenero] = useState('Qualquer');
   const [erroOrigem, setErroOrigem] = useState('');
@@ -48,13 +49,17 @@ function BuscarCarona() {
 
 
   useEffect(() => {
+    const parametros = new URLSearchParams(location.search);
+    const origemInicial = parametros.get('origem') ?? '';
+    const destinoInicial = parametros.get('destino') ?? '';
+
     let ativo = true;
 
     async function carregarCaronas() {
       try {
         setCarregando(true);
         setErroBusca('');
-        const resultado = await buscarCaronas();
+        const resultado = await buscarCaronas({ origem: origemInicial, destino: destinoInicial });
         if (ativo) {
           setCaronas(resultado);
           setBuscaRealizada(true);
@@ -68,7 +73,7 @@ function BuscarCarona() {
 
     carregarCaronas();
     return () => { ativo = false; };
-  }, []);
+  }, [location.search]);
 
   const caronasFiltradas = useMemo(() => caronas.filter((carona) => {
     const vagas = Number(carona.vagasDisponiveis ?? carona.quantidadeVagas ?? 0);

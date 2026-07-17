@@ -48,7 +48,7 @@ function obterToken() {
   if (usarVeiculosMockados()) {
     sessionJSON = JSON.stringify({ token: TOKEN_MOCKADO });
   } else {
-    sessionJSON = localStorage.getItem('unicar.session');
+    sessionJSON = sessionStorage.getItem('unicar.session') || localStorage.getItem('unicar.session');
   }
 
   if (!sessionJSON) {

@@ -1,5 +1,6 @@
 const NOMINATIM_SEARCH_URL = 'https://nominatim.openstreetmap.org/search';
 const CACHE_KEY = 'unicar.geocoding.cache';
+const CACHE_TTL_MS = 60 * 60 * 1000;
 let ultimaRequisicao = 0;
 
 // Espelha a validação de contribuição do backend (CaronaService.validarValorContribuicao):
@@ -16,7 +17,7 @@ export async function geocodificarEndereco(descricao) {
 
   const cache = carregarCache();
   const chave = texto.toLocaleLowerCase('pt-BR');
-  if (cache[chave]) return cache[chave];
+  if (cache[chave]) return cache[chave].endereco;
 
   const params = new URLSearchParams({
     q: `${texto}, Campina Grande, Paraíba, Brasil`,
@@ -48,14 +49,20 @@ export async function geocodificarEndereco(descricao) {
   }
 
   const endereco = { descricao: texto, latitude, longitude };
-  cache[chave] = endereco;
-  localStorage.setItem(CACHE_KEY, JSON.stringify(cache));
+  cache[chave] = { endereco, expiraEm: Date.now() + CACHE_TTL_MS };
+  sessionStorage.setItem(CACHE_KEY, JSON.stringify(cache));
   return endereco;
 }
 
 function carregarCache() {
   try {
-    return JSON.parse(localStorage.getItem(CACHE_KEY)) || {};
+    const cache = JSON.parse(sessionStorage.getItem(CACHE_KEY)) || {};
+    const agora = Date.now();
+
+    return Object.fromEntries(
+      Object.entries(cache)
+        .filter(([, entrada]) => entrada?.expiraEm > agora),
+    );
   } catch {
     return {};
   }

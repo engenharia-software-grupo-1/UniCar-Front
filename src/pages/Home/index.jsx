@@ -1,4 +1,5 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 import Campo from '../../components/common/Campo.jsx';
 import {
   ArrowRight,
@@ -123,19 +124,42 @@ function Features() {
 }
 
 function SearchPreview() {
+  const navigate = useNavigate();
+  const estaLogado = isAuthenticated();
+  const [origem, setOrigem] = useState('');
+  const [destino, setDestino] = useState('');
+  const [data, setData] = useState('');
+  const [horario, setHorario] = useState('');
+
+  function abrirBusca(evento, trajeto = {}) {
+    evento.preventDefault();
+
+    const parametros = new URLSearchParams();
+    const origemBusca = trajeto.origem ?? origem;
+    const destinoBusca = trajeto.destino ?? destino;
+
+    if (origemBusca.trim()) parametros.set('origem', origemBusca.trim());
+    if (destinoBusca.trim()) parametros.set('destino', destinoBusca.trim());
+    if (data) parametros.set('data', data);
+    if (horario) parametros.set('horario', horario);
+
+    const destinoRota = `/buscar-carona${parametros.size ? `?${parametros.toString()}` : ''}`;
+    navigate(estaLogado ? destinoRota : '/login');
+  }
+
   return (
     <section id="buscar" className="unicar-section">
       <div className="unicar-container unicar-search-grid">
         <div>
           <TituloSecao title="Encontre a carona ideal" text="Filtre por campus, horário e disponibilidade de vagas." />
-          <form className="unicar-form">
-            <Campo label="De onde" placeholder="Catolé, Centro, Malvinas..." icon={MapPin} />
-            <Campo label="Para onde" placeholder="Campus Sede, HU, CCBS..." icon={GraduationCap} />
+          <form className="unicar-form" onSubmit={abrirBusca}>
+            <Campo label="De onde" placeholder="Catolé, Centro, Malvinas..." icon={MapPin} name="origem" value={origem} onChange={(evento) => setOrigem(evento.target.value)} />
+            <Campo label="Para onde" placeholder="Campus Sede, HU, CCBS..." icon={GraduationCap} name="destino" value={destino} onChange={(evento) => setDestino(evento.target.value)} />
             <div className="unicar-form__row">
-              <Campo label="Data" placeholder="Hoje" />
-              <Campo label="Horário" placeholder="07:00" />
+              <Campo label="Data" placeholder="Hoje" name="data" value={data} onChange={(evento) => setData(evento.target.value)} />
+              <Campo label="Horário" placeholder="07:00" name="horario" value={horario} onChange={(evento) => setHorario(evento.target.value)} />
             </div>
-            <button type="button" className="unicar-button unicar-button--block">
+            <button type="submit" className="unicar-button unicar-button--block">
               <Search className="icone iconePequeno" />
               Buscar caronas
             </button>
@@ -143,7 +167,16 @@ function SearchPreview() {
         </div>
         <div className="unicar-rides">
           {exemplosDeCaronas.map((carona) => (
-            <article key={carona.motorista} className="unicar-ride">
+            <article
+              key={carona.motorista}
+              className="unicar-ride"
+              role="link"
+              tabIndex={0}
+              onClick={(evento) => abrirBusca(evento, carona)}
+              onKeyDown={(evento) => {
+                if (evento.key === 'Enter' || evento.key === ' ') abrirBusca(evento, carona);
+              }}
+            >
               <div className="unicar-avatar">{carona.motorista[0]}</div>
               <div className="unicar-ride__main">
                 <h3>{carona.motorista}</h3>

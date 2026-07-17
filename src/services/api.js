@@ -1,7 +1,7 @@
 import { API_BASE_URL } from './apiConfig.js';
 
 function getSession() {
-  const session = localStorage.getItem('unicar.session');
+  const session = sessionStorage.getItem('unicar.session') || localStorage.getItem('unicar.session');
 
   if (!session) {
     return null;

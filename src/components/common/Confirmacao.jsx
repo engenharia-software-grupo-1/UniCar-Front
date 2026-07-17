@@ -36,10 +36,7 @@ export default function Confirmacao({
         {danger && <h2>{title}</h2>}
 
         {message && (
-          <p
-            className="confirmacaoMensagem"
-            dangerouslySetInnerHTML={{ __html: message }}
-          />
+          <p className="confirmacaoMensagem">{message}</p>
         )}
 
         <div className="confirmacaoBotoes">

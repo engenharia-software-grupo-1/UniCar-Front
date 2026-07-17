@@ -23,6 +23,7 @@ function TermosUso() {
   }
 
   function handleLogout() {
+    sessionStorage.removeItem('unicar.session');
     localStorage.removeItem('unicar.session');
     navigate('/login');
   }

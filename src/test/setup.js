@@ -44,6 +44,7 @@ beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
 
 afterEach(() => {
   cleanup();
+  sessionStorage.clear();
   server.resetHandlers();
   resetStore();
 });

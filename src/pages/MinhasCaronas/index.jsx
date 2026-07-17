@@ -349,8 +349,7 @@ function MinhasCaronas() {
         title="Iniciar carona"
         message={
           caronaParaIniciar
-            ? `<strong>Deseja confirmar o início da viagem de ${caronaParaIniciar.origem} para ${caronaParaIniciar.destino}?</strong>
-              Os passageiros serão notificados e o status será atualizado para "Em andamento".`
+            ? `Deseja confirmar o início da viagem de ${caronaParaIniciar.origem} para ${caronaParaIniciar.destino}? Os passageiros serão notificados e o status será atualizado para "Em andamento".`
             : ''
         }
         confirmLabel="Confirmar início"
@@ -366,8 +365,7 @@ function MinhasCaronas() {
         title="Finalizar carona"
         message={
           caronaParaFinalizar
-            ? `<strong>Deseja confirmar o fim da viagem de ${caronaParaFinalizar.origem} para ${caronaParaFinalizar.destino}?</strong>
-              Após finalizar, será possível realizar as avaliações.`
+            ? `Deseja confirmar o fim da viagem de ${caronaParaFinalizar.origem} para ${caronaParaFinalizar.destino}? Após finalizar, será possível realizar as avaliações.`
             : ''
         }
         confirmLabel="Finalizar carona"

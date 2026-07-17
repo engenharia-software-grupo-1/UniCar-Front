@@ -34,7 +34,7 @@ export async function login({ matricula, usuario, senha }) {
     authenticatedAt: new Date().toISOString(),
   };
 
-  localStorage.setItem(SESSION_KEY, JSON.stringify(normalizedSession));
+  sessionStorage.setItem(SESSION_KEY, JSON.stringify(normalizedSession));
 
   return normalizedSession;
 }
@@ -59,7 +59,7 @@ export async function logout() {
 }
 
 export function getSession() {
-  const session = localStorage.getItem(SESSION_KEY);
+  const session = sessionStorage.getItem(SESSION_KEY) || localStorage.getItem(SESSION_KEY);
 
   if (!session) {
     return null;
@@ -72,10 +72,18 @@ export function getSession() {
       return null;
     }
 
-    return {
+    const normalizedSession = {
       ...parsedSession,
       usuario: normalizeUsuario(parsedSession.usuario),
     };
+
+    // Migra sessões antigas sem manter o token persistido após fechar o browser.
+    if (!sessionStorage.getItem(SESSION_KEY)) {
+      sessionStorage.setItem(SESSION_KEY, JSON.stringify(normalizedSession));
+      localStorage.removeItem(SESSION_KEY);
+    }
+
+    return normalizedSession;
   } catch {
     return null;
   }

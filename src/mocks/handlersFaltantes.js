@@ -15,7 +15,7 @@ const STORE_VERSION = 'hibrido-v4';
 
 function usuarioDaSessao() {
   try {
-    const sessao = JSON.parse(localStorage.getItem('unicar.session'));
+    const sessao = JSON.parse(sessionStorage.getItem('unicar.session') || localStorage.getItem('unicar.session'));
     const usuario = sessao?.usuario || {};
 
     return {

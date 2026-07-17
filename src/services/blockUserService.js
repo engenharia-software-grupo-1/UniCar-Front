@@ -102,7 +102,10 @@ function usarBloqueiosMockados() {
 }
 
 function deveUsarFallbackMockado(error) {
-  return error?.status === 404 || error?.status === 405 || /not found|not supported/i.test(error?.message || '');
+  return (
+    import.meta.env.DEV &&
+    (error?.status === 404 || error?.status === 405 || /not found|not supported/i.test(error?.message || ''))
+  );
 }
 
 function carregarUsuariosBloqueadosMockados() {

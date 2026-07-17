@@ -194,11 +194,16 @@ function Metrica({ icone, rotulo, valor }) {
 }
 
 function Avatar({ pessoa }) {
-  if (pessoa.fotoPerfil) {
-    return <img className="historico-detalhes-avatar" src={pessoa.fotoPerfil} alt={`Foto de ${pessoa.nome}`} />;
-  }
+  const usuarioId = pessoa.usuarioId ?? pessoa.id;
+  const conteudo = pessoa.fotoPerfil
+    ? <img className="historico-detalhes-avatar" src={pessoa.fotoPerfil} alt={`Foto de ${pessoa.nome}`} />
+    : <span className="historico-detalhes-avatar">{pessoa.nome?.trim()[0]?.toUpperCase() || 'U'}</span>;
 
-  return <span className="historico-detalhes-avatar">{pessoa.nome?.trim()[0]?.toUpperCase() || 'U'}</span>;
+  return (
+    <Link to={`/usuarios/${usuarioId}`} aria-label={`Ver perfil de ${pessoa.nome}`}>
+      {conteudo}
+    </Link>
+  );
 }
 
 function montarDestino(detalhe) {

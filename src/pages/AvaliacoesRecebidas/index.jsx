@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Calendar, MessageSquare, Star } from 'lucide-react';
 import { listarAvaliacoesRecebidas } from '../../services/avaliacaoService.js';
 import './style.css';
@@ -153,9 +154,13 @@ function AvaliacaoItem({ avaliacao }) {
     <li className="avaliacoes-item">
       <div className="avaliacoes-item__top">
         <div className="avaliacoes-user">
-          <div className="avaliacoes-avatar" aria-hidden="true">
+          <Link
+            to={`/usuarios/${avaliacao.autorId}`}
+            className="avaliacoes-avatar"
+            aria-label={`Ver perfil de ${avaliacao.from}`}
+          >
             {getInitial(avaliacao.from)}
-          </div>
+          </Link>
 
           <div>
             <strong>{avaliacao.from}</strong>

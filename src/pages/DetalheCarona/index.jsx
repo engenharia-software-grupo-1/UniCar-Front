@@ -37,7 +37,7 @@ const STATUS = {
 };
 
 const PASSAGEIROS_MOCKADOS = [
-  { id: 1, reservaId: 101, nome: 'Ana Clara', curso: 'Ciência da Computação', avaliacao: 4.9, status: 'Confirmado' },
+  { id: 'ana-clara', reservaId: 101, nome: 'Ana Clara', curso: 'Ciência da Computação', avaliacao: 4.9, status: 'Confirmado' },
 ];
 
 const MENSAGENS_INICIAIS = [
@@ -164,6 +164,7 @@ function DetalheCarona() {
         verificado: perfil?.motoristaVerificado ?? motoristaDaCarona.verificado,
       }
     : motoristaDaCarona;
+  const motoristaPerfilId = motorista.id ?? motorista.usuarioId ?? motorista.motoristaId ?? perfil?.id;
   const veiculo = carona?.veiculo || {};
   const destino = carona?.destino || 'Destino não informado';
   const destinoExibido = formatarDestino(destino, carona?.pontoEncontro);
@@ -340,11 +341,15 @@ function DetalheCarona() {
             <section className="detalhe-card detalhe-main-card">
               <div className="detalhe-driver-header">
                 <div className="detalhe-avatar-wrap">
-                  <div className="detalhe-avatar">
+                  <Link
+                    to={`/usuarios/${motoristaPerfilId}`}
+                    className="detalhe-avatar"
+                    aria-label={`Ver perfil de ${motorista.nome || 'motorista'}`}
+                  >
                     {motorista.fotoUrl ? (
                       <img src={motorista.fotoUrl} alt={`Foto de ${motorista.nome || 'motorista'}`} />
                     ) : getInitial(motorista.nome)}
-                  </div>
+                  </Link>
                   {motorista.verificado && (
                     <span className="detalhe-verified">
                       <CheckCircle size={14} />
@@ -496,7 +501,14 @@ function DetalheCarona() {
                     )}
                     {itensPassageiros.map((passageiro) => (
                       <article className="detalhe-card detalhe-passenger" key={passageiro.id}>
-                    <div className="detalhe-avatar detalhe-avatar--small">{getInitial(passageiro.nome)}</div>
+                    <Link
+                      to={`/usuarios/${passageiro.id}`}
+                      className="detalhe-avatar detalhe-avatar--small"
+                      aria-label={`Ver perfil de ${passageiro.nome}`}
+                      state={{ perfilFallback: passageiro }}
+                    >
+                      {getInitial(passageiro.nome)}
+                    </Link>
                     <div>
                       <strong>{passageiro.nome}</strong>
                       <p>{passageiro.curso}</p>

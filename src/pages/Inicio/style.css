@@ -137,6 +137,20 @@
   overflow: hidden;
 }
 
+.inicio-driver-avatar,
+.inicio-suggestion-avatar {
+  cursor: pointer;
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+
+.inicio-driver-avatar:hover,
+.inicio-driver-avatar:focus-visible,
+.inicio-suggestion-avatar:hover,
+.inicio-suggestion-avatar:focus-visible {
+  transform: scale(1.06);
+  box-shadow: 0 0 0 3px rgba(52, 86, 209, .28);
+}
+
 .inicio-driver-avatar img {
   width: 100%;
   height: 100%;
@@ -264,6 +278,10 @@
   color: #ffffff;
   display: grid;
   place-items: center;
+}
+
+.inicio-suggestion-avatar {
+  text-decoration: none;
 }
 
 .inicio-section-header {

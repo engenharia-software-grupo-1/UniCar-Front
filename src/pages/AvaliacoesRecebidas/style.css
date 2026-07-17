@@ -187,6 +187,17 @@
   flex-shrink: 0;
 }
 
+.avaliacoes-avatar {
+  text-decoration: none;
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+
+.avaliacoes-avatar:hover,
+.avaliacoes-avatar:focus-visible {
+  transform: scale(1.06);
+  box-shadow: 0 0 0 3px rgba(52, 86, 209, .24);
+}
+
 .avaliacoes-user strong {
   display: block;
   color: #07132b;

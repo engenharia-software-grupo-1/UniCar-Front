@@ -31,6 +31,8 @@
 .historico-detalhes-label { margin:0 0 12px; }
 .historico-detalhes-motorista,.historico-detalhes-reservas li { display:flex; align-items:center; gap:12px; }
 .historico-detalhes-avatar { width:48px; height:48px; border-radius:50%; background:#e8eeff; color:#3456d1; display:inline-flex; align-items:center; justify-content:center; object-fit:cover; font-weight:700; flex:none; }
+.historico-detalhes-motorista > a, .historico-detalhes-reservas a { border-radius:50%; line-height:0; transition:transform .18s ease, box-shadow .18s ease; }
+.historico-detalhes-motorista > a:hover, .historico-detalhes-motorista > a:focus-visible, .historico-detalhes-reservas a:hover, .historico-detalhes-reservas a:focus-visible { transform:scale(1.06); box-shadow:0 0 0 3px rgba(52,86,209,.22); }
 .historico-detalhes-motorista > div:not(.historico-detalhes-veiculo),.historico-detalhes-reservas li > div { min-width:0; display:grid; gap:3px; }
 .historico-detalhes-motorista strong,.historico-detalhes-reservas strong { font-size:14px; }
 .historico-detalhes-motorista span,.historico-detalhes-reservas span,.historico-detalhes-reservas-topo > span { color:#64748b; font-size:11px; display:flex; align-items:center; gap:4px; }

@@ -517,7 +517,8 @@ function caronasSemente() {
       veiculo: { id: 1, modelo: 'Onix', cor: 'Prata', tipo: 'carro' },
       passageiros: [
         {
-          id: 1,
+          id: 'ana-clara',
+          usuarioId: 'ana-clara',
           reservaId: 101,
           nome: 'Ana Clara',
           curso: 'Ciência da Computação',
@@ -525,7 +526,8 @@ function caronasSemente() {
           status: 'Confirmado',
         },
         {
-          id: 2,
+          id: 'rafael-lima',
+          usuarioId: 'rafael-lima',
           reservaId: 102,
           nome: 'Rafael Lima',
           curso: 'Design',
@@ -700,7 +702,7 @@ function normalizarPassageiros(passageiros) {
   }
 
   return passageiros.map((passageiro, index) => ({
-    id: passageiro.id ?? passageiro.usuarioId ?? passageiro.userId ?? index,
+    id: passageiro.usuarioId ?? passageiro.userId ?? passageiro.id ?? index,
     reservaId: getReservaId(passageiro),
     nome: passageiro.nome || passageiro.nomeCompleto || passageiro.name || 'Passageiro',
     curso: passageiro.curso || passageiro.nomeCurso || passageiro.course || 'Comunidade UFCG',

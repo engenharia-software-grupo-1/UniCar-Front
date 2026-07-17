@@ -1,4 +1,16 @@
 const PERFIS_PUBLICOS_MOCK = {
+  'ana-clara': {
+    id: 'ana-clara',
+    nome: 'Ana Clara',
+    curso: 'Ciência da Computação',
+    instituicao: 'UFCG',
+    verificado: true,
+    avaliacao: 4.9,
+    totalCaronas: 12,
+    membroDesde: 2024,
+    biografia: 'Estudante da UFCG e usuária da comunidade UniCar.',
+    avaliacoes: [],
+  },
   marina: {
     id: 'marina',
     nome: 'Marina Souza',
@@ -96,13 +108,28 @@ const PERFIS_PUBLICOS_MOCK = {
 };
 
 export async function obterPerfilPublicoUsuario(usuarioId) {
-  const perfil = PERFIS_PUBLICOS_MOCK[normalizarUsuarioId(usuarioId)];
+  const id = normalizarUsuarioId(usuarioId);
+  const perfil = PERFIS_PUBLICOS_MOCK[id];
 
-  if (!perfil) {
-    throw new Error('Perfil não encontrado.');
+  if (perfil) {
+    return perfil;
   }
 
-  return perfil;
+  // Em dados reais, uma lista pode trazer usuários que ainda não existem no
+  // conjunto reduzido de perfis mockados. Ainda assim, o link deve abrir um
+  // perfil público válido em vez de exibir uma página de erro.
+  return {
+    id: String(usuarioId),
+    nome: 'Usuário UniCar',
+    curso: 'Comunidade UniCar',
+    instituicao: 'UFCG',
+    verificado: false,
+    avaliacao: 0,
+    totalCaronas: 0,
+    membroDesde: new Date().getFullYear(),
+    biografia: 'Membro da comunidade UniCar.',
+    avaliacoes: [],
+  };
 }
 
 function normalizarUsuarioId(usuarioId = '') {

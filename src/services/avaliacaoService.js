@@ -120,6 +120,15 @@ export async function criarAvaliacao({ caronaId, avaliadoId, nota, comentario } 
 }
 
 function normalizarAvaliacao(avaliacao = {}) {
+  const autorId =
+    avaliacao.autorId ??
+    avaliacao.avaliadorId ??
+    avaliacao.usuarioId ??
+    avaliacao.avaliador?.id ??
+    avaliacao.avaliador?.usuarioId ??
+    avaliacao.usuario?.id ??
+    avaliacao.usuario?.usuarioId;
+
   return {
     id:
       avaliacao.id ??
@@ -135,6 +144,7 @@ function normalizarAvaliacao(avaliacao = {}) {
       avaliacao.usuario?.nome ??
       avaliacao.usuario?.nomeCompleto ??
       'Usuário UniCar',
+    ...(autorId ? { autorId } : {}),
     comentario:
       avaliacao.comentario ??
       avaliacao.comment ??

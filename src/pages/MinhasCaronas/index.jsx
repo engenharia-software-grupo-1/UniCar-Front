@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ArrowRight, Pencil, Play, Square, Users, X } from 'lucide-react';
 import Confirmacao from '../../components/common/Confirmacao.jsx';
 import StatusReservaBadge from '../../components/common/StatusReservaBadge.jsx';
@@ -53,6 +53,7 @@ function caronasVisiveis(caronas, agora = Date.now()) {
 
 function MinhasCaronas() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [aba, setAba] = useState('motorista');
   const [caronas, setCaronas] = useState([]);
   const [carregando, setCarregando] = useState(true);
@@ -239,9 +240,6 @@ function MinhasCaronas() {
     }
   }
 
-  // TODO (para quando o Histórico for implementado)
-  // Após a implementação da tela de Histórico, redirecionar o motorista
-  // para avaliar os passageiros.
   async function confirmarFinalizacao() {
     if (!caronaParaFinalizar) return;
 
@@ -259,9 +257,16 @@ function MinhasCaronas() {
             )
         );
 
-        setMensagemSucesso('Carona finalizada com sucesso. Para fazer suas avaliações, siga para Histórico de Caronas.');
+      setMensagemSucesso(
+        'Carona finalizada com sucesso. Redirecionando para o Histórico de Caronas...'
+      );
 
-        setCaronaParaFinalizar(null);
+      setCaronaParaFinalizar(null);
+
+      setTimeout(() => {
+        navigate('/historico-caronas');
+      }, 2500);
+
     } catch (error) {
         setErro(error.message || 'Não foi possível finalizar a carona.');
     } finally {

@@ -1,0 +1,313 @@
+.interesses-page {
+  min-height: 100vh;
+  padding-bottom: 96px;
+  background: #f8fafc;
+  color: #172033;
+  font-family: "Nunito", ui-sans-serif, system-ui, sans-serif;
+}
+
+.interesses-page * {
+  box-sizing: border-box;
+}
+
+.interesses-shell {
+  width: min(100%, 620px);
+  margin: 0 auto;
+  padding: 24px 20px 32px;
+}
+
+/* HEADER */
+
+.interesses-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #16284c, #27487f);
+  color: #fff;
+  margin-bottom: 22px;
+}
+
+.interesses-header-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.interesses-header h1 {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #fff;
+}
+
+.interesses-header p {
+  margin-top: 4px;
+  color: rgba(255,255,255,.75);
+  font-size: .78rem;
+}
+
+/* LISTA */
+
+.interesses-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.interesse-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 18px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: 0 2px 5px rgba(15,23,42,.05);
+}
+
+.interesse-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.interesse-trajeto {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 800;
+  color: #172033;
+  font-size: .95rem;
+}
+
+.interesse-trajeto span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.interesse-trajeto svg {
+  color: #6b7280;
+  flex-shrink: 0;
+}
+
+.interesse-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 12px;
+}
+
+.interesse-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #6b7280;
+  font-size: .72rem;
+}
+
+.interesse-meta svg {
+  color: #7b8798;
+}
+
+/* BOTÃO REMOVER */
+
+.interesse-remover {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1px solid #d8dee8;
+  background: #fff;
+  color: #6b7280;
+  cursor: pointer;
+  transition: .2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.interesse-remover:hover {
+  background: #fdecec;
+  border-color: #d64045;
+  color: #d64045;
+}
+
+/* ESTADO VAZIO */
+
+.interesses-vazio {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  padding: 48px 24px;
+  text-align: center;
+}
+
+.interesses-vazio-icone {
+  width: 62px;
+  height: 62px;
+  margin: 0 auto 18px;
+  border-radius: 50%;
+  background: #edf2f7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #7b8798;
+}
+
+.interesses-vazio h2 {
+  margin: 0;
+  font-size: 1rem;
+  color: #172033;
+}
+
+.interesses-vazio p {
+  margin-top: 10px;
+  color: #6b7280;
+  font-size: .82rem;
+  line-height: 1.5;
+}
+
+/* MODAL */
+
+.interesse-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: rgba(0,0,0,.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.interesse-modal {
+  width: min(100%, 390px);
+  background: #fff;
+  border-radius: 18px;
+  padding: 22px;
+  box-shadow: 0 25px 70px rgba(0,0,0,.18);
+}
+
+.interesse-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.interesse-modal-header h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 1rem;
+  color: #172033;
+}
+
+.interesse-modal-header button {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: #6b7280;
+}
+
+.interesse-modal p {
+  margin: 0;
+  line-height: 1.6;
+  font-size: .88rem;
+}
+
+.interesse-modal-texto {
+  margin-top: 10px !important;
+  color: #6b7280;
+  font-size: .76rem !important;
+}
+
+.interesse-modal-botoes {
+  display: flex;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+.interesse-modal-botoes button {
+  flex: 1;
+  height: 44px;
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: .2s;
+}
+
+.interesse-modal-botoes .cancelar {
+  border: 1px solid #d6dce6;
+  background: #fff;
+  color: #172033;
+}
+
+.interesse-modal-botoes .cancelar:hover {
+  background: #f7f8fa;
+}
+
+.interesse-modal-botoes .remover {
+  border: none;
+  background: #d64045;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.interesse-modal-botoes .remover:hover {
+  background: #be3035;
+}
+
+.interesse-modal-botoes button:disabled {
+  opacity: .65;
+  cursor: wait;
+}
+
+/* SPINNER */
+
+.spin {
+  animation: girar 1s linear infinite;
+}
+
+@keyframes girar {
+  from {
+    transform: rotate(0);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* RESPONSIVO */
+
+@media (max-width: 520px) {
+
+  .interesses-shell {
+    padding: 20px 16px 28px;
+  }
+
+  .interesse-card {
+    padding: 16px;
+  }
+
+  .interesse-meta {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .interesse-modal-backdrop {
+    align-items: flex-end;
+    padding: 14px;
+  }
+}

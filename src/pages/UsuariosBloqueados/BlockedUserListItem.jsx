@@ -1,4 +1,5 @@
 import UnblockButton from './UnblockButton.jsx';
+import { Link } from 'react-router-dom';
 
 export default function BlockedUserListItem({
   usuario,
@@ -7,7 +8,13 @@ export default function BlockedUserListItem({
 }) {
   return (
     <article className="bloqueados-item">
-      <div className="bloqueados-avatar">{usuario.avatar}</div>
+      <Link
+        to={`/usuarios/${usuario.id}`}
+        className="bloqueados-avatar"
+        aria-label={`Ver perfil de ${usuario.name}`}
+      >
+        {usuario.avatar}
+      </Link>
 
       <div className="bloqueados-info">
         <strong>{usuario.name}</strong>

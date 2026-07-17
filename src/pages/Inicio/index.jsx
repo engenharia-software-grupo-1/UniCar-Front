@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   ArrowRight,
   CalendarX,
@@ -19,6 +19,7 @@ import {
 import './style.css';
 
 function Inicio() {
+  const navigate = useNavigate();
   const [usuario, setUsuario] = useState(() => getSession()?.usuario || {});
   const [proximaCarona, setProximaCarona] = useState(null);
   const [sugestoes, setSugestoes] = useState([]);
@@ -109,7 +110,23 @@ function Inicio() {
                 </div>
 
                 {proximaCarona.papel !== 'MOTORISTA' && <div className="inicio-driver">
-                <div className="inicio-driver-avatar" aria-label={`Motorista: ${motoristaExibido.nome}`}>
+                <div
+                  className="inicio-driver-avatar"
+                  role="link"
+                  tabIndex={0}
+                  aria-label={`Ver perfil de ${motoristaExibido.nome}`}
+                  onClick={(event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    navigate(`/usuarios/${motoristaExibido.id}`);
+                  }}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault();
+                      navigate(`/usuarios/${motoristaExibido.id}`);
+                    }
+                  }}
+                >
                   {motoristaExibido.fotoUrl ? (
                     <img src={motoristaExibido.fotoUrl} alt={`Foto de ${motoristaExibido.nome}`} />
                   ) : (
@@ -178,9 +195,13 @@ function Inicio() {
             {sugestoes.length > 0 ? (
               sugestoes.map((sugestao) => (
                 <article key={sugestao.id || sugestao.rota} className="inicio-suggestion">
-                  <div className="inicio-suggestion-avatar">
+                  <Link
+                    to={`/usuarios/${sugestao.motorista.id ?? sugestao.motorista.usuarioId}`}
+                    className="inicio-suggestion-avatar"
+                    aria-label={`Ver perfil de ${sugestao.motorista.nome || 'motorista'}`}
+                  >
                     {sugestao.motorista.avatar || 'U'}
-                  </div>
+                  </Link>
 
                   <div className="inicio-suggestion-main">
                     <h3>{sugestao.motorista.nome || 'Motorista'}</h3>
@@ -218,6 +239,9 @@ function getMotoristaExibido(carona, usuario = {}) {
     : carona?.motorista?.nome || 'Motorista';
 
   return {
+    id: ehUsuarioLogado
+      ? usuario.id ?? usuario.usuarioId
+      : carona?.motorista?.id ?? carona?.motorista?.usuarioId ?? carona?.motoristaId,
     nome,
     fotoUrl: ehUsuarioLogado ? usuario.fotoUrl || '' : '',
     avatar: ehUsuarioLogado

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useLocation, useParams } from 'react-router-dom';
 import { CalendarDays, Car, ShieldCheck, Star } from 'lucide-react';
 import BlockUserButton from '../Perfil/BlockUserButton.jsx';
 import ConfirmBlockModal from '../Perfil/ConfirmBlockModal.jsx';
@@ -9,6 +9,7 @@ import './style.css';
 
 function PerfilPublico() {
   const { usuarioId } = useParams();
+  const location = useLocation();
   const [perfil, setPerfil] = useState(null);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState('');
@@ -26,7 +27,18 @@ function PerfilPublico() {
         const dados = await obterPerfilPublicoUsuario(usuarioId);
 
         if (ativo) {
-          setPerfil(dados);
+          const perfilFallback = location.state?.perfilFallback;
+          setPerfil(
+            dados.nome === 'Usuário UniCar' && perfilFallback
+              ? {
+                  ...dados,
+                  id: perfilFallback.id ?? dados.id,
+                  nome: perfilFallback.nome ?? dados.nome,
+                  curso: perfilFallback.curso ?? dados.curso,
+                  avaliacao: perfilFallback.avaliacao ?? dados.avaliacao,
+                }
+              : dados,
+          );
         }
       } catch (error) {
         if (ativo) {
@@ -44,7 +56,7 @@ function PerfilPublico() {
     return () => {
       ativo = false;
     };
-  }, [usuarioId]);
+  }, [usuarioId, location.state]);
 
   useEffect(() => {
     if (!feedback) return undefined;

@@ -134,6 +134,16 @@
   font-weight: 900;
 }
 
+.bloqueados-avatar {
+  text-decoration: none;
+}
+
+.bloqueados-avatar:hover,
+.bloqueados-avatar:focus-visible {
+  transform: scale(1.06);
+  box-shadow: 0 0 0 3px rgba(52, 86, 209, .24);
+}
+
 .bloqueados-info {
   min-width: 0;
   display: grid;

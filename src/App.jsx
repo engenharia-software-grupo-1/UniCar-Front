@@ -25,6 +25,7 @@ import TrajetosRecorrentes from './pages/TrajetosRecorrentes/index.jsx';
 import DetalheTrajetosRecorrentes from './pages/DetalheTrajetosRecorrentes/index.jsx';
 import BuscarCarona from './pages/BuscarCarona/index.jsx';
 import DetalheReserva from './pages/DetalheReserva/index.jsx';
+import Interesses from './pages/Interesses/index.jsx';
 
 import LayoutApp from './components/layout/LayoutApp.jsx';
 import { isAuthenticated } from './services/authService.js';
@@ -89,6 +90,7 @@ function App() {
           <Route path="/historico/:id" element={<HistoricoDetalhes />} />
           <Route path="/usuarios/:usuarioId" element={<PerfilPublico />} />
           <Route path="/avaliacoes-recebidas" element={<AvaliacoesRecebidas />} />
+          <Route path="/interesses" element={<Interesses />} />
           <Route path="/notificacoes" element={<Notificacoes />} />
           <Route path="/central-ajuda" element={<CentralAjuda />} />
           <Route path="/bloqueados" element={<UsuariosBloqueados />} />

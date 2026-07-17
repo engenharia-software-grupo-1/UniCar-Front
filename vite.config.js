@@ -20,6 +20,25 @@ export default defineConfig({
       VITE_MOCK_FALTANTES: 'false',
       VITE_API_URL: 'http://localhost:8080',
     },
+    coverage: {
+      provider: 'v8',
+      // `all: true` conta também os arquivos que NENHUM teste importou — sem
+      // isto o número fica inflado (arquivos sem teste somem da conta em vez
+      // de entrar como 0%). `include` restringe à fonte de produção.
+      all: true,
+      include: ['src/**/*.{js,jsx}'],
+      exclude: [
+        'src/**/*.test.{js,jsx}',
+        'src/mocks/**',
+        'src/test/**',
+        'src/data/**',
+        'src/main.jsx',
+      ],
+      reporter: ['text', 'html', 'json-summary'],
+      // Sem isto, um único teste vermelho deixa `test:coverage` MUDO (nenhum
+      // relatório, nem terminal nem HTML).
+      reportOnFailure: true,
+    },
   },
   server: {
     proxy: {

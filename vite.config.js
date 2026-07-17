@@ -11,9 +11,13 @@ export default defineConfig({
     setupFiles: './src/test/setup.js',
     css: false,
     // A suíte exercita o caminho real de fetch/MSW; força os mocks internos
-    // dos services OFF, independente do VITE_ENABLE_MOCKS do .env de dev.
+    // dos services OFF, independente do que estiver no .env de dev.
+    // VITE_MOCK_FALTANTES também precisa ser fixado: sem isso o .env local
+    // vaza para cá e os fallbacks de mock engolem os erros que os testes
+    // esperam ver propagados (ex.: caronaService.listarMinhasCaronas).
     env: {
       VITE_ENABLE_MOCKS: 'false',
+      VITE_MOCK_FALTANTES: 'false',
       VITE_API_URL: 'http://localhost:8080',
     },
   },

@@ -1,4 +1,5 @@
 import { API_BASE_URL, shouldUseLocalDataMocks } from './apiConfig.js';
+import { readStoredSession } from './sessionStore.js';
 
 const VEICULOS_ENDPOINT = `${API_BASE_URL}/veiculos`;
 const TOKEN_MOCKADO = '123456';
@@ -9,10 +10,6 @@ const MOCK_VEHICLES_VERSION = 'com-tipo-v2';
 const VEICULOS_MOCKADOS = [];
 
 function usarVeiculosMockados() {
-  if (import.meta.env.MODE === 'test') {
-    return import.meta.env.VITE_ENABLE_MOCKS === 'true';
-  }
-
   return shouldUseLocalDataMocks();
 }
 
@@ -48,7 +45,7 @@ function obterToken() {
   if (usarVeiculosMockados()) {
     sessionJSON = JSON.stringify({ token: TOKEN_MOCKADO });
   } else {
-    sessionJSON = sessionStorage.getItem('unicar.session') || localStorage.getItem('unicar.session');
+    sessionJSON = JSON.stringify(readStoredSession());
   }
 
   if (!sessionJSON) {

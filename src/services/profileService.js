@@ -1,10 +1,11 @@
 import { getSession, normalizeUsuario } from './authService.js';
 import { apiRequest } from './api.js';
+import { clearSession, saveSession } from './sessionStore.js';
 
 const PROFILE_PHOTO_KEY_PREFIX = 'unicar.profile.photo.';
 
 function salvarSessaoAtualizada(session) {
-  sessionStorage.setItem('unicar.session', JSON.stringify(session));
+  saveSession(session);
 }
 
 export async function getPerfilUsuarioAutenticado() {
@@ -104,8 +105,7 @@ export async function excluirContaUsuarioAutenticado() {
 
   removerFotoPerfil(session.usuario);
 
-  sessionStorage.removeItem('unicar.session');
-  localStorage.removeItem('unicar.session');
+  clearSession();
   localStorage.removeItem('unicar.terms.acceptance');
 
   return true;

@@ -1,21 +1,8 @@
 import { API_BASE_URL } from './apiConfig.js';
-
-function getSession() {
-  const session = sessionStorage.getItem('unicar.session') || localStorage.getItem('unicar.session');
-
-  if (!session) {
-    return null;
-  }
-
-  try {
-    return JSON.parse(session);
-  } catch {
-    return null;
-  }
-}
+import { readStoredSession } from './sessionStore.js';
 
 export async function apiRequest(endpoint, options = {}) {
-  const session = getSession();
+  const session = readStoredSession();
 
   const headers = {
     'Content-Type': 'application/json',

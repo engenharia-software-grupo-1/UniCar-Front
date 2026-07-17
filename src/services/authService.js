@@ -1,7 +1,6 @@
 import { apiRequest } from './api.js';
 import { shouldUseMocks } from './apiConfig.js';
-
-const SESSION_KEY = 'unicar.session';
+import { clearSession, migrateLegacySession, readStoredSession, saveSession } from './sessionStore.js';
 const MOCK_TOKEN = 'mocked-unicar-token';
 
 function usarAutenticacaoMockada() {
@@ -35,7 +34,7 @@ export async function login({ matricula, usuario, senha }) {
     authenticatedAt: new Date().toISOString(),
   };
 
-  sessionStorage.setItem(SESSION_KEY, JSON.stringify(normalizedSession));
+  saveSession(normalizedSession);
 
   return normalizedSession;
 }
@@ -55,39 +54,24 @@ function criarSessaoMockada(identificacao) {
 }
 
 export async function logout() {
-  localStorage.removeItem(SESSION_KEY);
-  sessionStorage.removeItem(SESSION_KEY);
+  clearSession();
 }
 
 export function getSession() {
-  const session = sessionStorage.getItem(SESSION_KEY) || localStorage.getItem(SESSION_KEY);
+  const parsedSession = readStoredSession();
 
-  if (!session) {
+  if (!parsedSession?.token) {
     return null;
   }
 
-  try {
-    const parsedSession = JSON.parse(session);
+  const normalizedSession = {
+    ...parsedSession,
+    usuario: normalizeUsuario(parsedSession.usuario),
+  };
 
-    if (!parsedSession?.token) {
-      return null;
-    }
+  migrateLegacySession(normalizedSession);
 
-    const normalizedSession = {
-      ...parsedSession,
-      usuario: normalizeUsuario(parsedSession.usuario),
-    };
-
-    // Migra sessões antigas sem manter o token persistido após fechar o browser.
-    if (!sessionStorage.getItem(SESSION_KEY)) {
-      sessionStorage.setItem(SESSION_KEY, JSON.stringify(normalizedSession));
-      localStorage.removeItem(SESSION_KEY);
-    }
-
-    return normalizedSession;
-  } catch {
-    return null;
-  }
+  return normalizedSession;
 }
 
 export function isAuthenticated() {

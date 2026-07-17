@@ -1,17 +1,14 @@
 # UniCar Front
 
-Interface web do UniCar, uma plataforma de caronas universitárias para conectar estudantes que fazem trajetos semelhantes até a faculdade.
-
-## Sobre o Projeto
-
-O UniCar tem como objetivo facilitar a oferta e busca de caronas entre universitários, priorizando economia, segurança e comunidade acadêmica. Esta aplicação contém a página inicial do produto, com apresentação da proposta, recursos, busca demonstrativa de caronas e chamada para cadastro.
+Aplicação web do UniCar, uma plataforma de caronas universitárias. O projeto reúne os fluxos de autenticação, perfil, veículos, oferta e busca de caronas, reservas, histórico, notificações e avaliações.
 
 ## Tecnologias
 
-- React
+- React 19 e React Router
 - Vite
-- JavaScript
-- CSS
+- JavaScript e CSS
+- Vitest e Testing Library
+- MSW para desenvolvimento offline
 - ESLint
 
 ## Requisitos
@@ -19,96 +16,110 @@ O UniCar tem como objetivo facilitar a oferta e busca de caronas entre universit
 - Node.js
 - npm
 
-## Como Rodar Localmente
+## Começando
 
-Instale as dependências:
+Instale as dependências e crie seu arquivo de ambiente:
 
 ```bash
 npm install
+cp .env.example .env
 ```
 
-Suba o servidor de desenvolvimento:
+Inicie o ambiente de desenvolvimento:
 
 ```bash
 npm run dev
 ```
 
-Abra no navegador o endereço exibido no terminal. Por padrão, o Vite costuma usar:
+O Vite exibirá a URL local — normalmente `http://localhost:5173`.
 
-```text
-http://localhost:5173
+## Configuração da API e mocks
+
+As variáveis de ambiente estão documentadas em [`.env.example`](.env.example).
+
+```dotenv
+VITE_API_URL=http://localhost:8080
+VITE_ENABLE_MOCKS=false
+VITE_MOCK_FALTANTES=false
 ```
 
-## Scripts Disponíveis
+- `VITE_API_URL`: URL base da API usada no build e na prévia de produção.
+- `VITE_ENABLE_MOCKS=true`: executa a interface com dados simulados durante o desenvolvimento.
+- `VITE_MOCK_FALTANTES=true`: em desenvolvimento, usa mocks apenas para endpoints ainda não disponíveis na API.
 
-```bash
-npm run dev
-```
+Mocks e fallbacks de desenvolvimento não são iniciados em builds de produção. Para uso normal, mantenha as duas flags de mock como `false` e execute a API configurada em `VITE_API_URL`.
 
-Inicia o projeto em modo de desenvolvimento.
+## Scripts
 
-```bash
-npm run build
-```
+| Comando | Descrição |
+| --- | --- |
+| `npm run dev` | Inicia o servidor de desenvolvimento. |
+| `npm run build` | Gera o build de produção em `dist/`. |
+| `npm run preview` | Serve localmente o último build. |
+| `npm run lint` | Executa o ESLint. |
+| `npm test` | Executa toda a suíte de testes. |
+| `npm run test:unit` | Executa testes unitários, sem os testes de contrato. |
+| `npm run test:contract` | Executa os testes de contrato dos serviços. |
+| `npm run test:coverage` | Gera o relatório de cobertura. |
 
-Gera a versão de produção na pasta `dist`.
-
-```bash
-npm run preview
-```
-
-Executa uma prévia local do build de produção.
+Antes de abrir um pull request, execute:
 
 ```bash
 npm run lint
+npm test
+npm run build
 ```
 
-Executa a análise estática com ESLint.
+## Funcionalidades
 
-## Estrutura de Pastas
+- Autenticação e aceite dos termos de uso
+- Perfil, foto de perfil e preferências
+- Cadastro e gerenciamento de veículos
+- Oferta, edição, cancelamento, início e finalização de caronas
+- Busca com filtros e alertas de trajetos de interesse
+- Reservas e gerenciamento de solicitações de passageiros
+- Histórico de caronas para motoristas e passageiros
+- Perfis públicos, bloqueio de usuários e avaliações
+- Notificações e central de ajuda
+
+## Estrutura do projeto
 
 ```text
 src/
-  assets/       Imagens e arquivos visuais do projeto
-  components/   Componentes reutilizáveis
-    common/     Componentes genéricos de interface
-    layout/     Componentes estruturais, como Header e Footer
-    ui/         Espaço reservado para componentes de UI
-  contexts/     Contextos globais da aplicação
-  data/         Dados estáticos usados nas telas
-  hooks/        Hooks customizados
-  lib/          Configurações e integrações auxiliares
-  pages/        Páginas da aplicação
-  routes/       Entradas de rota
-  services/     Serviços para comunicação com APIs
-  utils/        Funções utilitárias
+├── components/  # Componentes reutilizáveis e layout
+├── data/        # Conteúdo estático da interface
+├── hooks/       # Hooks React
+├── mocks/       # Handlers MSW usados no desenvolvimento
+├── pages/       # Telas e estilos por domínio
+├── routes/      # Entradas de rota
+├── services/    # Integração com API, sessão e normalização de dados
+├── utils/       # Utilitários puros
+└── test/        # Configuração compartilhada dos testes
 ```
 
-## Services
+## Rotas principais
 
-A pasta `services` está preparada para concentrar chamadas ao backend quando a aplicação passar a consumir uma API. Exemplos futuros:
+Depois da autenticação, as principais telas estão disponíveis em:
 
-- `authService.js` para login, cadastro e sessão
-- `ridesService.js` para busca, criação e gerenciamento de caronas
-- `userService.js` para perfil e dados do estudante
+- `/inicio`
+- `/buscar-carona`
+- `/ofertar-carona`
+- `/minhas-caronas`
+- `/historico-caronas`
+- `/perfil`
+- `/meus-veiculos`
+- `/interesses`
+- `/notificacoes`
 
-Enquanto a página inicial estiver usando apenas conteúdo estático, essa pasta pode permanecer sem implementação.
+As rotas autenticadas são protegidas no cliente para navegação. A API deve continuar sendo a fonte de verdade para autenticação, autorização e acesso a recursos de outros usuários.
 
-## Avaliação de usuário (temporário)
+## Segurança e dados locais
 
-O modal `AvaliarUsuarioModal` (`src/pages/Perfil/`) registra a avaliação de um usuário via
-`POST /avaliacoes` (`criarAvaliacao` em `src/services/avaliacaoService.js`).
-
-Enquanto não existe a tela adequada para acioná-lo — ele deveria abrir a partir de uma
-**carona concluída**, com `caronaId`/`avaliadoId` reais —, há um **botão temporário**
-"Avaliar usuário (temporário)" na tela de Perfil. Esse botão usa um alvo fixo (`Marina
-Souza`, `caronaId`/`avaliadoId` fixos) apenas para exercitar o endpoint ponta a ponta.
-
-> ⚠️ **Provisório:** o botão do Perfil e a constante `AVALIAR_TESTE` (em
-> `src/pages/Perfil/index.jsx`, marcados com `// TODO temporário`) devem ser **movidos para
-> o lugar correto** quando o fluxo real de avaliação existir. O modal reutilizável
-> permanece; apenas o gatilho no Perfil sai.
+- A sessão do navegador é mantida em `sessionStorage`; integrações de produção devem preferir cookies `HttpOnly`, `Secure` e `SameSite` fornecidos pela API.
+- Dados simulados são exclusivos de desenvolvimento e não devem ser usados como fonte de verdade.
+- Endereços geocodificados ficam apenas temporariamente na sessão do navegador.
+- Não registre tokens, dados pessoais ou respostas sensíveis em logs do cliente.
 
 ## Status
 
-Projeto em desenvolvimento. A página inicial já está estruturada e pronta para evoluir para integração com rotas, autenticação e backend.
+O projeto está em evolução junto da API do UniCar. Quando um endpoint passar a existir no backend, remova o handler correspondente em `src/mocks/` e mantenha o contrato coberto por testes.

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { acceptTerms, getTermsVersion } from '../../services/termsService.js';
+import { clearSession } from '../../services/sessionStore.js';
 import './style.css';
 
 function TermosUso() {
@@ -23,8 +24,7 @@ function TermosUso() {
   }
 
   function handleLogout() {
-    sessionStorage.removeItem('unicar.session');
-    localStorage.removeItem('unicar.session');
+    clearSession();
     navigate('/login');
   }
 

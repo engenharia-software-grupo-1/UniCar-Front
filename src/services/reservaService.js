@@ -1,5 +1,5 @@
 import { apiRequest } from './api.js';
-import { shouldUseLocalDataMocks } from './apiConfig.js';
+import { shouldUseDevelopmentFallbacks, shouldUseLocalDataMocks } from './apiConfig.js';
 
 // RESERVAS (contrato US10)
 //
@@ -47,7 +47,7 @@ export async function listarReservasPendentesDaCarona(caronaId) {
     const lista = Array.isArray(resposta) ? resposta : resposta?.content || resposta?.reservas || resposta?.items || [];
     return lista.map(normalizarSolicitacao).filter((reserva) => reserva.status === 'PENDENTE');
   } catch (error) {
-    if (import.meta.env.VITE_MOCK_FALTANTES === 'true') {
+    if (shouldUseDevelopmentFallbacks()) {
       return SOLICITACOES_MOCK.map(normalizarSolicitacao);
     }
     throw error;
@@ -209,7 +209,7 @@ export async function listarReservasEnviadas() {
 
     return reservas.map(normalizarResumoReserva);
   } catch (error) {
-    if (import.meta.env.VITE_MOCK_FALTANTES === 'true') {
+    if (shouldUseDevelopmentFallbacks()) {
       return DETALHES_RESERVA_MOCK.map(ajustarReserva);
     }
     throw error;
@@ -255,7 +255,7 @@ export async function obterDetalhesReserva(id) {
     const resposta = await apiRequest(`/reservas/${encodeURIComponent(id)}`);
     return normalizarDetalhesReserva(resposta);
   } catch (error) {
-    if (import.meta.env.VITE_MOCK_FALTANTES === 'true') {
+    if (shouldUseDevelopmentFallbacks()) {
       return obterDetalheReservaMock(id);
     }
     throw error;

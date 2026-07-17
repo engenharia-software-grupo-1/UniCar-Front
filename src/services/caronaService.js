@@ -1,5 +1,5 @@
 import { apiRequest } from './api.js';
-import { shouldUseLocalDataMocks } from './apiConfig.js';
+import { shouldUseDevelopmentFallbacks, shouldUseLocalDataMocks } from './apiConfig.js';
 import { listarReservasAceitas } from './reservaService.js';
 import { expandirDatasDaRecorrencia } from '../utils/recorrencia.js';
 
@@ -96,7 +96,7 @@ export async function obterCarona(id) {
     const carona = await apiRequest(`/caronas/${id}`);
     return ajustarCaronaMotorista(carona);
   } catch (error) {
-    if (import.meta.env.VITE_MOCK_FALTANTES === 'true') {
+    if (shouldUseDevelopmentFallbacks()) {
       const carona = carregarCaronasMock().find((item) => item.id === Number(id));
       if (carona) return ajustarCaronaMotorista(carona);
     }
@@ -475,7 +475,7 @@ export async function listarMinhasCaronas() {
     const resposta = await apiRequest('/caronas/minhas');
     const lista = extrairLista(resposta);
 
-    if (lista.length === 0 && import.meta.env.VITE_MOCK_FALTANTES === 'true') {
+    if (lista.length === 0 && shouldUseDevelopmentFallbacks()) {
       return carregarCaronasMock().map(ajustarCaronaMotorista);
     }
 
@@ -485,7 +485,7 @@ export async function listarMinhasCaronas() {
       ),
     );
   } catch (error) {
-    if (import.meta.env.VITE_MOCK_FALTANTES === 'true') {
+    if (shouldUseDevelopmentFallbacks()) {
       return carregarCaronasMock().map(ajustarCaronaMotorista);
     }
     throw error;

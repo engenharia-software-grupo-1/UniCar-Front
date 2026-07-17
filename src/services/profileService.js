@@ -66,15 +66,20 @@ export async function atualizarPerfilUsuarioAutenticado(dadosAtualizados) {
       curso: dadosAtualizados.curso,
     }),
   }));
+  const fotoFoiInformada = Object.hasOwn(dadosAtualizados, 'fotoUrl');
   const usuarioAtualizado = {
     ...usuarioApi,
     fotoUrl:
-      dadosAtualizados.fotoUrl !== undefined
+      fotoFoiInformada
         ? dadosAtualizados.fotoUrl
         : getFotoPerfil(usuarioApi) || getFotoPerfil(session.usuario),
   };
 
-  salvarFotoPerfil(usuarioAtualizado, session.usuario, dadosAtualizados.fotoUrl);
+  // Atualizações parciais (curso, gênero ou preferências) não podem apagar a
+  // foto persistida. Remoção só ocorre quando fotoUrl é enviado explicitamente.
+  if (fotoFoiInformada) {
+    salvarFotoPerfil(usuarioAtualizado, session.usuario, dadosAtualizados.fotoUrl);
+  }
 
   const novaSessao = {
     ...session,

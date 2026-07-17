@@ -1,4 +1,5 @@
 import { shouldUseLocalDataMocks } from './apiConfig.js';
+import { apiRequest } from './api.js';
 import { getSession } from './authService.js';
 
 const MOCK_NOTIFICACOES = [
@@ -66,7 +67,12 @@ export async function listarNotificacoes() {
     return ordenarPorDataDesc(MOCK_NOTIFICACOES.map(normalizarNotificacao));
   }
 
-  return ordenarPorDataDesc(MOCK_NOTIFICACOES.map(normalizarNotificacao));
+  const resposta = await apiRequest('/notificacoes');
+  const notificacoes = Array.isArray(resposta)
+    ? resposta
+    : resposta?.content || resposta?.items || resposta?.notificacoes || [];
+
+  return ordenarPorDataDesc(notificacoes.map(normalizarNotificacao));
 }
 
 export async function marcarNotificacaoComoLida(id) {
@@ -76,28 +82,34 @@ export async function marcarNotificacaoComoLida(id) {
     throw new Error('Notificação inválida.');
   }
 
-  const notificacao = MOCK_NOTIFICACOES.find((item) => item.id === id);
+  if (shouldUseLocalDataMocks()) {
+    const notificacao = MOCK_NOTIFICACOES.find((item) => item.id === id);
 
-  if (notificacao) {
+    if (!notificacao) {
+      throw new Error('Notificação não encontrada.');
+    }
+
     notificacao.lida = true;
+    return { id, lida: true };
   }
 
-  return {
-    id,
-    lida: true,
-  };
+  return apiRequest(`/notificacoes/${encodeURIComponent(id)}/lida`, {
+    method: 'PATCH',
+  });
 }
 
 export async function marcarTodasNotificacoesComoLidas() {
   obterToken();
 
-  MOCK_NOTIFICACOES.forEach((notificacao) => {
-    notificacao.lida = true;
-  });
+  if (shouldUseLocalDataMocks()) {
+    MOCK_NOTIFICACOES.forEach((notificacao) => {
+      notificacao.lida = true;
+    });
 
-  return {
-    total: MOCK_NOTIFICACOES.length,
-  };
+    return { total: MOCK_NOTIFICACOES.length };
+  }
+
+  return apiRequest('/notificacoes/lidas', { method: 'PATCH' });
 }
 
 function obterToken() {

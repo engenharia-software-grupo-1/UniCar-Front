@@ -66,7 +66,16 @@ const RESERVAS_PASSAGEIRO_MOCK = [
 ];
 
 export async function listarHistoricoComoPassageiro() {
-  return RESERVAS_PASSAGEIRO_MOCK.map(normalizarReservaPassageiro);
+  if (shouldUseLocalDataMocks()) {
+    return RESERVAS_PASSAGEIRO_MOCK.map(normalizarReservaPassageiro);
+  }
+
+  const resposta = await apiRequest('/historico/passageiro');
+  const reservas = Array.isArray(resposta)
+    ? resposta
+    : resposta?.content || resposta?.items || resposta?.reservas || [];
+
+  return reservas.map(normalizarReservaPassageiro);
 }
 
 export async function obterResumoHistoricoPassageiro() {
@@ -117,3 +126,5 @@ function hojeAs(hora, minuto) {
     `T${pad(data.getHours())}:${pad(data.getMinutes())}:00`
   );
 }
+import { apiRequest } from './api.js';
+import { shouldUseLocalDataMocks } from './apiConfig.js';

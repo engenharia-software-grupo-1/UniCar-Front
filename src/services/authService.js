@@ -1,10 +1,11 @@
 import { apiRequest } from './api.js';
+import { shouldUseMocks } from './apiConfig.js';
 
 const SESSION_KEY = 'unicar.session';
 const MOCK_TOKEN = 'mocked-unicar-token';
 
 function usarAutenticacaoMockada() {
-  return import.meta.env.VITE_ENABLE_MOCKS === 'true';
+  return shouldUseMocks();
 }
 
 export async function login({ matricula, usuario, senha }) {

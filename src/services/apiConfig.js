@@ -18,3 +18,7 @@ export function shouldUseMocks() {
 export function shouldUseLocalDataMocks() {
   return shouldUseMocks();
 }
+
+export function shouldUseDevelopmentFallbacks() {
+  return import.meta.env.DEV && import.meta.env.VITE_MOCK_FALTANTES === 'true';
+}

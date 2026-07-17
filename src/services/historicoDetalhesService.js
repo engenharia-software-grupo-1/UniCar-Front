@@ -1,5 +1,5 @@
 import { apiRequest } from './api.js';
-import { shouldUseLocalDataMocks } from './apiConfig.js';
+import { shouldUseDevelopmentFallbacks, shouldUseLocalDataMocks } from './apiConfig.js';
 import { getSession } from './authService.js';
 
 const DETALHES_HISTORICO_MOCK = [
@@ -203,7 +203,11 @@ export async function obterDetalhesHistorico(id) {
       throw error;
     }
 
-    return obterDetalheMock(id, { validarAcesso: false });
+    if (shouldUseDevelopmentFallbacks()) {
+      return obterDetalheMock(id, { validarAcesso: true });
+    }
+
+    throw error;
   }
 }
 

@@ -51,18 +51,8 @@ export async function listarHistoricoComoMotorista() {
     return HISTORICO_MOTORISTA_MOCK.map(normalizarCaronaMotorista);
   }
 
-  try {
-    const resposta = await apiRequest('/historico/motorista');
-    const caronas = extrairLista(resposta);
-
-    if (caronas.length > 0) {
-      return caronas.map(normalizarCaronaMotorista);
-    }
-  } catch {
-    // Enquanto a US5-BACK-07 não estiver disponível, mantém a tela navegável.
-  }
-
-  return HISTORICO_MOTORISTA_MOCK.map(normalizarCaronaMotorista);
+  const resposta = await apiRequest('/historico/motorista');
+  return extrairLista(resposta).map(normalizarCaronaMotorista);
 }
 
 export async function obterResumoHistoricoMotorista() {

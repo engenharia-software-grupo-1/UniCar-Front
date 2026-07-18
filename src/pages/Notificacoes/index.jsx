@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import {
   Bell,
   Check,
-  CheckCheck,
   Clock3,
   Star,
   X,
@@ -11,7 +10,6 @@ import {
 import {
   listarNotificacoes,
   marcarNotificacaoComoLida,
-  marcarTodasNotificacoesComoLidas,
 } from '../../services/notificationService.js';
 import './style.css';
 
@@ -71,17 +69,6 @@ function Notificacoes() {
     marcarNotificacaoComoLida(notificacao.id).catch(() => undefined);
   }
 
-  function marcarTodasComoLidas() {
-    if (totalNaoLidas === 0) {
-      return;
-    }
-
-    setNotificacoes((notificacoesAtuais) =>
-      notificacoesAtuais.map((notificacao) => ({ ...notificacao, lida: true })),
-    );
-
-    marcarTodasNotificacoesComoLidas().catch(() => undefined);
-  }
 
   useEffect(() => {
     let ativo = true;
@@ -125,15 +112,6 @@ function Notificacoes() {
             </p>
           </div>
 
-          <button
-            type="button"
-            className="notificacoes-mark-all"
-            disabled={totalNaoLidas === 0}
-            onClick={marcarTodasComoLidas}
-          >
-            <CheckCheck size={20} />
-            Marcar todas como lidas
-          </button>
         </div>
 
         {loading && (

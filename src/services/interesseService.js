@@ -16,7 +16,7 @@ export async function registrarInteresse({ origem, destino }) {
     salvarInteressesMock(interesses);
     return novoInteresse;
   }
-  return apiRequest('/interesses', {
+  return apiRequest('/interesses-trajeto', {
     method: 'POST',
     body: JSON.stringify({
       origem,
@@ -29,7 +29,7 @@ export async function listarInteresses() {
   if (shouldUseLocalDataMocks()) {
     return carregarInteressesMock();
   }
-  const resposta = await apiRequest('/interesses');
+  const resposta = await apiRequest('/interesses-trajeto');
   if (Array.isArray(resposta)) {
     return resposta;
   }
@@ -44,7 +44,7 @@ export async function removerInteresse(id) {
     salvarInteressesMock(interesses);
     return;
   }
-  return apiRequest(`/interesses/${id}`, {
+  return apiRequest(`/interesses-trajeto/${id}`, {
     method: 'DELETE',
   });
 }

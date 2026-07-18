@@ -93,23 +93,11 @@ export async function marcarNotificacaoComoLida(id) {
     return { id, lida: true };
   }
 
-  return apiRequest(`/notificacoes/${encodeURIComponent(id)}/lida`, {
+  // Contrato (openapi): PATCH /notificacoes/{id}/visualizar. Não existe endpoint
+  // de "marcar todas" — essa feature foi removida por não estar no contrato.
+  return apiRequest(`/notificacoes/${encodeURIComponent(id)}/visualizar`, {
     method: 'PATCH',
   });
-}
-
-export async function marcarTodasNotificacoesComoLidas() {
-  obterToken();
-
-  if (shouldUseLocalDataMocks()) {
-    MOCK_NOTIFICACOES.forEach((notificacao) => {
-      notificacao.lida = true;
-    });
-
-    return { total: MOCK_NOTIFICACOES.length };
-  }
-
-  return apiRequest('/notificacoes/lidas', { method: 'PATCH' });
 }
 
 function obterToken() {

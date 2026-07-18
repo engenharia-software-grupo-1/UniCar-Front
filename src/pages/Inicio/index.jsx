@@ -196,22 +196,24 @@ function Inicio() {
               sugestoes.map((sugestao) => (
                 <article key={sugestao.id || sugestao.rota} className="inicio-suggestion">
                   <Link
-                    to={`/usuarios/${sugestao.motorista.id ?? sugestao.motorista.usuarioId}`}
-                    className="inicio-suggestion-avatar"
-                    aria-label={`Ver perfil de ${sugestao.motorista.nome || 'motorista'}`}
+                    to={`/caronas/${sugestao.id}`}
+                    className="inicio-suggestion-link"
+                    aria-label={`Ver detalhes da carona de ${sugestao.rota}`}
                   >
-                    {sugestao.motorista.avatar || 'U'}
+                    <span className="inicio-suggestion-avatar" aria-hidden="true">
+                      {sugestao.motorista.avatar || 'U'}
+                    </span>
+
+                    <div className="inicio-suggestion-main">
+                      <h3>{sugestao.motorista.nome || 'Motorista'}</h3>
+                      <p>{sugestao.rota}</p>
+                    </div>
+
+                    <div className="inicio-suggestion-meta">
+                      <strong>{formatarHorario(sugestao.horario)}</strong>
+                      <span>{formatarPreco(sugestao.preco)}</span>
+                    </div>
                   </Link>
-
-                  <div className="inicio-suggestion-main">
-                    <h3>{sugestao.motorista.nome || 'Motorista'}</h3>
-                    <p>{sugestao.rota}</p>
-                  </div>
-
-                  <div className="inicio-suggestion-meta">
-                    <strong>{formatarHorario(sugestao.horario)}</strong>
-                    <span>{formatarPreco(sugestao.preco)}</span>
-                  </div>
                 </article>
               ))
             ) : (

@@ -316,10 +316,31 @@
   border: 1px solid #dce7f3;
   border-radius: 24px;
   background: #ffffff;
+  overflow: hidden;
+  transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+}
+
+.inicio-suggestion:hover,
+.inicio-suggestion:focus-within {
+  border-color: #9eb5d5;
+  box-shadow: 0 8px 20px rgba(42, 71, 112, .1);
+  transform: translateY(-1px);
+}
+
+.inicio-suggestion-link {
+  min-height: 92px;
+  box-sizing: border-box;
+  color: inherit;
   padding: 20px;
   display: flex;
   align-items: center;
   gap: 14px;
+  text-decoration: none;
+}
+
+.inicio-suggestion-link:focus-visible {
+  outline: 3px solid #3456d1;
+  outline-offset: -3px;
 }
 
 .inicio-suggestion-main {

@@ -209,6 +209,7 @@ describe('Inicio — sugestões', () => {
 
     const sugestao = await screen.findByText('Ana Clara');
     const artigo = sugestao.closest('article');
+    expect(within(artigo).getByRole('link')).toHaveAttribute('href', '/caronas/1');
     expect(within(artigo).getByText('Centro → UFCG')).toBeInTheDocument();
     expect(within(artigo).getByText('07:15')).toBeInTheDocument();
     // formatarPreco: número 5 → moeda BRL

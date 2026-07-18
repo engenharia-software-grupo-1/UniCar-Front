@@ -45,6 +45,18 @@ describe('obterPerfilPublicoUsuario', () => {
     );
   });
 
+  it('exibe o curso quando a API o retorna como nomeCurso', async () => {
+    fetch.mockResolvedValue(respostaJson({
+      id: 42,
+      nome: 'Ana Silva',
+      nomeCurso: 'Engenharia de Computação',
+    }));
+
+    await expect(obterPerfilPublicoUsuario(42)).resolves.toMatchObject({
+      curso: 'Engenharia de Computação',
+    });
+  });
+
   it('codifica o identificador antes de montar a URL', async () => {
     fetch.mockResolvedValue(respostaJson({ id: 1, nome: 'Ana' }));
 

@@ -68,6 +68,14 @@ beforeEach(() => {
 });
 
 describe('DetalheCarona — observações do motorista', () => {
+  it('exibe o curso do motorista logo abaixo do nome', async () => {
+    obterCarona.mockResolvedValue(CARONA_BASE);
+
+    renderPagina();
+
+    expect(await screen.findByText('Engenharia • UFCG')).toBeInTheDocument();
+  });
+
   it('mostra a observação quando a carona tem uma', async () => {
     obterCarona.mockResolvedValue({
       ...CARONA_BASE,

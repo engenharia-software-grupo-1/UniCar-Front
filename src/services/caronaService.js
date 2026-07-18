@@ -678,6 +678,9 @@ function ajustarCaronaMotorista(carona = {}) {
     motorista: {
       id: motorista.id ?? motorista.usuarioId ?? '',
       nome: motorista.nomeCompleto || motorista.nome || motorista.name || '',
+      ...((motorista.curso || motorista.nomeCurso || motorista.course)
+        ? { curso: motorista.curso || motorista.nomeCurso || motorista.course }
+        : {}),
       avaliacao: motorista.avaliacao ?? motorista.rating ?? '',
     },
     veiculo: {

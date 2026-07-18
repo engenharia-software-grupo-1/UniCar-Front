@@ -388,6 +388,19 @@ describe('obterCarona', () => {
       },
     });
   });
+
+  it('preserva o curso do motorista retornado como nomeCurso', async () => {
+    fetch.mockResolvedValue(respostaJson({
+      ...DETALHE_10,
+      motorista: { ...DETALHE_10.motorista, nomeCurso: 'Engenharia de Computação' },
+    }));
+
+    const { obterCarona } = await importarService();
+
+    await expect(obterCarona(10)).resolves.toMatchObject({
+      motorista: { curso: 'Engenharia de Computação' },
+    });
+  });
 });
 
 describe('editarCarona', () => {

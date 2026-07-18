@@ -28,7 +28,7 @@ function normalizarPerfil(perfil = {}) {
   return {
     id: perfil.id ?? perfil.usuarioId ?? '',
     nome: perfil.nome ?? perfil.nomeCompleto ?? 'Usuário UniCar',
-    curso: perfil.curso ?? 'Não informado',
+    curso: perfil.curso ?? perfil.nomeCurso ?? perfil.course ?? 'Não informado',
     instituicao: 'UFCG',
     verificado: Boolean(perfil.verificado ?? perfil.motoristaVerificado),
     avaliacao: Number(perfil.reputacao ?? perfil.avaliacao ?? perfil.rating ?? 0),

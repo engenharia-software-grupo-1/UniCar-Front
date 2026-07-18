@@ -112,6 +112,7 @@ describe('Login — autenticação bem-sucedida', () => {
       usuario: '121110111',
       senha: 'segredo',
     });
+    expect(screen.getByLabelText('Senha')).toHaveValue('');
   });
 
   it('navega para /inicio quando os termos já foram aceitos', async () => {

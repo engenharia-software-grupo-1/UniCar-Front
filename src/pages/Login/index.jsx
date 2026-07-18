@@ -44,6 +44,9 @@ function Login() {
         senha,
       });
 
+      // A credencial não permanece no estado após uma autenticação concluída.
+      setSenha('');
+
       if (hasAcceptedTerms()) {
         navigate('/inicio', { replace: true });
       } else {

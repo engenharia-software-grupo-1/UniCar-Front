@@ -3,13 +3,14 @@ import { readStoredSession } from './sessionStore.js';
 
 export async function apiRequest(endpoint, options = {}) {
   const session = readStoredSession();
+  const { incluirAutorizacao = true, ...opcoesRequest } = options;
 
   const headers = {
     'Content-Type': 'application/json',
-    ...options.headers,
+    ...opcoesRequest.headers,
   };
 
-  if (session?.token) {
+  if (incluirAutorizacao && session?.token) {
     headers.Authorization = `Bearer ${session.token}`;
   }
 
@@ -17,7 +18,7 @@ export async function apiRequest(endpoint, options = {}) {
 
   try {
     response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      ...options,
+      ...opcoesRequest,
       headers,
     });
   } catch (error) {

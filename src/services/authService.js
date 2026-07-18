@@ -18,11 +18,14 @@ export async function login({ matricula, usuario, senha }) {
     ? criarSessaoMockada(identificacao)
     : await apiRequest('/auth/login', {
         method: 'POST',
-        body: JSON.stringify({
-          usuario: identificacao,
-          senha,
-        }),
-      });
+      body: JSON.stringify({
+        usuario: identificacao,
+        senha,
+      }),
+      // A autenticação deve depender apenas das credenciais informadas — nunca
+      // de um token antigo que possa ter permanecido na sessão do navegador.
+      incluirAutorizacao: false,
+    });
 
   if (!session?.token) {
     throw new Error('Resposta de autenticação inválida.');

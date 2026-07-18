@@ -104,6 +104,7 @@ describe('login — chamada à API', () => {
       usuario: '121110111',
       senha: 'segredo',
     });
+    expect(options.headers.Authorization).toBeUndefined();
   });
 
   it('aceita `usuario` como alias de `matricula`', async () => {

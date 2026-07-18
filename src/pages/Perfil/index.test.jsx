@@ -201,15 +201,14 @@ describe('salvar alterações', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('envia os novos valores editados no formulário', async () => {
+  it('mantém o curso preenchido e bloqueado para edição', async () => {
     const user = userEvent.setup();
     renderPerfil();
 
     await abrirEdicao(user);
 
-    const curso = screen.getByPlaceholderText('Ex: Ciência da Computação');
-    await user.clear(curso);
-    await user.type(curso, 'Engenharia Elétrica');
+    const curso = screen.getByDisplayValue('Ciência da Computação');
+    expect(curso).toBeDisabled();
 
     await user.click(screen.getByRole('radio', { name: 'Feminino' }));
     await user.click(screen.getByRole('checkbox'));
@@ -220,7 +219,7 @@ describe('salvar alterações', () => {
       expect(atualizarPerfilUsuarioAutenticado).toHaveBeenCalledWith({
         genero: 'Feminino',
         recebeEmails: false,
-        curso: 'Engenharia Elétrica',
+        curso: 'Ciência da Computação',
         fotoUrl: '',
       }),
     );

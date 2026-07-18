@@ -18,6 +18,9 @@ export async function getPerfilUsuarioAutenticado() {
   const usuarioApi = normalizeUsuario(await apiRequest('/usuarios/me'));
   const usuario = {
     ...usuarioApi,
+    // Alguns retornos de /usuarios/me ainda não trazem o curso. Nesse caso,
+    // preservamos o dado confirmado no login em vez de apagar o perfil local.
+    curso: usuarioApi.curso || session.usuario?.curso || '',
     fotoUrl:
       getFotoPerfil(usuarioApi) ||
       getFotoPerfilSalva(usuarioApi, session.usuario) ||
@@ -70,6 +73,7 @@ export async function atualizarPerfilUsuarioAutenticado(dadosAtualizados) {
   const fotoFoiInformada = Object.hasOwn(dadosAtualizados, 'fotoUrl');
   const usuarioAtualizado = {
     ...usuarioApi,
+    curso: usuarioApi.curso || dadosAtualizados.curso || session.usuario?.curso || '',
     fotoUrl:
       fotoFoiInformada
         ? dadosAtualizados.fotoUrl

@@ -114,7 +114,7 @@ function Perfil() {
       const perfilAtualizado = await atualizarPerfilUsuarioAutenticado({
         genero,
         recebeEmails,
-        curso,
+        curso: perfil.curso || curso,
         fotoUrl: fotoPreview,
       });
 
@@ -440,10 +440,8 @@ function Perfil() {
             <label className="perfil-modal-field">
               <span>Curso</span>
               <input
-                value={curso || ''}
-                disabled={salvando}
-                placeholder="Ex: Ciência da Computação"
-                onChange={(event) => setCurso(event.target.value)}
+                value={perfil.curso || curso || 'Curso não informado'}
+                disabled
               />
             </label>
 

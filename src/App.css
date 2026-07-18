@@ -1263,7 +1263,19 @@
 
   .marcaCabecalho img {
     width: auto;
-    height: 62px;
+    height: 46px;
+  }
+
+  .marcaCabecalho {
+    width: auto;
+    height: 48px;
+  }
+
+  .botaoCadastro {
+    min-width: 0;
+    min-height: 40px;
+    padding-inline: 12px;
+    font-size: 0.8rem;
   }
 
   .acoesCabecalho {
@@ -1281,11 +1293,16 @@
   }
 
   .unicar-actions,
-  .unicar-stats,
   .unicar-ride,
   .conteudoRodape {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .unicar-stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
   }
 
   .unicar-section {
@@ -1301,4 +1318,84 @@
   .unicar-ride__meta {
     justify-items: start;
   }
+}
+
+/* Ajustes específicos da página inicial em telefones. */
+@media (max-width: 640px) {
+  #features .unicar-container,
+  #buscar .unicar-container,
+  #como-funciona .unicar-container,
+  .unicar-divulgacao .unicar-container,
+  .conteudoRodape {
+    width: calc(100% - 32px);
+  }
+
+  .unicar-hero__grid { padding: 52px 0 58px; }
+  .unicar-eyebrow { margin-bottom: 18px; padding: 6px 10px; font-size: .62rem; }
+  .unicar-hero h1 { font-size: clamp(2.2rem, 10vw, 2.8rem); line-height: 1.06; }
+  .unicar-nowrap { white-space: normal; }
+  .unicar-hero__copy > p { margin: 20px 0 26px; font-size: .96rem; line-height: 1.55; }
+
+  .unicar-actions .unicar-button,
+  .unicar-actions .unicar-button--ghost {
+    width: 100%;
+    min-width: 0;
+    min-height: 50px;
+  }
+
+  .unicar-stats { margin-top: 30px; padding-top: 20px; }
+  .unicar-stats span { padding-right: 7px; margin-right: 7px; font-size: .58rem; letter-spacing: .03em; }
+  .unicar-stats strong { font-size: 1.22rem; }
+
+  .unicar-section,
+  #buscar,
+  #como-funciona,
+  .unicar-divulgacao { padding: 54px 0; }
+  #features { padding: 42px 0 52px; }
+
+  #features .tituloSecao,
+  #como-funciona .tituloSecao,
+  .unicar-divulgacao .tituloSecao { margin-bottom: 30px; }
+
+  #features .tituloSecao h2,
+  #como-funciona .tituloSecao h2,
+  #buscar .tituloSecao h2 { font-size: 1.9rem; line-height: 1.14; }
+
+  #features .tituloSecao p,
+  #buscar .tituloSecao p { margin-top: 12px; font-size: .98rem; }
+
+  .unicar-card { min-height: 0; padding: 22px; border-radius: 18px; }
+  .unicar-card__icon { width: 46px; height: 46px; margin-bottom: 16px; border-radius: 14px; }
+  .unicar-card h3 { white-space: normal; }
+
+  .unicar-form { width: 100%; gap: 16px; padding: 20px; border-radius: 18px; }
+  .unicar-field > span { font-size: .72rem; }
+  .unicar-field > div { min-height: 46px; padding-inline: 12px; border-radius: 12px; }
+  #buscar .unicar-button--block { min-height: 50px; font-size: 1rem; }
+
+  .unicar-rides { gap: 10px; }
+  .unicar-ride { min-height: 0; gap: 12px; padding: 18px; border-radius: 18px; }
+  .unicar-ride__meta {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: .82rem;
+  }
+
+  #como-funciona .unicar-step { min-height: 0; padding: 24px; border-radius: 18px; }
+  #como-funciona .unicar-step h3 { font-size: 1.15rem; }
+  #como-funciona .unicar-step p { font-size: .94rem; }
+
+  .unicar-divulgacao .tituloSecao h2 { font-size: 2rem; }
+  .unicar-promo { min-height: 0; padding: 22px; border-radius: 22px; }
+  .unicar-promo__top { margin-bottom: 20px; }
+  .unicar-promo img { height: 190px; margin-bottom: 22px; border-radius: 16px; }
+  .unicar-promo figcaption p { font-size: 1rem; }
+
+  .unicar-cta { padding: 34px 20px 38px; border-radius: 18px; }
+  .unicar-cta .iconeGrande { width: 58px; height: 58px; }
+  .unicar-cta h2 { font-size: 1.8rem; }
+  .marcaRodape { width: auto; height: 56px; }
+  .marcaRodape img { height: 50px; }
 }

@@ -4,14 +4,14 @@
   right: 0;
   bottom: 0;
   z-index: 30;
-  height: 72px;
+  height: calc(72px + env(safe-area-inset-bottom));
   border-top: 1px solid #dce7f3;
   background: rgba(248, 251, 255, 0.96);
   backdrop-filter: blur(16px);
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   align-items: center;
-  padding: 6px max(18px, calc((100vw - 760px) / 2)) 8px;
+  padding: 6px max(18px, calc((100vw - 760px) / 2)) calc(8px + env(safe-area-inset-bottom));
   box-shadow: 0 -8px 24px rgba(7, 19, 43, 0.04);
 }
 
@@ -56,6 +56,15 @@
   }
 
   .nav-inferior a {
-    font-size: 12px;
+    min-height: 52px;
+    font-size: 10px;
+    line-height: 1.1;
+    text-align: center;
+  }
+
+  .nav-inferior__ofertar span {
+    width: 52px;
+    height: 52px;
+    margin-top: -24px;
   }
 }

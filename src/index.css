@@ -49,6 +49,22 @@
 
 body {
   margin: 0;
+  min-width: 320px;
+  overflow-x: hidden;
+}
+
+img,
+svg,
+video,
+canvas {
+  max-width: 100%;
+}
+
+button,
+input,
+select,
+textarea {
+  max-width: 100%;
 }
 
 #root {
@@ -61,6 +77,18 @@ body {
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
+  overflow-x: clip;
+}
+
+@media (max-width: 700px) {
+  :root {
+    font-size: 15px;
+  }
+
+  #root {
+    width: 100%;
+    border: 0;
+  }
 }
 
 h1,

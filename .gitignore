@@ -29,3 +29,6 @@ venv/
 .venv/
 env/
 .env
+# Stryker (mutation testing)
+.stryker-tmp
+reports/

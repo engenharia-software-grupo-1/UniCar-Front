@@ -47,14 +47,14 @@ afterEach(() => {
 });
 
 describe('registrarInteresse — caminho de rede', () => {
-  it('faz POST /interesses com origem e destino no corpo', async () => {
+  it('faz POST /interesses-trajeto com origem e destino no corpo', async () => {
     fetch.mockResolvedValue(respostaJson({ id: 7, origem: 'Centro', destino: 'UFCG' }));
 
     const resultado = await registrarInteresse({ origem: 'Centro', destino: 'UFCG' });
 
     expect(fetch).toHaveBeenCalledTimes(1);
     const [url, options] = fetch.mock.calls[0];
-    expect(url).toBe(`${BASE_URL}/interesses`);
+    expect(url).toBe(`${BASE_URL}/interesses-trajeto`);
     expect(options.method).toBe('POST');
     expect(JSON.parse(options.body)).toEqual({ origem: 'Centro', destino: 'UFCG' });
     expect(resultado).toEqual({ id: 7, origem: 'Centro', destino: 'UFCG' });
@@ -80,13 +80,13 @@ describe('registrarInteresse — caminho de rede', () => {
 });
 
 describe('listarInteresses — caminho de rede', () => {
-  it('faz GET /interesses e devolve o array', async () => {
+  it('faz GET /interesses-trajeto e devolve o array', async () => {
     const lista = [{ id: 1 }, { id: 2 }];
     fetch.mockResolvedValue(respostaJson(lista));
 
     const resultado = await listarInteresses();
 
-    expect(fetch.mock.calls[0][0]).toBe(`${BASE_URL}/interesses`);
+    expect(fetch.mock.calls[0][0]).toBe(`${BASE_URL}/interesses-trajeto`);
     expect(fetch.mock.calls[0][1]?.method ?? 'GET').toBe('GET');
     expect(resultado).toEqual(lista);
   });
@@ -117,13 +117,13 @@ describe('listarInteresses — caminho de rede', () => {
 });
 
 describe('removerInteresse — caminho de rede', () => {
-  it('faz DELETE /interesses/{id}', async () => {
+  it('faz DELETE /interesses-trajeto/{id}', async () => {
     fetch.mockResolvedValue(respostaSemCorpo());
 
     await removerInteresse(42);
 
     const [url, options] = fetch.mock.calls[0];
-    expect(url).toBe(`${BASE_URL}/interesses/42`);
+    expect(url).toBe(`${BASE_URL}/interesses-trajeto/42`);
     expect(options.method).toBe('DELETE');
   });
 

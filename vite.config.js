@@ -54,6 +54,7 @@ export default defineConfig({
       '/trajetos-recorrentes': 'http://localhost:8080',
       '/veiculos': 'http://localhost:8080',
       '/avaliacoes': 'http://localhost:8080',
+      '/interesses-trajeto': 'http://localhost:8080',
     },
   },
 })

@@ -58,7 +58,7 @@ export default function Topbar() {
             </button>
           )}
 
-          <Link to="/home" className="topbar__logo" aria-label="UniCar — página inicial">
+          <Link to="/inicio" className="topbar__logo" aria-label="UniCar — página inicial">
             <Logo />
           </Link>
         </div>

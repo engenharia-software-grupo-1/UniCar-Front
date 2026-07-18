@@ -1,0 +1,8 @@
+.status-reserva-badge { width:max-content; min-height:28px; padding:5px 10px; border-radius:999px; display:inline-flex; align-items:center; gap:5px; font-size:12px; font-weight:900; line-height:1; white-space:nowrap; }
+.status-reserva-badge.is-compact { min-height:26px; padding:5px 9px; font-size:11px; }
+.status-reserva-badge--pendente { background:#fff7ed; color:#c2410c; }
+.status-reserva-badge--aceita { background:#dcfce7; color:#166534; }
+.status-reserva-badge--recusada { background:#fee2e2; color:#b91c1c; }
+.status-reserva-badge--cancelada { background:#ffe4e6; color:#be123c; }
+.status-reserva-badge--expirada { background:#f1f5f9; color:#64748b; }
+.status-reserva-badge--finalizada { background:#e0e7ff; color:#3730a3; }

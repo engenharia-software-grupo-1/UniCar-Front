@@ -1,0 +1,359 @@
+.ajuda-page {
+  min-height: 100vh;
+  background-color: #eef5fa;
+  padding: 36px 20px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.ajuda-shell {
+  width: 100%;
+  max-width: var(--app-content-width);
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.ajuda-hero {
+  border-radius: 24px;
+  padding: 28px;
+  background:
+    radial-gradient(circle at 14% 8%, rgba(54, 88, 190, 0.54), transparent 24rem),
+    linear-gradient(115deg, #18378f 0%, #101f62 46%, #020835 100%);
+  color: #ffffff;
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.12);
+}
+
+.ajuda-hero__top {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.ajuda-hero__icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.15);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.ajuda-hero__icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.ajuda-hero h1 {
+  margin: 0;
+  color: #ffffff;
+  font-size: var(--app-font-hero-title);
+  font-weight: 800;
+}
+
+.ajuda-hero p {
+  margin: 4px 0 0;
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 13px;
+}
+
+.ajuda-search {
+  position: relative;
+  display: block;
+  margin-top: 22px;
+}
+
+.ajuda-search svg {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  color: rgba(255, 255, 255, 0.62);
+  pointer-events: none;
+}
+
+.ajuda-search input {
+  width: 100%;
+  min-height: 46px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 14px;
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  padding: 0 16px 0 44px;
+  outline: none;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.ajuda-search input::placeholder {
+  color: rgba(255, 255, 255, 0.52);
+}
+
+.ajuda-search input:focus {
+  background-color: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.42);
+}
+
+.ajuda-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ajuda-section h2 {
+  margin: 0;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
+
+.ajuda-section__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.ajuda-section__header span {
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.ajuda-category-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.ajuda-category-button {
+  min-height: 116px;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  background-color: #ffffff;
+  color: #07132b;
+  padding: 18px;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: border-color 0.2s, background-color 0.2s, color 0.2s, transform 0.2s;
+}
+
+.ajuda-category-button:hover {
+  border-color: rgba(16, 43, 120, 0.38);
+  transform: translateY(-1px);
+}
+
+.ajuda-category-button--active {
+  background-color: #07132b;
+  border-color: #07132b;
+  color: #ffffff;
+}
+
+.ajuda-category-button svg {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+}
+
+.ajuda-category-button span {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.ajuda-category-button strong {
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.ajuda-category-button small {
+  color: currentColor;
+  opacity: 0.76;
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.ajuda-accordion {
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  background-color: #ffffff;
+  overflow: hidden;
+}
+
+.ajuda-faq + .ajuda-faq {
+  border-top: 1px solid #e2e8f0;
+}
+
+.ajuda-faq summary {
+  min-height: 58px;
+  padding: 16px 48px 16px 18px;
+  color: #0f172a;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  list-style: none;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.ajuda-faq summary::-webkit-details-marker {
+  display: none;
+}
+
+.ajuda-faq summary::after {
+  content: "+";
+  position: absolute;
+  right: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #64748b;
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.ajuda-faq summary:hover {
+  background-color: #f8fafc;
+}
+
+.ajuda-faq[open] summary::after {
+  content: "-";
+}
+
+.ajuda-faq p {
+  margin: 0;
+  padding: 0 18px 18px;
+  color: #64748b;
+  font-size: 15px;
+  line-height: 1.65;
+}
+
+.ajuda-empty {
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  background-color: #ffffff;
+  padding: 34px 20px;
+  text-align: center;
+}
+
+.ajuda-empty svg {
+  width: 42px;
+  height: 42px;
+  color: #94a3b8;
+  margin-bottom: 12px;
+}
+
+.ajuda-empty h3 {
+  margin: 0;
+  color: #07132b;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.ajuda-empty p {
+  margin: 6px 0 0;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.ajuda-contact-list {
+  display: grid;
+  gap: 12px;
+}
+
+.ajuda-contact-card {
+  width: 100%;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  background-color: #ffffff;
+  padding: 18px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.2s, transform 0.2s;
+}
+
+.ajuda-contact-card:hover {
+  border-color: rgba(16, 43, 120, 0.38);
+  transform: translateY(-1px);
+}
+
+.ajuda-contact-card__icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background-color: rgba(234, 122, 40, 0.14);
+  color: #ea7a28;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.ajuda-contact-card__icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.ajuda-contact-card__content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.ajuda-contact-card__content strong {
+  color: #07132b;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.ajuda-contact-card__content small {
+  color: #64748b;
+  font-size: 13px;
+}
+
+.ajuda-contact-card > svg {
+  width: 18px;
+  height: 18px;
+  color: #94a3b8;
+  flex-shrink: 0;
+}
+
+@media (max-width: 760px) {
+  .ajuda-page {
+    padding: 22px 16px;
+  }
+
+  .ajuda-hero {
+    padding: 22px;
+    border-radius: 20px;
+  }
+
+  .ajuda-hero__top {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .ajuda-category-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  .ajuda-category-grid {
+    grid-template-columns: 1fr;
+  }
+}

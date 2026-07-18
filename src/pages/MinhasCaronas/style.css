@@ -1,0 +1,313 @@
+.caronas-page {
+  min-height: 100vh;
+  background: #eef6ff;
+  color: #07132b;
+}
+
+.caronas-shell {
+  width: min(var(--app-content-width), calc(100% - var(--app-content-gutter)));
+  margin: 0 auto;
+  padding-top: 26px;
+}
+
+.caronas-title {
+  margin: 0 0 24px;
+  color: #061235;
+  font-size: var(--app-font-page-title);
+  font-weight: 900;
+  line-height: 1.1;
+}
+
+.caronas-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  padding: 6px;
+  margin-bottom: 24px;
+  border-radius: 16px;
+  background: #e2ecf8;
+}
+
+.caronas-tab {
+  min-height: 44px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: #5a7398;
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.caronas-tab.is-active {
+  background: #ffffff;
+  color: #07132b;
+  box-shadow: 0 4px 14px rgba(7, 19, 43, 0.08);
+}
+
+.caronas-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 16px;
+}
+
+.carona-card {
+  border: 1px solid #dce7f3;
+  border-radius: 20px;
+  background: #ffffff;
+  padding: 20px;
+  box-shadow: 0 8px 22px rgba(42, 71, 112, 0.05);
+}
+
+.carona-card__topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.carona-status {
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.carona-status--aguardando {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.carona-status--andamento {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.carona-status--finalizada {
+  background: #e2e8f0;
+  color: #475569;
+}
+
+.carona-status--cancelada {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.carona-card__quando {
+  color: #5a7398;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.carona-card__rota {
+  margin: 0 0 6px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  color: #07132b;
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.carona-card__rota svg {
+  color: #94a3b8;
+}
+
+.carona-card__rota span {
+  font-weight: 800;
+}
+
+.carona-card__passageiros {
+  margin: 0 0 18px;
+  color: #5a7398;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.carona-card__acoes {
+  display: flex;
+  gap: 10px;
+}
+
+.carona-card__iniciar {
+  flex: 1;
+  min-height: 52px;
+  border: 0;
+  border-radius: 14px;
+  background: #0b1531;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.carona-card__finalizar {
+  flex: 1;
+  min-height: 52px;
+  border: 0;
+  border-radius: 14px;
+  background: #E67E22;
+  color: #0b1531;
+  font-size: 16px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.carona-card__finalizar:hover {
+  background: #c1900e;
+}
+
+.carona-card__cancelar {
+  width: 52px;
+  min-height: 52px;
+  border: 1px solid #fecaca;
+  border-radius: 14px;
+  background: #ffffff;
+  color: #ef4444;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.carona-card__editar {
+  width: 52px;
+  min-height: 52px;
+  border: 1px solid #dbe6f4;
+  border-radius: 14px;
+  background: #ffffff;
+  color: #07132b;
+  display: grid;
+  place-items: center;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.carona-card__editar:hover {
+  background: #f6faff;
+  border-color: #b9cbe4;
+}
+
+.carona-card__cancelar:not(:disabled):hover {
+  background: #fef2f2;
+  border-color: #fca5a5;
+}
+
+.carona-card__iniciar:disabled,
+.carona-card__cancelar:disabled,
+.carona-card__editar.is-disabled,
+.carona-card__detalhes:disabled {
+  cursor: default;
+  opacity: 0.85;
+}
+
+.carona-card__detalhes {
+  width: 100%;
+  margin-top: 14px;
+  border: 0;
+  background: transparent;
+  color: #0b1531;
+  display: inline-flex;
+  justify-content: center;
+  font-size: 15px;
+  font-weight: 800;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.caronas-loading,
+.caronas-vazio,
+.caronas-erro {
+  border: 1px solid #dce7f3;
+  border-radius: 20px;
+  background: #ffffff;
+  padding: 28px 24px;
+  color: #5a7398;
+  font-weight: 700;
+}
+
+.caronas-vazio {
+  display: grid;
+  gap: 6px;
+  text-align: center;
+}
+
+.caronas-vazio p {
+  margin: 0;
+  color: #07132b;
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.caronas-vazio span {
+  color: #5a7398;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.caronas-sucesso {
+  margin: 0 0 16px;
+  padding: 14px 18px;
+  border: 1px solid #bbf7d0;
+  border-radius: 14px;
+  background: #f0fdf4;
+  color: #15803d;
+  font-weight: 700;
+}
+
+.caronas-erro {
+  display: grid;
+  gap: 14px;
+  color: #b91c1c;
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+
+.caronas-erro p {
+  margin: 0;
+}
+
+.caronas-erro button {
+  justify-self: start;
+  min-height: 44px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 12px;
+  background: #0b1531;
+  color: #ffffff;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.reservas-grupos { display:grid; gap:28px; }
+.reservas-grupo > h2 { margin:0 0 14px; color:#587097; font-size:13px; font-weight:900; text-transform:uppercase; }
+.reservas-lista { list-style:none; margin:0; padding:0; display:grid; gap:14px; }
+.reserva-card { position:relative; border:1px solid #dce7f3; border-radius:20px; background:#fff; padding:20px; box-shadow:0 8px 22px rgba(42,71,112,.05); }
+.reserva-card__abrir { position:absolute; inset:0; z-index:1; border-radius:20px; }
+.reserva-card__topo { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px; }
+.reserva-card__data { color:#5a7398; font-size:13px; font-weight:700; }
+.reserva-card__motorista { position:relative; z-index:0; display:block; margin-bottom:3px; color:#07132b; font-size:16px; }
+.reserva-card__rota { margin:0; color:#587097; display:flex; align-items:center; gap:6px; font-size:13px; }
+.reserva-card__quantidade { margin-top:9px; color:#587097; display:inline-flex; align-items:center; gap:5px; font-size:12px; font-weight:700; }
+.reserva-card__cancelar { position:relative; z-index:2; width:100%; min-height:42px; margin-top:14px; border:1px solid #be123c; border-radius:13px; background:#be123c; color:#fff; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:900; text-decoration:none; }
+.reserva-card__cancelar:hover { background:#9f1239; border-color:#9f1239; }
+
+@media (max-width: 700px) {
+  .caronas-shell {
+    width: min(var(--app-content-width), calc(100% - var(--app-content-gutter-mobile)));
+    padding-top: 22px;
+  }
+
+  .reserva-card__topo { align-items:flex-start; }
+}

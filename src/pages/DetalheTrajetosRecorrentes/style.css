@@ -1,0 +1,378 @@
+body {
+  margin: 0;
+  font-family: "Nunito", ui-sans-serif, system-ui, sans-serif;
+  background: oklch(0.985 0.005 250);
+  color: oklch(0.18 0.06 265);
+}
+
+.detalhe-page {
+  min-height: 100vh;
+  padding: 20px 16px 90px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+/* Carregando / erro — o trajeto agora vem do serviço, não do componente. */
+.detalhe-estado {
+  margin: 40px 0 0;
+  color: #5b6472;
+  font-size: 14px;
+  text-align: center;
+}
+
+.detalhe-header,
+.card-principal,
+.metricas,
+.recriar-btn,
+.historico {
+  width: min(var(--app-content-width), 100%);
+}
+
+.detalhe-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.detalhe-title {
+  min-width: 0;
+  flex: 1;
+  text-align: left;
+}
+
+.detalhe-title h1 {
+  margin: 0;
+  font-family: inherit;
+  font-size: 20px;
+  line-height: 1.2;
+  font-weight: 800;
+  color: oklch(0.18 0.06 265);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.detalhe-title p {
+  margin: 2px 0 0;
+  color: oklch(0.554 0.046 257.417);
+  font-size: 12px;
+}
+
+.badge-status {
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.badge-status.ativo {
+  background: #dff8e6;
+  color: #18794e;
+}
+
+.card-principal {
+  background: radial-gradient(
+    ellipse at top left,
+    oklch(0.35 0.15 265) 0%,
+    oklch(0.18 0.1 265) 60%,
+    oklch(0.12 0.06 265) 100%
+  );
+  color: oklch(0.984 0.003 247.858);
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-sizing: border-box;
+}
+
+.local-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  text-align: left;
+}
+
+.local-row .icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+.local-row .icon.destination {
+  background: #d06e28;
+  color: oklch(0.18 0.06 265);
+}
+
+.local-row .text {
+  min-width: 0;
+}
+
+.local-row .text h3 {
+  margin: 0;
+  font-size: 10px;
+  line-height: 1.2;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.62);
+}
+
+.local-row .text strong {
+  display: block;
+  margin-top: 3px;
+  font-size: 14px;
+  line-height: 1.35;
+  font-weight: 700;
+}
+
+.local-row .text p {
+  margin: 2px 0 0;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.linha {
+  width: 0;
+  height: 16px;
+  border-left: 2px dashed rgba(255, 255, 255, 0.3);
+  margin-left: 15px;
+}
+
+.info-viagem {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.info-viagem > span {
+  min-height: 24px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.15);
+  color: oklch(0.984 0.003 247.858);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  box-sizing: border-box;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.info-viagem > .dia-chip {
+  border-radius: 4px;
+  background: #d06e28;
+  color: oklch(0.18 0.06 265);
+  padding-inline: 6px;
+  font-size: 10px;
+  line-height: 1;
+}
+
+.metricas {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.metrica-card {
+  background: oklch(1 0 0);
+  border: 1px solid oklch(0.929 0.013 255.508);
+  border-radius: 16px;
+  padding: 16px;
+  box-sizing: border-box;
+  text-align: left;
+}
+
+.metrica-card span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: oklch(0.554 0.046 257.417);
+  font-size: 12px;
+  line-height: 1.3;
+  margin-bottom: 4px;
+}
+
+.metrica-card strong {
+  display: block;
+  color: oklch(0.18 0.06 265);
+  font-size: 28px;
+  line-height: 1.1;
+  font-weight: 800;
+}
+
+.metrica-card small {
+  display: block;
+  margin-top: 2px;
+  color: oklch(0.554 0.046 257.417);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.recriar-btn {
+  min-height: 52px;
+  border: 0;
+  border-radius: 16px;
+  background: oklch(0.208 0.042 265.755);
+  color: oklch(0.984 0.003 247.858);
+  box-shadow: 0 8px 18px rgba(7, 19, 43, 0.14);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+.recriar-btn:hover {
+  opacity: 0.93;
+}
+
+.recriar-btn:active {
+  transform: scale(0.99);
+}
+
+.historico {
+  text-align: left;
+}
+
+.historico-topo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.historico-topo h2 {
+  margin: 0;
+  color: oklch(0.18 0.06 265);
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.2;
+  font-weight: 700;
+}
+
+.historico-topo span {
+  color: oklch(0.554 0.046 257.417);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.historico-lista {
+  background: oklch(1 0 0);
+  border: 1px solid oklch(0.929 0.013 255.508);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.historico-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+}
+
+.historico-item + .historico-item {
+  border-top: 1px solid oklch(0.929 0.013 255.508);
+}
+
+.historico-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+.historico-icon.finalizada,
+.historico .status.finalizada {
+  background: #dff8e6;
+  color: #18794e;
+}
+
+.historico-icon.cancelada,
+.historico .status.cancelada {
+  background: #ffe2e2;
+  color: #b42318;
+}
+
+.historico-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.historico-info strong {
+  display: block;
+  color: oklch(0.18 0.06 265);
+  font-size: 14px;
+  line-height: 1.3;
+  font-weight: 600;
+}
+
+.historico-info p {
+  margin: 2px 0 0;
+  color: oklch(0.554 0.046 257.417);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.historico .status {
+  border-radius: 999px;
+  padding: 3px 8px;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+@media (max-width: 700px) {
+  .detalhe-page {
+    gap: 18px;
+  }
+
+  .metricas {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .metrica-card {
+    padding: 14px;
+  }
+
+  .metrica-card strong {
+    font-size: 24px;
+  }
+}
+
+@media (max-width: 380px) {
+  .detalhe-title h1 {
+    font-size: 18px;
+  }
+
+  .badge-status {
+    padding-inline: 6px;
+  }
+
+  .historico-item {
+    gap: 10px;
+  }
+}

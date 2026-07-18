@@ -1,0 +1,689 @@
+.ofertar-page {
+  min-height: 100vh;
+  background: #eef6ff;
+  color: #07132b;
+}
+
+.ofertar-topbar {
+  padding: 28px max(18px, calc((100vw - var(--app-content-width)) / 2)) 18px;
+  background: rgba(248, 251, 255, 0.92);
+  border-bottom: 1px solid #dce7f3;
+}
+
+.ofertar-topbar h1 {
+  margin: 0;
+  font-size: var(--app-font-page-title);
+  font-weight: 800;
+  color: #07132b;
+}
+
+.ofertar-topbar p {
+  margin: 2px 0 16px;
+  color: #587091;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.ofertar-breadcrumb {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.ofertar-breadcrumb span {
+  height: 6px;
+  border-radius: 999px;
+  background: #d5e1f0;
+  transition: background 0.2s ease;
+}
+
+.ofertar-breadcrumb span.ativo {
+  background: #07132b;
+}
+
+.ofertar-shell {
+  padding: 22px max(18px, calc((100vw - var(--app-content-width)) / 2)) 0;
+}
+
+.ofertar-erro {
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: #fde8e8;
+  color: #b42318;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.ofertar-card {
+  background: #ffffff;
+  border: 1px solid #e0eaf6;
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 12px 30px rgba(7, 19, 43, 0.05);
+}
+
+.ofertar-card h2 {
+  margin: 0 0 20px;
+  font-size: 20px;
+  font-weight: 800;
+  color: #07132b;
+}
+
+.ofertar-campo {
+  display: block;
+  margin-bottom: 18px;
+  min-width: 0;
+}
+
+.ofertar-campo > span,
+.ofertar-campo-titulo {
+  display: block;
+  margin-bottom: 8px;
+  color: #587091;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.ofertar-campo-titulo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ofertar-input {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px;
+  border: 1px solid #dbe6f4;
+  border-radius: 14px;
+  background: #f6faff;
+  color: #587091;
+}
+
+.ofertar-input:focus-within {
+  border-color: #07132b;
+  background: #ffffff;
+}
+
+.ofertar-input input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  padding: 14px 0;
+  font-size: 15px;
+  color: #07132b;
+  outline: none;
+}
+
+.ofertar-observacao {
+  margin-top: 18px;
+}
+
+.ofertar-textarea {
+  width: 100%;
+  min-height: 96px;
+  box-sizing: border-box;
+  resize: vertical;
+  border: 1px solid #dbe6f4;
+  border-radius: 14px;
+  background: #f6faff;
+  padding: 14px;
+  color: #07132b;
+  font: inherit;
+  font-size: 15px;
+  outline: none;
+}
+
+.ofertar-textarea:focus {
+  border-color: #07132b;
+  background: #ffffff;
+}
+
+.ofertar-contador {
+  display: block;
+  margin-top: 6px;
+  color: #6b7f9e;
+  font-size: 13px;
+  text-align: right;
+}
+
+.ofertar-input-simples {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 14px;
+  border: 1px solid #dbe6f4;
+  border-radius: 14px;
+  background: #f6faff;
+  font-size: 15px;
+  color: #07132b;
+  outline: none;
+}
+
+.ofertar-input-simples:focus {
+  border-color: #07132b;
+  background: #ffffff;
+}
+
+/* Dropdown de veículo — customizado para estilizar também a lista aberta. */
+.ofertar-dropdown {
+  position: relative;
+}
+
+.ofertar-dropdown-trigger {
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 14px 16px;
+  border: 1px solid #dbe6f4;
+  border-radius: 14px;
+  background: #f6faff;
+  color: #07132b;
+  font-size: 15px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ofertar-dropdown-trigger:hover:not(:disabled) {
+  border-color: #b9cbe4;
+}
+
+.ofertar-dropdown-trigger[aria-expanded='true'] {
+  border-color: #07132b;
+  background: #ffffff;
+}
+
+.ofertar-dropdown-trigger:disabled {
+  cursor: not-allowed;
+  color: #7186a4;
+  opacity: 0.75;
+}
+
+.ofertar-dropdown-trigger svg {
+  flex: 0 0 auto;
+  color: #587091;
+  transition: transform 0.15s ease;
+}
+
+.ofertar-dropdown-trigger[aria-expanded='true'] svg {
+  transform: rotate(180deg);
+}
+
+.ofertar-dropdown-lista {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  margin: 8px 0 0;
+  padding: 6px;
+  list-style: none;
+  background: #ffffff;
+  border: 1px solid #dbe6f4;
+  border-radius: 14px;
+  box-shadow: 0 16px 34px rgba(7, 19, 43, 0.14);
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.ofertar-dropdown-lista li {
+  padding: 12px 14px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #07132b;
+  cursor: pointer;
+}
+
+.ofertar-dropdown-lista li:hover {
+  background: #f0f5fc;
+}
+
+.ofertar-dropdown-lista li.ativo {
+  background: #07132b;
+  color: #ffffff;
+}
+
+/* Data e horário lado a lado sem se sobrepor, com o ícone do picker visível. */
+.ofertar-linha {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.ofertar-linha .ofertar-input-simples {
+  color-scheme: light;
+}
+
+.ofertar-linha input[type='date']::-webkit-calendar-picker-indicator,
+.ofertar-linha input[type='time']::-webkit-calendar-picker-indicator {
+  opacity: 0.55;
+  cursor: pointer;
+}
+
+.ofertar-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  padding-top: 16px;
+  border-top: 1px solid #eef3f9;
+  font-size: 15px;
+  font-weight: 600;
+  color: #07132b;
+  cursor: pointer;
+}
+
+.ofertar-checkbox input {
+  width: 18px;
+  height: 18px;
+}
+
+.ofertar-tipo {
+  border: 0;
+  padding: 0;
+  margin: 0 0 20px;
+}
+
+.ofertar-tipo legend {
+  padding: 0;
+  margin-bottom: 8px;
+  color: #587091;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.ofertar-tipo-opcoes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.ofertar-tipo-opcoes button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 18px;
+  border: 1px solid #dbe6f4;
+  border-radius: 14px;
+  background: #f6faff;
+  font-size: 15px;
+  font-weight: 700;
+  color: #587091;
+  cursor: pointer;
+}
+
+.ofertar-tipo-opcoes button.ativo {
+  border-color: #07132b;
+  background: #07132b;
+  color: #ffffff;
+}
+
+.ofertar-aviso {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: -6px 0 18px;
+  padding: 12px 14px;
+  border: 1px solid #f6e0a8;
+  border-radius: 12px;
+  background: #fdf6e3;
+  color: #8a6d1a;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Datas geradas pela recorrência na revisão: cada uma vira uma carona. */
+.ofertar-revisao-datas {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #e3e8ef;
+}
+
+.ofertar-revisao-datas-titulo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #33507a;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.ofertar-revisao-datas ul {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ofertar-revisao-datas li {
+  color: #5b6472;
+  font-size: 13px;
+}
+
+/* Sugestão vinda do histórico ao recriar uma viagem. Tom informativo (e não de
+   alerta, como .ofertar-aviso): os campos foram preenchidos, mas são editáveis. */
+.ofertar-sugestao {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0 0 18px;
+  padding: 12px 14px;
+  border: 1px solid #d7e3f4;
+  border-radius: 12px;
+  background: #f1f6fd;
+  color: #33507a;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.ofertar-sugestao svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+/* Número de vagas — pills segmentadas, no mesmo padrão do toggle de tipo. */
+.ofertar-vagas {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.ofertar-vagas button {
+  padding: 14px 0;
+  border: 1px solid #dbe6f4;
+  border-radius: 12px;
+  background: #f6faff;
+  font-size: 16px;
+  font-weight: 700;
+  color: #07132b;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.ofertar-vagas button:hover:not(:disabled) {
+  border-color: #07132b;
+}
+
+.ofertar-vagas button.ativo {
+  border-color: #07132b;
+  background: #07132b;
+  color: #ffffff;
+}
+
+.ofertar-vagas button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Contribuição — slider estilizado com valor em destaque e trilha preenchida. */
+.ofertar-contrib {
+  padding: 4px 2px 2px;
+}
+
+.ofertar-contrib-valor {
+  display: inline-block;
+  margin-bottom: 12px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: #e6edf7;
+  color: #07132b;
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.ofertar-range {
+  width: 100%;
+  height: 8px;
+  margin: 0;
+  border-radius: 999px;
+  background: linear-gradient(
+    to right,
+    #07132b 0%,
+    #07132b var(--preenchido, 0%),
+    #d5e1f0 var(--preenchido, 0%),
+    #d5e1f0 100%
+  );
+  -webkit-appearance: none;
+  appearance: none;
+  outline: none;
+  cursor: pointer;
+}
+
+.ofertar-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 3px solid #07132b;
+  box-shadow: 0 4px 10px rgba(7, 19, 43, 0.2);
+  cursor: pointer;
+}
+
+.ofertar-range::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 3px solid #07132b;
+  box-shadow: 0 4px 10px rgba(7, 19, 43, 0.2);
+  cursor: pointer;
+}
+
+.ofertar-contrib-limites {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+  color: #7186a4;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.ofertar-slider-dica {
+  display: block;
+  margin-top: 8px;
+  color: #7186a4;
+  font-size: 12px;
+}
+
+/* Especificidade maior que `.ofertar-campo > span` (rótulo) para vencer e
+   resetar o caixa-alta/espaçamento herdados. */
+.ofertar-campo .ofertar-erro-campo {
+  display: block;
+  margin-top: 6px;
+  margin-bottom: 0;
+  color: #e11900;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.ofertar-revisao {
+  margin-top: 4px;
+  padding: 18px;
+  border-radius: 14px;
+  background: #eef3fa;
+}
+
+.ofertar-revisao-rota {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 6px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #07132b;
+}
+
+.ofertar-revisao-detalhe {
+  margin: 0 0 6px;
+  color: #587091;
+  font-size: 14px;
+}
+
+.ofertar-revisao-tipo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  color: #587091;
+  font-size: 14px;
+}
+
+/* Ações ficam ao final do próprio card do formulário. */
+.ofertar-form-acoes {
+  display: flex;
+  gap: 14px;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid #eef3f9;
+}
+
+.ofertar-btn-secundario,
+.ofertar-btn-primario,
+.ofertar-btn-publicar {
+  flex: 1;
+  padding: 16px;
+  border: 0;
+  border-radius: 14px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ofertar-btn-secundario {
+  background: #ffffff;
+  border: 1px solid #dbe6f4;
+  color: #07132b;
+}
+
+.ofertar-btn-primario {
+  background: #07132b;
+  color: #ffffff;
+}
+
+.ofertar-btn-publicar {
+  background: #f97316;
+  color: #ffffff;
+}
+
+.ofertar-btn-publicar:disabled {
+  opacity: 0.7;
+  cursor: progress;
+}
+
+@media (max-width: 560px) {
+  .ofertar-linha {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* styling dos botões de recriar trajetos recorrentes */
+
+.ofertar-trajetos-recorrentes {
+  margin-bottom: 18px;
+}
+
+.ofertar-trajetos-lista {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+}
+
+.ofertar-trajeto-card {
+  min-width: 180px;
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px solid #dbe6f4;
+  background: #f6faff;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+}
+
+.ofertar-trajeto-card:hover {
+  border-color: #07132b;
+  background: #ffffff;
+  transform: translateY(-1px);
+}
+
+.ofertar-trajeto-card strong {
+  display: block;
+  font-size: 13px;
+  color: #07132b;
+  margin-bottom: 4px;
+}
+
+.ofertar-trajeto-card small {
+  font-size: 11px;
+  color: #587091;
+}
+
+/* styling das checkboxes de dias na Caronas Recorrentes*/
+
+.ofertar-dias-recorrencia {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.ofertar-dia {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  border: 1px solid #dbe6f4;
+  background: #f6faff;
+  color: #587091;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.ofertar-dia:hover {
+  border-color: #07132b;
+  color: #07132b;
+  background: #ffffff;
+}
+
+.ofertar-dia.ativo {
+  background: #07132b;
+  border-color: #07132b;
+  color: #ffffff;
+}
+
+.ofertar-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+  padding-top: 16px;
+  border-top: 1px solid #eef3f9;
+  font-size: 15px;
+  font-weight: 600;
+  color: #07132b;
+  cursor: pointer;
+}
+
+.ofertar-checkbox input {
+  width: 18px;
+  height: 18px;
+  accent-color: #07132b;
+}

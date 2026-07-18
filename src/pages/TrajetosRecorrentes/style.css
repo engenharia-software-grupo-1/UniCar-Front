@@ -1,0 +1,205 @@
+body {
+  margin: 0;
+  font-family: "Nunito", ui-sans-serif, system-ui, sans-serif;
+  background: oklch(0.985 0.005 250);
+  color: oklch(0.18 0.06 265);
+}
+
+.trajetos-page {
+  min-height: 100vh;
+  padding: 20px 16px 90px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+.trajetos-header,
+.trajetos-lista,
+.trajetos-empty,
+.trajetos-erro {
+  width: min(var(--app-content-width), 100%);
+}
+
+.trajetos-erro {
+  margin: 0;
+  border: 1px solid rgba(220, 38, 38, 0.3);
+  border-radius: 12px;
+  background: rgba(220, 38, 38, 0.05);
+  padding: 12px 14px;
+  box-sizing: border-box;
+  color: #dc2626;
+  font-size: 14px;
+  line-height: 1.4;
+  text-align: left;
+}
+
+.trajetos-title {
+  min-width: 0;
+  text-align: left;
+}
+
+.trajetos-title h1 {
+  margin: 0;
+  color: oklch(0.18 0.06 265);
+  font-family: inherit;
+  font-size: var(--app-font-page-title);
+  line-height: 1.2;
+  font-weight: 800;
+}
+
+.trajetos-title p {
+  margin: 2px 0 0;
+  color: oklch(0.554 0.046 257.417);
+  font-size: 14px;
+  line-height: 1.35;
+}
+
+.trajetos-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.trajeto-card-recorrente {
+  position: relative;
+  background: oklch(1 0 0);
+  border: 1px solid oklch(0.929 0.013 255.508);
+  border-radius: 16px;
+  padding: 16px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: border-color 0.18s, box-shadow 0.18s;
+}
+
+.trajeto-card-recorrente:hover {
+  border-color: oklch(0.208 0.042 265.755 / 40%);
+  box-shadow: 0 8px 18px rgba(7, 19, 43, 0.06);
+}
+
+.trajeto-click-area {
+  border-radius: 12px;
+  cursor: pointer;
+  margin: -4px -8px 0;
+  padding: 4px 8px;
+  outline: none;
+}
+
+.trajeto-click-area:focus-visible {
+  box-shadow: 0 0 0 3px oklch(0.704 0.04 256.788 / 35%);
+}
+
+.trajeto-card-topo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.badge {
+  min-height: 24px;
+  border-radius: 999px;
+  background: #dff8e6;
+  color: #18794e;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  box-sizing: border-box;
+  font-size: 11px;
+  line-height: 1;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.trajeto-rota {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: oklch(0.18 0.06 265);
+  font-size: 14px;
+  line-height: 1.35;
+  font-weight: 600;
+  text-align: left;
+}
+
+.trajeto-rota span {
+  min-width: 0;
+}
+
+.trajeto-rota svg {
+  color: oklch(0.554 0.046 257.417);
+  flex: 0 0 auto;
+}
+
+.trajeto-ultima {
+  margin-top: 4px;
+  color: oklch(0.554 0.046 257.417);
+  font-size: 12px;
+  line-height: 1.35;
+  text-align: left;
+}
+
+/* Mesmo visual do "Recriar viagem" da tela de detalhe, em escala de card. */
+.trajeto-btn-primary {
+  min-height: 40px;
+  border: 0;
+  border-radius: 10px;
+  background: oklch(0.208 0.042 265.755);
+  color: oklch(0.984 0.003 247.858);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  transition: opacity 0.18s, transform 0.18s;
+}
+
+.trajeto-btn-primary:hover {
+  opacity: 0.93;
+}
+
+.trajeto-btn-primary:active {
+  transform: scale(0.98);
+}
+
+.trajetos-empty {
+  border: 1px dashed oklch(0.929 0.013 255.508);
+  border-radius: 16px;
+  background: oklch(1 0 0);
+  padding: 48px 16px;
+  box-sizing: border-box;
+  text-align: center;
+}
+
+.trajetos-empty p {
+  margin: 0;
+  color: oklch(0.554 0.046 257.417);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.trajetos-empty p + p {
+  margin-top: 6px;
+}
+
+@media (max-width: 420px) {
+  .trajetos-title h1 {
+    font-size: var(--app-font-page-title);
+  }
+
+  .trajetos-title p {
+    font-size: 13px;
+  }
+
+  .trajeto-rota {
+    gap: 6px;
+  }
+}

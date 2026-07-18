@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { obterCarona, removerReservaCarona } from '../../services/caronaService.js';
 import { getPerfilUsuarioAutenticado } from '../../services/profileService.js';
+import { obterPerfilPublicoUsuario } from '../../services/publicProfileService.js';
 import {
   aceitarReserva,
   criarReserva,
@@ -109,11 +110,21 @@ function DetalheCarona() {
           getPerfilUsuarioAutenticado().catch(() => null),
         ]);
 
+        const motoristaId = detalhe.motorista?.id ?? detalhe.motorista?.usuarioId;
+        const ehMotoristaAutenticado = motoristaId != null && String(motoristaId) === String(perfilAutenticado?.id);
+        const perfilMotorista = !detalhe.motorista?.curso && motoristaId != null && !ehMotoristaAutenticado
+          ? await obterPerfilPublicoUsuario(motoristaId).catch(() => null)
+          : null;
+        const cursoMotorista = detalhe.motorista?.curso || perfilMotorista?.curso;
+        const detalheComCurso = cursoMotorista
+          ? { ...detalhe, motorista: { ...detalhe.motorista, curso: cursoMotorista } }
+          : detalhe;
+
         if (!ativo) {
           return;
         }
 
-        setCarona(detalhe);
+        setCarona(detalheComCurso);
         setPerfil(perfilAutenticado);
         setErro('');
       } catch (error) {
@@ -155,6 +166,7 @@ function DetalheCarona() {
         verificado: perfil?.motoristaVerificado ?? motoristaDaCarona.verificado,
       }
     : motoristaDaCarona;
+  const cursoMotorista = motorista.curso;
   const motoristaPerfilId = motorista.id ?? motorista.usuarioId ?? motorista.motoristaId ?? perfil?.id;
   const veiculo = carona?.veiculo || {};
   const destino = carona?.destino || 'Destino não informado';
@@ -353,7 +365,7 @@ function DetalheCarona() {
                     <h1>{isMinhaCarona ? 'Você (motorista)' : motorista.nome || 'Motorista'}</h1>
                     {motorista.verificado && <span className="detalhe-driver-badge">Verificado</span>}
                   </div>
-                  <p>{motorista.curso || 'Curso não informado'} • UFCG</p>
+                  <p>{cursoMotorista ? `${cursoMotorista} • UFCG` : 'UFCG'}</p>
                   {motorista.avaliacao !== '' && motorista.avaliacao != null && (
                     <span>
                       <Star size={14} fill="currentColor" />

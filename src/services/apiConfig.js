@@ -9,10 +9,7 @@ export const API_BASE_URL = USE_DEV_PROXY
   : import.meta.env.VITE_API_URL || '';
 
 export function shouldUseMocks() {
-  return (
-    (import.meta.env.DEV || import.meta.env.MODE === 'test') &&
-    import.meta.env.VITE_ENABLE_MOCKS === 'true'
-  );
+  return false;
 }
 
 export function shouldUseLocalDataMocks() {
@@ -20,5 +17,5 @@ export function shouldUseLocalDataMocks() {
 }
 
 export function shouldUseDevelopmentFallbacks() {
-  return import.meta.env.DEV && import.meta.env.VITE_MOCK_FALTANTES === 'true';
+  return false;
 }

@@ -33,21 +33,17 @@ npm run dev
 
 O Vite exibirá a URL local — normalmente `http://localhost:5173`.
 
-## Configuração da API e mocks
+## Configuração da API
 
 As variáveis de ambiente estão documentadas em [`.env.example`](.env.example).
 
 ```dotenv
 VITE_API_URL=http://localhost:8080
-VITE_ENABLE_MOCKS=false
-VITE_MOCK_FALTANTES=false
 ```
 
 - `VITE_API_URL`: URL base da API usada no build e na prévia de produção.
-- `VITE_ENABLE_MOCKS=true`: executa a interface com dados simulados durante o desenvolvimento.
-- `VITE_MOCK_FALTANTES=true`: em desenvolvimento, usa mocks apenas para endpoints ainda não disponíveis na API.
 
-Mocks e fallbacks de desenvolvimento não são iniciados em builds de produção. Para uso normal, mantenha as duas flags de mock como `false` e execute a API configurada em `VITE_API_URL`.
+O aplicativo sempre consulta a API configurada em `VITE_API_URL`. Em desenvolvimento, o proxy do Vite redireciona as requisições para o backend local.
 
 ## Scripts
 

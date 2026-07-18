@@ -36,15 +36,6 @@ const STATUS = {
   CANCELADA: { rotulo: 'Cancelada', classe: 'cancelada' },
 };
 
-const PASSAGEIROS_MOCKADOS = [
-  { id: 'ana-clara', reservaId: 101, nome: 'Ana Clara', curso: 'Ciência da Computação', avaliacao: 4.9, status: 'Confirmado' },
-];
-
-const MENSAGENS_INICIAIS = [
-  { id: 1, autor: 'Ana Clara', texto: 'Oi! O ponto é perto da biblioteca?', horario: '12:48' },
-  { id: 2, autor: 'Voce', texto: 'Sim, em frente ao bloco principal.', horario: '12:51' },
-];
-
 const MOTIVOS_DENUNCIA = [
   'Comportamento inadequado',
   'Informações falsas',
@@ -72,7 +63,7 @@ function DetalheCarona() {
   const [modalDenunciaAberto, setModalDenunciaAberto] = useState(false);
   const [motivoDenuncia, setMotivoDenuncia] = useState(MOTIVOS_DENUNCIA[0]);
   const [denunciaEnviada, setDenunciaEnviada] = useState(false);
-  const [mensagens, setMensagens] = useState(MENSAGENS_INICIAIS);
+  const [mensagens, setMensagens] = useState([]);
   const [textoMensagem, setTextoMensagem] = useState('');
   const [feedback, setFeedback] = useState(location.state?.mensagem || '');
   const [reservaParaRemover, setReservaParaRemover] = useState(null);
@@ -755,7 +746,7 @@ function Modal({ title, children, onClose }) {
 
 function montarPassageiros(carona) {
   if (!carona || !Array.isArray(carona.passageiros)) {
-    return PASSAGEIROS_MOCKADOS;
+    return [];
   }
 
   return carona.passageiros.map((passageiro, index) => ({
@@ -807,7 +798,7 @@ function atualizarSolicitacaoNaCarona(carona, passageiroAtualizado, acao) {
 
   const passageirosAtuais = Array.isArray(carona.passageiros)
     ? carona.passageiros
-    : PASSAGEIROS_MOCKADOS;
+    : [];
   const corresponde = (passageiro) => String(
     passageiro.reservaId || passageiro.idReserva || passageiro.reservationId || passageiro.id,
   ) === String(passageiroAtualizado.reservaId);
@@ -841,7 +832,7 @@ function removerPassageiroDaCarona(carona, passageiroRemovido) {
 
   const passageirosAtuais = Array.isArray(carona.passageiros)
     ? carona.passageiros
-    : PASSAGEIROS_MOCKADOS;
+    : [];
   const passageiros = passageirosAtuais.filter((passageiro) =>
     String(passageiro.reservaId || passageiro.id) !== String(passageiroRemovido.reservaId),
   );

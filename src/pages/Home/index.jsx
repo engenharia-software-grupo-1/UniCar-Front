@@ -16,7 +16,6 @@ import promoImgTwo from '../../assets/promo-3.webp';
 import promoImgThree from '../../assets/promo-4.webp';
 import {
   depoimentos,
-  exemplosDeCaronas,
   itensDeRecursos,
   passosComoFunciona,
 } from '../../data/homePage.js';
@@ -165,36 +164,11 @@ function SearchPreview() {
             </button>
           </form>
         </div>
-        <div className="unicar-rides">
-          {exemplosDeCaronas.map((carona) => (
-            <article
-              key={carona.motorista}
-              className="unicar-ride"
-              role="link"
-              tabIndex={0}
-              onClick={(evento) => abrirBusca(evento, carona)}
-              onKeyDown={(evento) => {
-                if (evento.key === 'Enter' || evento.key === ' ') abrirBusca(evento, carona);
-              }}
-            >
-              <div className="unicar-avatar">{carona.motorista[0]}</div>
-              <div className="unicar-ride__main">
-                <h3>{carona.motorista}</h3>
-                <p>{carona.curso}</p>
-                <div className="unicar-route">
-                  <strong>{carona.origem}</strong>
-                  <ArrowRight className="icone iconePequeno" />
-                  <strong>{carona.destino}</strong>
-                </div>
-              </div>
-              <div className="unicar-ride__meta">
-                <strong>{carona.horario}</strong>
-                <span>{carona.vagas} vagas</span>
-                <b>{carona.preco}</b>
-              </div>
-            </article>
-          ))}
-        </div>
+        <aside className="unicar-search-info">
+          <Search className="icone" aria-hidden="true" />
+          <h3>Busque caronas disponíveis</h3>
+          <p>Informe origem e destino para consultar os dados atualizados pela API.</p>
+        </aside>
       </div>
     </section>
   );

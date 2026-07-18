@@ -7,12 +7,6 @@ export const itensDeRecursos = [
   { icone: Users, titulo: 'Comunidade', descricao: 'Avaliações entre colegas garantem confiança.' },
 ];
 
-export const exemplosDeCaronas = [
-  { motorista: 'Marina S.', curso: 'Ciência da Computação - UFCG', origem: 'Catolé', destino: 'Campus Sede', horario: '07:20', vagas: 3, preco: 'R$ 6' },
-  { motorista: 'Lucas P.', curso: 'Medicina - UFCG', origem: 'Centro', destino: 'HU Alcides Carneiro', horario: '08:00', vagas: 2, preco: 'R$ 5' },
-  { motorista: 'Ana C.', curso: 'Enfermagem - UFCG', origem: 'Malvinas', destino: 'CCBS', horario: '06:45', vagas: 1, preco: 'R$ 6' },
-];
-
 export const passosComoFunciona = [
   { numero: '01', titulo: 'Entre com suas credenciais acadêmicas', descricao: 'Validamos sua matrícula para garantir uma comunidade segura.' },
   { numero: '02', titulo: 'Ofereça ou peça uma carona', descricao: 'Defina rota, horário e número de vagas, ou encontre uma compatível.' },

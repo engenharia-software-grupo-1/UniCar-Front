@@ -6,14 +6,12 @@ import { MemoryRouter } from 'react-router-dom';
 vi.mock('../../services/notificationService.js', () => ({
   listarNotificacoes: vi.fn(),
   marcarNotificacaoComoLida: vi.fn(),
-  marcarTodasNotificacoesComoLidas: vi.fn(),
 }));
 
 import Notificacoes from './index.jsx';
 import {
   listarNotificacoes,
   marcarNotificacaoComoLida,
-  marcarTodasNotificacoesComoLidas,
 } from '../../services/notificationService.js';
 
 // A contagem de não-lidas fica no <p> do titlebar (ex.: "2 não lidas"); o texto
@@ -63,7 +61,6 @@ beforeEach(() => {
   vi.clearAllMocks();
   listarNotificacoes.mockResolvedValue(NOTIFICACOES);
   marcarNotificacaoComoLida.mockResolvedValue({ id: 3, lida: true });
-  marcarTodasNotificacoesComoLidas.mockResolvedValue({ total: 3 });
 });
 
 describe('Notificacoes', () => {
@@ -127,19 +124,5 @@ describe('Notificacoes', () => {
       'notificacoes-card--lida',
     );
     expect(screen.getByText(contagemNaoLidas('1 não lida'))).toBeInTheDocument();
-  });
-
-  it('marca todas as notificações como lidas', async () => {
-    renderPagina();
-
-    expect(
-      await screen.findByText(contagemNaoLidas('2 não lidas')),
-    ).toBeInTheDocument();
-
-    await userEvent.click(screen.getByRole('button', { name: 'Marcar todas como lidas' }));
-
-    expect(marcarTodasNotificacoesComoLidas).toHaveBeenCalledTimes(1);
-    expect(screen.getByText(contagemNaoLidas('0 não lidas'))).toBeInTheDocument();
-    expect(screen.queryByLabelText('Notificação não lida')).not.toBeInTheDocument();
   });
 });

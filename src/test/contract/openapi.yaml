@@ -1,0 +1,2682 @@
+openapi: 3.0.3
+info:
+  title: UniCar API
+  description: >
+    API do sistema UniCar — plataforma de caronas universitárias.
+    Cobre autenticação, usuários, veículos, caronas, reservas, avaliações,
+    comunicação, busca e trajetos recorrentes.
+  version: 1.0.0
+
+servers:
+  - url: https://api.unicar.example.com
+    description: Servidor de produção
+
+security:
+  - bearerAuth: []
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+
+    # ─── Shared primitives ────────────────────────────────────────────────────
+
+    Coordenada:
+      type: object
+      required: [descricao, latitude, longitude]
+      properties:
+        descricao:
+          type: string
+          example: Bodocongó
+        latitude:
+          type: number
+          format: double
+          example: -7.21456
+        longitude:
+          type: number
+          format: double
+          example: -35.90872
+
+    CoordenadaSemDescricao:
+      type: object
+      required: [latitude, longitude]
+      properties:
+        latitude:
+          type: number
+          format: double
+          example: -7.21456
+        longitude:
+          type: number
+          format: double
+          example: -35.90872
+
+    # ─── Auth / Usuário ───────────────────────────────────────────────────────
+
+    LoginRequest:
+      type: object
+      required: [usuario, senha]
+      properties:
+        usuario:
+          type: string
+          example: jennifer.medeiros
+        senha:
+          type: string
+          format: password
+          example: "123456"
+
+    Usuario:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        matricula:
+          type: string
+          example: "123456789"
+        nome:
+          type: string
+          example: Jennifer Medeiros
+        email:
+          type: string
+          format: email
+          example: jennifer@ccc.ufcg.edu.br
+        cpf:
+          type: string
+          example: "12345678900"
+        curso:
+          type: string
+          example: Ciência da Computação
+        genero:
+          type: string
+          enum: [MASCULINO, FEMININO, NAO_INFORMADO]
+          example: FEMININO
+        receberEmail:
+          type: boolean
+          example: true
+        dataCriacao:
+          type: string
+          format: date-time
+          example: "2026-06-22T10:00:00"
+        dataAtualizacao:
+          type: string
+          format: date-time
+          example: "2026-06-22T10:00:00"
+
+    UsuarioPublico:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        matricula:
+          type: string
+          example: "2023001234"
+        nome:
+          type: string
+          example: João da Silva
+        email:
+          type: string
+          format: email
+          example: joao.silva@academico.ufcg.edu.br
+        curso:
+          type: string
+          example: Ciência da Computação
+
+    LoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          example: jwt-token
+        usuario:
+          $ref: '#/components/schemas/Usuario'
+
+    AtualizarPerfilRequest:
+      type: object
+      properties:
+        genero:
+          type: string
+          enum: [MASCULINO, FEMININO, NAO_INFORMADO]
+          example: FEMININO
+        receberEmail:
+          type: boolean
+          example: false
+
+    # ─── Bloqueio ─────────────────────────────────────────────────────────────
+
+    Bloqueio:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 10
+        usuarioId:
+          type: integer
+          example: 1
+        usuarioBloqueadoId:
+          type: integer
+          example: 5
+        dataBloqueio:
+          type: string
+          format: date-time
+          example: "2026-06-22T10:00:00"
+
+    UsuarioBloqueado:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 5
+        nome:
+          type: string
+          example: João Silva
+        curso:
+          type: string
+          example: Engenharia Elétrica
+        dataBloqueio:
+          type: string
+          format: date-time
+          example: "2026-06-22T10:00:00"
+
+    # ─── Avaliação ────────────────────────────────────────────────────────────
+
+    AvaliacaoRequest:
+      type: object
+      required: [caronaId, avaliadoId, nota]
+      properties:
+        caronaId:
+          type: integer
+          example: 10
+        avaliadoId:
+          type: integer
+          example: 5
+        nota:
+          type: integer
+          minimum: 1
+          maximum: 5
+          example: 5
+        comentario:
+          type: string
+          example: Motorista pontual e educado.
+
+    AvaliacaoRecebida:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 100
+        nota:
+          type: integer
+          example: 5
+        comentario:
+          type: string
+          example: Motorista pontual e educado.
+        dataAvaliacao:
+          type: string
+          format: date-time
+          example: "2026-06-25T18:30:00"
+        avaliador:
+          type: object
+          properties:
+            id:
+              type: integer
+              example: 10
+            nome:
+              type: string
+              example: João Silva
+        carona:
+          type: object
+          properties:
+            id:
+              type: integer
+              example: 25
+
+    ResumoAvaliacoes:
+      type: object
+      properties:
+        media:
+          type: number
+          format: float
+          example: 4.8
+        quantidade:
+          type: integer
+          example: 15
+        avaliacoes:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+                example: 1
+              nota:
+                type: integer
+                example: 5
+              comentario:
+                type: string
+                example: Motorista muito pontual.
+              dataAvaliacao:
+                type: string
+                format: date-time
+                example: "2026-06-20T18:00:00"
+
+    Reputacao:
+      type: object
+      properties:
+        usuarioId:
+          type: integer
+          example: 5
+        media:
+          type: number
+          format: float
+          example: 4.8
+        quantidadeAvaliacoes:
+          type: integer
+          example: 35
+
+    AvaliacaoPendente:
+      type: object
+      properties:
+        usuarioId:
+          type: integer
+          example: 5
+        nome:
+          type: string
+          example: Maria Oliveira
+        tipo:
+          type: string
+          enum: [MOTORISTA, PASSAGEIRO]
+          example: PASSAGEIRO
+
+    # ─── Notificação ─────────────────────────────────────────────────────────
+
+    Notificacao:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        titulo:
+          type: string
+          example: Reserva aceita
+        mensagem:
+          type: string
+          example: Sua reserva foi aceita.
+        tipo:
+          type: string
+          enum:
+            - RESERVA_CRIADA
+            - RESERVA_ACEITA
+            - RESERVA_RECUSADA
+            - RESERVA_CANCELADA
+            - RESERVA_EXPIRADA
+            - CARONA_CANCELADA
+            - CARONA_INICIADA
+            - CARONA_FINALIZADA
+            - CARONA_COMPATIVEL
+          example: RESERVA_ACEITA
+        visualizada:
+          type: boolean
+          example: false
+        dataEnvio:
+          type: string
+          format: date-time
+          example: "2026-06-22T10:00:00"
+
+    # ─── Histórico ────────────────────────────────────────────────────────────
+
+    HistoricoPassageiro:
+      type: object
+      properties:
+        reservaId:
+          type: integer
+          example: 10
+        caronaId:
+          type: integer
+          example: 5
+        origem:
+          type: string
+          example: Bodocongó
+        destino:
+          type: string
+          example: UFCG
+        motorista:
+          type: string
+          example: João Silva
+        status:
+          type: string
+          example: FINALIZADA
+        dataViagem:
+          type: string
+          format: date-time
+          example: "2026-06-20T08:00:00"
+        quantidadePassageiros:
+          type: integer
+          example: 2
+
+    HistoricoMotorista:
+      type: object
+      properties:
+        caronaId:
+          type: integer
+          example: 5
+        origem:
+          type: string
+          example: Bodocongó
+        destino:
+          type: string
+          example: UFCG
+        status:
+          type: string
+          example: FINALIZADA
+        dataViagem:
+          type: string
+          format: date-time
+          example: "2026-06-20T08:00:00"
+        totalPassageiros:
+          type: integer
+          example: 3
+
+    DetalhesHistorico:
+      type: object
+      properties:
+        caronaId:
+          type: integer
+          example: 5
+        origem:
+          type: string
+          example: Bodocongó
+        destino:
+          type: string
+          example: UFCG
+        motorista:
+          type: object
+          properties:
+            id:
+              type: integer
+              example: 1
+            nome:
+              type: string
+              example: João Silva
+        status:
+          type: string
+          example: FINALIZADA
+        dataViagem:
+          type: string
+          format: date-time
+          example: "2026-06-20T08:00:00"
+        passageiros:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+                example: 10
+              nome:
+                type: string
+                example: Maria Oliveira
+
+    # ─── Chat ────────────────────────────────────────────────────────────────
+
+    ChatResumo:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        reservaId:
+          type: integer
+          example: 10
+        nomeParticipante:
+          type: string
+          example: João Silva
+        ultimaMensagem:
+          type: string
+          example: Tudo certo para amanhã.
+        dataUltimaMensagem:
+          type: string
+          format: date-time
+          example: "2026-06-22T10:00:00"
+        mensagensNaoLidas:
+          type: integer
+          example: 2
+
+    Mensagem:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        remetenteId:
+          type: integer
+          example: 1
+        conteudo:
+          type: string
+          example: Olá!
+        lida:
+          type: boolean
+          example: true
+        dataEnvio:
+          type: string
+          format: date-time
+          example: "2026-06-22T09:00:00"
+
+    EnviarMensagemRequest:
+      type: object
+      required: [conteudo]
+      properties:
+        conteudo:
+          type: string
+          example: Olá!
+
+    # ─── Veículo ─────────────────────────────────────────────────────────────
+
+    VeiculoRequest:
+      type: object
+      required: [modelo, placa]
+      properties:
+        modelo:
+          type: string
+          example: Onix
+        placa:
+          type: string
+          example: ABC1D23
+        cor:
+          type: string
+          example: Prata
+        tipoVeiculo:
+          type: string
+          example: CARRO
+          enum: CARRO, MOTO
+
+    Veiculo:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        modelo:
+          type: string
+          example: Onix
+        placa:
+          type: string
+          example: ABC1D23
+        cor:
+          type: string
+          example: Prata
+
+    # ─── Carona ──────────────────────────────────────────────────────────────
+
+    CaronaRequest:
+      type: object
+      required: [veiculoId, origem, destino, datasHorasSaida, quantidadeVagas]
+      properties:
+        veiculoId:
+          type: integer
+          example: 1
+        origem:
+          $ref: '#/components/schemas/Coordenada'
+        destino:
+          $ref: '#/components/schemas/Coordenada'
+        pontoEncontro:
+          type: string
+          example: Onde os passageiros te encontram
+        datasHorasSaida:
+          type: array
+          items:
+            type: string
+            format: date-time
+          example:
+            - "2026-07-12T07:30:00"
+            - "2026-07-13T07:30:00"
+            - "2026-07-14T07:30:00"
+        quantidadeVagas:
+          type: integer
+          minimum: 1
+          example: 4
+        valorContribuicao:
+          type: number
+          format: float
+          example: 5.00
+        observacao:
+          type: string
+          nullable: true
+          maxLength: 255
+          example: Só levo até 2 malas de bagagem
+
+    CaronaStatus:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 10
+        status:
+          type: string
+          enum: [CRIADA, EM_ANDAMENTO, CANCELADA, FINALIZADA]
+          example: CRIADA
+
+    CaronaResumo:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 10
+        origem:
+          $ref: '#/components/schemas/Coordenada'
+        destino:
+          $ref: '#/components/schemas/Coordenada'
+        status:
+          type: string
+          example: CRIADA
+        dataHoraSaida:
+          type: string
+          format: date-time
+          example: "2026-06-25T07:00:00"
+
+    CaronaDetalhes:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 10
+        origem:
+          $ref: '#/components/schemas/Coordenada'
+        destino:
+          $ref: '#/components/schemas/Coordenada'
+        pontoEncontro:
+          type: string
+          example: Portão principal
+        dataHoraSaida:
+          type: string
+          format: date-time
+          example: "2026-06-25T07:00:00"
+        quantidadeVagas:
+          type: integer
+          example: 4
+        vagasDisponiveis:
+          type: integer
+          example: 3
+        valorContribuicao:
+          type: number
+          format: float
+          example: 5.00
+        status:
+          type: string
+          example: CRIADA
+        observacao:
+          type: string
+          nullable: true
+          maxLength: 255
+          example: Só levo até 2 malas de bagagem
+        motorista:
+          type: object
+          properties:
+            id:
+              type: integer
+              example: 1
+            nome:
+              type: string
+              example: João Silva
+        veiculo:
+          type: object
+          properties:
+            id:
+              type: integer
+              example: 1
+            modelo:
+              type: string
+              example: Onix
+            cor:
+              type: string
+              example: Prata
+
+    CaronaObservacaoRequest:
+      type: object
+      properties:
+        observacao:
+          type: string
+          nullable: true
+          maxLength: 255
+          example: Só levo até 2 malas de bagagem
+
+    CaronaPublica:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 10
+        origem:
+          $ref: '#/components/schemas/Coordenada'
+        destino:
+          $ref: '#/components/schemas/Coordenada'
+        pontoEncontro:
+          type: string
+          example: Portão Principal
+        dataHoraSaida:
+          type: string
+          format: date-time
+          example: "2026-06-25T07:00:00"
+        vagasDisponiveis:
+          type: integer
+          example: 3
+        valorContribuicao:
+          type: number
+          format: float
+          example: 5.00
+        motorista:
+          type: object
+          properties:
+            id:
+              type: integer
+              example: 1
+            nome:
+              type: string
+              example: Maria Oliveira
+            reputacao:
+              type: number
+              format: float
+              example: 4.8
+
+    PassageiroCarona:
+      type: object
+      properties:
+        reservaId:
+          type: integer
+          example: 20
+        usuarioId:
+          type: integer
+          example: 5
+        nome:
+          type: string
+          example: Maria Oliveira
+        quantidadePassageiros:
+          type: integer
+          example: 2
+        status:
+          type: string
+          example: ACEITA
+
+    # ─── Trajeto Recorrente ───────────────────────────────────────────────────
+
+    TrajetoRecorrente:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        origem:
+          $ref: '#/components/schemas/Coordenada'
+        destino:
+          $ref: '#/components/schemas/Coordenada'
+        quantidadeViagens:
+          type: integer
+          example: 8
+        ultimaUtilizacao:
+          type: string
+          format: date-time
+          example: "2026-06-20T08:00:00"
+
+    TrajetoRecorrenteDetalhes:
+      allOf:
+        - $ref: '#/components/schemas/TrajetoRecorrente'
+        - type: object
+          properties:
+            primeiraUtilizacao:
+              type: string
+              format: date-time
+              example: "2026-01-15T07:00:00"
+
+    RecriarTrajetoRequest:
+      type: object
+      required: [veiculoId, dataHoraSaida, quantidadeVagas]
+      properties:
+        veiculoId:
+          type: integer
+          example: 1
+        dataHoraSaida:
+          type: string
+          format: date-time
+          example: "2026-06-25T07:00:00"
+        quantidadeVagas:
+          type: integer
+          minimum: 1
+          example: 4
+        valorContribuicao:
+          type: number
+          format: float
+          example: 5.00
+        pontoEncontro:
+          type: string
+          example: Portão principal
+
+    # ─── Busca / Interesse ────────────────────────────────────────────────────
+
+    CaronaBusca:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 10
+        origem:
+          $ref: '#/components/schemas/Coordenada'
+        destino:
+          $ref: '#/components/schemas/Coordenada'
+        motorista:
+          type: object
+          properties:
+            id:
+              type: integer
+              example: 1
+            nome:
+              type: string
+              example: Maria Oliveira
+            genero:
+              type: string
+              example: FEMININO
+            curso:
+              type: string
+              example: Ciência da Computação
+            reputacao:
+              type: number
+              format: float
+              example: 4.8
+        dataHoraSaida:
+          type: string
+          format: date-time
+          example: "2026-06-25T07:00:00"
+        vagasDisponiveis:
+          type: integer
+          example: 3
+        valorContribuicao:
+          type: number
+          format: float
+          example: 5.00
+
+    PerfilPublico:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        nome:
+          type: string
+          example: Maria Oliveira
+        curso:
+          type: string
+          example: Ciência da Computação
+        genero:
+          type: string
+          example: FEMININO
+        reputacao:
+          type: number
+          format: float
+          example: 4.8
+        quantidadeAvaliacoes:
+          type: integer
+          example: 15
+
+    InteresseTrajetoRequest:
+      type: object
+      required: [origem, destino]
+      properties:
+        origem:
+          $ref: '#/components/schemas/CoordenadaSemDescricao'
+        destino:
+          $ref: '#/components/schemas/CoordenadaSemDescricao'
+
+    InteresseTrajeto:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 5
+        origem:
+          $ref: '#/components/schemas/CoordenadaSemDescricao'
+        destino:
+          $ref: '#/components/schemas/CoordenadaSemDescricao'
+
+    # ─── Reserva ─────────────────────────────────────────────────────────────
+
+    ReservaRequest:
+      type: object
+      required: [caronaId, quantidadePassageiros, origemEmbarque]
+      properties:
+        caronaId:
+          type: integer
+          example: 10
+        quantidadePassageiros:
+          type: integer
+          minimum: 1
+          example: 2
+        origemEmbarque:
+          $ref: '#/components/schemas/Coordenada'
+
+    ReservaSimularRequest:
+      type: object
+      required: [caronaId, quantidadePassageiros, origemEmbarque]
+      properties:
+        caronaId:
+          type: integer
+          example: 10
+        quantidadePassageiros:
+          type: integer
+          minimum: 1
+          example: 2
+        origemEmbarque:
+          $ref: '#/components/schemas/Coordenada'
+
+    ReservaSimularResponse:
+      type: object
+      properties:
+        valorContribuicaoEstimado:
+          type: number
+          format: float
+          example: 8.00
+
+    ReservaCriada:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 50
+        status:
+          type: string
+          example: PENDENTE
+        quantidadePassageiros:
+          type: integer
+          example: 2
+        valorContribuicao:
+          type: number
+          format: float
+          example: 8.00
+
+    ReservaStatus:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 50
+        status:
+          type: string
+          enum: [PENDENTE, ACEITA, RECUSADA, CANCELADA, EXPIRADA, FINALIZADA]
+          example: ACEITA
+
+    ReservaEnviada:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 50
+        carona:
+          type: object
+          properties:
+            id:
+              type: integer
+              example: 10
+            origem:
+              type: string
+              example: Bodocongó
+            destino:
+              type: string
+              example: UFCG
+        status:
+          type: string
+          example: PENDENTE
+        quantidadePassageiros:
+          type: integer
+          example: 2
+        valorContribuicao:
+          type: number
+          format: float
+          example: 8.00
+
+    ReservaRecebida:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 50
+        usuario:
+          type: object
+          properties:
+            id:
+              type: integer
+              example: 5
+            nome:
+              type: string
+              example: Maria Oliveira
+        origemEmbarque:
+          $ref: '#/components/schemas/Coordenada'
+        quantidadePassageiros:
+          type: integer
+          example: 2
+        valorContribuicao:
+          type: number
+          format: float
+          example: 8.00
+        status:
+          type: string
+          example: PENDENTE
+
+    ReservaDetalhes:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 50
+        status:
+          type: string
+          example: PENDENTE
+        quantidadePassageiros:
+          type: integer
+          example: 2
+        valorContribuicao:
+          type: number
+          format: float
+          example: 8.00
+        origemEmbarque:
+          $ref: '#/components/schemas/Coordenada'
+        carona:
+          type: object
+          properties:
+            id:
+              type: integer
+              example: 10
+            origem:
+              type: string
+              example: Bodocongó
+            destino:
+              type: string
+              example: UFCG
+
+    # ─── Erros padrão ────────────────────────────────────────────────────────
+
+    ErrorMessage:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Mensagem de erro
+
+# ─────────────────────────────────────────────────────────────────────────────
+# PATHS
+# ─────────────────────────────────────────────────────────────────────────────
+
+paths:
+
+  # ── Auth ──────────────────────────────────────────────────────────────────
+
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Autenticar usuário via Eureca
+      description: >
+        Autentica o usuário através do Eureca e retorna um token JWT junto
+        com os dados sincronizados do usuário (RN-AUTH-01 a RN-AUTH-03).
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Autenticação bem-sucedida
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '401':
+          description: Credenciais inválidas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+              example:
+                message: Credenciais inválidas
+
+  /auth/logout:
+    post:
+      tags: [Auth]
+      summary: Encerrar sessão do usuário
+      description: >
+        Invalida o token JWT do usuário autenticado, adicionando-o à blacklist
+        até sua expiração natural (RN-AUTH-04).
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Logout realizado com sucesso
+        '401':
+          description: Token inválido ou expirado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+              example:
+                message: Token inválido ou expirado.
+
+  # ── Usuários ──────────────────────────────────────────────────────────────
+
+  /usuarios/me:
+    get:
+      tags: [Usuários]
+      summary: Consultar perfil do usuário autenticado
+      description: >
+        Retorna os dados do usuário autenticado a partir do token JWT enviado
+        no header Authorization (Bearer Token) (RN-AUTH-04).
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Dados do usuário autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Usuario'
+        '401':
+          description: Usuário não autenticado ou token inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+
+    patch:
+      tags: [Usuários]
+      summary: Atualizar perfil do usuário autenticado
+      description: >
+        Permite ao usuário autenticado atualizar apenas os campos
+        genero e receberEmail do próprio perfil
+        (RN-AUTH-05 a RN-AUTH-07).
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AtualizarPerfilRequest'
+      responses:
+        '200':
+          description: Perfil atualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Usuario'
+        '400':
+          description: Dados inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        '401':
+          description: Usuário não autenticado ou token inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+
+    delete:
+      tags: [Usuários]
+      summary: Desativar cadastro do usuário autenticado
+      description: >
+        Desativa o cadastro do próprio usuário no UniCar sem remover
+        histórico e sem afetar a conta institucional no Eureca
+        (RN-AUTH-08 a RN-AUTH-14).
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Usuário desativado com sucesso
+        '401':
+          description: Usuário não autenticado ou token inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+
+  /usuarios/me/avaliacoes:
+    get:
+      tags: [Avaliações]
+      summary: Consultar avaliações recebidas pelo usuário autenticado
+      description: >
+        Retorna avaliações recebidas com média e quantidade calculadas
+        automaticamente (RN-AVA-08, RN-AVA-09). Também descrito em US4
+        como resumo (RN-AVA-01 a RN-AVA-03).
+      responses:
+        '200':
+          description: Lista de avaliações recebidas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AvaliacaoRecebida'
+        '401':
+          description: Não autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+
+  /usuarios/bloqueados:
+    get:
+      tags: [Segurança]
+      summary: Listar usuários bloqueados
+      description: >
+        Retorna todos os usuários bloqueados pelo usuário autenticado
+        (RN-BLOQ-05).
+      responses:
+        '200':
+          description: Lista de usuários bloqueados
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UsuarioBloqueado'
+        '401':
+          description: Não autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+
+  /usuarios/{id}/bloquear:
+    post:
+      tags: [Segurança]
+      summary: Bloquear um usuário
+      description: >
+        Bloqueia o usuário identificado por `id`. Usuários bloqueados não
+        interagem entre si, não aparecem em buscas e não podem trocar mensagens
+        (RN-BLOQ-01 a RN-BLOQ-03).
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 5
+      responses:
+        '201':
+          description: Bloqueio registrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bloqueio'
+        '400':
+          description: Usuário já bloqueado ou tentativa de bloquear a si mesmo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        '404':
+          description: Usuário não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+
+    delete:
+      tags: [Segurança]
+      summary: Remover bloqueio de um usuário
+      description: Remove o bloqueio previamente criado (RN-BLOQ-04).
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 5
+      responses:
+        '204':
+          description: Bloqueio removido
+        '404':
+          description: Bloqueio não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+
+  /usuarios/{id}/perfil-publico:
+    get:
+      tags: [Busca]
+      summary: Consultar perfil público de um usuário
+      description: >
+        Retorna apenas informações públicas do usuário. Respeita bloqueios entre
+        usuários (RN-BUS-09 a RN-BUS-11).
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 1
+      responses:
+        '200':
+          description: Perfil público
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PerfilPublico'
+        '404':
+          description: Usuário não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+
+  /usuarios/{id}/reputacao:
+    get:
+      tags: [Avaliações]
+      summary: Consultar reputação pública de um usuário
+      description: >
+        Retorna a média das avaliações recebidas e o total de avaliações
+        (RN-AVA-10 a RN-AVA-12).
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 5
+      responses:
+        '200':
+          description: Reputação do usuário
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Reputacao'
+        '404':
+          description: Usuário não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+
+  # ── Notificações ──────────────────────────────────────────────────────────
+
+  /notificacoes:
+    get:
+      tags: [Comunicação]
+      summary: Listar notificações do usuário autenticado
+      description: >
+        Retorna notificações em ordem decrescente de data de envio
+        (RN-NOT-01, RN-NOT-02).
+      responses:
+        '200':
+          description: Lista de notificações
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Notificacao'
+        '401':
+          description: Não autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+
+  /notificacoes/{id}/visualizar:
+    patch:
+      tags: [Comunicação]
+      summary: Marcar notificação como visualizada
+      description: Marca a notificação como lida (RN-NOT-03).
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 1
+      responses:
+        '204':
+          description: Notificação marcada como visualizada
+        '404':
+          description: Notificação não encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+
+  # ── Histórico ────────────────────────────────────────────────────────────
+
+  /historico/passageiro:
+    get:
+      tags: [Histórico]
+      summary: Histórico de caronas como passageiro
+      description: >
+        Retorna reservas do usuário autenticado na posição de passageiro
+        (RN-HIS-01).
+      responses:
+        '200':
+          description: Histórico como passageiro
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/HistoricoPassageiro'
+        '401':
+          description: Não autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+
+  /historico/motorista:
+    get:
+      tags: [Histórico]
+      summary: Histórico de caronas como motorista
+      description: >
+        Retorna caronas criadas pelo motorista autenticado (RN-HIS-02).
+      responses:
+        '200':
+          description: Histórico como motorista
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/HistoricoMotorista'
+        '401':
+          description: Não autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+
+  /historico/{caronaId}:
+    get:
+      tags: [Histórico]
+      summary: Detalhes de uma viagem do histórico
+      description: >
+        Retorna detalhes de uma carona do histórico. Apenas participantes da
+        viagem podem acessar (RN-HIS-03).
+      parameters:
+        - name: caronaId
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 5
+      responses:
+        '200':
+          description: Detalhes da viagem
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DetalhesHistorico'
+        '403':
+          description: Acesso negado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        '404':
+          description: Carona não encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+
+  # ── Chats ────────────────────────────────────────────────────────────────
+
+  /chats:
+    get:
+      tags: [Comunicação]
+      summary: Listar chats do usuário autenticado
+      description: Retorna apenas chats acessíveis ao usuário (RN-COM-01).
+      responses:
+        '200':
+          description: Lista de chats
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ChatResumo'
+        '401':
+          description: Não autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+
+  /chats/{id}/mensagens:
+    get:
+      tags: [Comunicação]
+      summary: Listar mensagens de um chat
+      description: Apenas participantes do chat podem consultar (RN-COM-02).
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 1
+      responses:
+        '200':
+          description: Lista de mensagens
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Mensagem'
+        '403':
+          description: Acesso negado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        '404':
+          description: Chat não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+
+    post:
+      tags: [Comunicação]
+      summary: Enviar mensagem para um chat
+      description: >
+        Apenas participantes podem enviar mensagens. Bloqueios e status de
+        reserva são verificados (RN-COM-03 a RN-COM-05).
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EnviarMensagemRequest'
+      responses:
+        '201':
+          description: Mensagem enviada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mensagem'
+        '403':
+          description: Usuário não possui acesso ao chat
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+
+  /chats/{id}/lidas:
+    patch:
+      tags: [Comunicação]
+      summary: Marcar mensagens do chat como lidas
+      description: Apenas participantes podem executar a operação (RN-COM-06).
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 1
+      responses:
+        '204':
+          description: Mensagens marcadas como lidas
+        '403':
+          description: Acesso negado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+
+  # ── Veículos ─────────────────────────────────────────────────────────────
+
+  /veiculos:
+    post:
+      tags: [Veículos]
+      summary: Cadastrar um novo veículo
+      description: >
+        Associa o veículo ao usuário autenticado. A placa deve ser única no
+        sistema (RN-VEI-01 a RN-VEI-04).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VeiculoRequest'
+      responses:
+        '201':
+          description: Veículo cadastrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Veiculo'
+        '400':
+          description: Placa já cadastrada ou dados inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        '401':
+          description: Não autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+
+    get:
+      tags: [Veículos]
+      summary: Listar veículos do usuário autenticado
+      description: Retorna apenas veículos do usuário autenticado (RN-VEI-05).
+      responses:
+        '200':
+          description: Lista de veículos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Veiculo'
+        '401':
+          description: Não autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+
+  /veiculos/{id}:
+    get:
+      tags: [Veículos]
+      summary: Consultar detalhes de um veículo
+      description: Usuário só pode visualizar veículos próprios (RN-VEI-06).
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 1
+      responses:
+        '200':
+          description: Detalhes do veículo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Veiculo'
+        '403':
+          description: Acesso negado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        '404':
+          description: Veículo não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+
+    put:
+      tags: [Veículos]
+      summary: Atualizar informações de um veículo
+      description: >
+        Apenas o dono pode editar. Não é permitido alterar para uma placa já
+        existente (RN-VEI-07, RN-VEI-08).
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VeiculoRequest'
+      responses:
+        '200':
+          description: Veículo atualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Veiculo'
+        '400':
+          description: Placa já cadastrada ou dados inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        '403':
+          description: Acesso negado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        '404':
+          description: Veículo não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+
+    delete:
+      tags: [Veículos]
+      summary: Remover um veículo
+      description: >
+        Não é permitido remover veículo associado a carona ativa (CRIADA,
+        ACEITA ou EM_ANDAMENTO) (RN-VEI-09 a RN-VEI-11).
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 1
+      responses:
+        '204':
+          description: Veículo removido
+        '400':
+          description: Veículo possui caronas ativas associadas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        '403':
+          description: Acesso negado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        '404':
+          description: Veículo não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+
+  # ── Caronas ───────────────────────────────────────────────────────────────
+
+  /caronas:
+    post:
+      tags: [Caronas]
+      summary: Criar uma nova carona
+      description: >
+        O veículo deve pertencer ao motorista. Data futura obrigatória. O valor
+        de contribuição não pode ultrapassar o limite por km (RN-CAR-01 a
+        RN-CAR-08).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CaronaRequest'
+      responses:
+        '201':
+          description: Lista de caronas criadas com sucesso
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CaronaStatus'
+        '400':
+          description: Dados inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        '401':
+          description: Não autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+
+    get:
+      tags: [Busca]
+      summary: Buscar caronas disponíveis
+      description: >
+        Retorna caronas com status CRIADA, futuras e com vagas disponíveis.
+        Respeita bloqueios. Permite filtros por coordenadas de origem/destino,
+        gênero e curso do motorista (RN-BUS-01 a RN-BUS-06).
+      parameters:
+        - name: dataHoraSaida
+          in: query
+          required: false
+          description: Filtra as caronas que acontecem exatamente nesta data e horário (Ano-Mês-DiaTHora:Minuto:Segundo)
+          schema:
+            type: string
+            format: date-time
+          example: "2026-06-25T07:00:00"
+        - name: origemLatitude
+          in: query
+          schema:
+            type: number
+            format: double
+          example: -7.21456
+        - name: origemLongitude
+          in: query
+          schema:
+            type: number
+            format: double
+          example: -35.90872
+        - name: destinoLatitude
+          in: query
+          schema:
+            type: number
+            format: double
+          example: -7.21590
+        - name: destinoLongitude
+          in: query
+          schema:
+            type: number
+            format: double
+          example: -35.90950
+        - name: generoMotorista
+          in: query
+          schema:
+            type: string
+            enum: [MASCULINO, FEMININO, NAO_INFORMADO]
+          example: FEMININO
+        - name: cursoMotorista
+          in: query
+          schema:
+            type: string
+          example: CIENCIA_DA_COMPUTACAO
+      responses:
+        '200':
+          description: Lista de caronas disponíveis
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CaronaBusca'
+        '401':
+          description: Não autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+
+  /caronas/minhas:
+    get:
+      tags: [Caronas]
+      summary: Listar caronas criadas pelo motorista autenticado
+      description: Retorna apenas caronas do motorista autenticado (RN-CAR-09).
+      responses:
+        '200':
+          description: Lista de caronas do motorista
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CaronaResumo'
+        '401':
+          description: Não autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+
+  /caronas/{id}:
+    get:
+      tags: [Caronas, Busca]
+      summary: Consultar detalhes de uma carona
+      description: >
+        Quando acessada pelo motorista dono retorna dados completos (US7).
+        Quando acessada por passageiro retorna dados públicos disponíveis
+        (RN-BUS-07, RN-BUS-08).
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 10
+      responses:
+        '200':
+          description: Detalhes da carona
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CaronaDetalhes'
+        '404':
+          description: Carona não encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+
+    put:
+      tags: [Caronas]
+      summary: Atualizar informações de uma carona
+      description: >
+        Apenas o motorista proprietário pode editar. Não permite edição após
+        início, nem redução de vagas abaixo dos passageiros aceitos
+        (RN-CAR-10 a RN-CAR-12).
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 10
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CaronaRequest'
+      responses:
+        '200':
+          description: Carona atualizada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CaronaStatus'
+        '400':
+          description: Dados inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        '403':
+          description: Acesso negado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        '404':
+          description: Carona não encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+
+  /caronas/{id}/cancelar:
+    patch:
+      tags: [Caronas]
+      summary: Cancelar uma carona
+      description: >
+        Apenas o motorista proprietário pode cancelar. Todas as reservas
+        associadas são encerradas e os participantes notificados
+        (RN-CAR-13 a RN-CAR-15).
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 10
+      responses:
+        '200':
+          description: Carona cancelada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CaronaStatus'
+        '403':
+          description: Acesso negado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        '404':
+          description: Carona não encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+  
+  /caronas/{id}/observacao:
+    patch:
+      tags: [ Caronas ]
+      summary: Atualiza a observação geral da carona
+      description: Permite ao motorista alterar a observação de uma carona já criada. Não é permitido em caronas finalizadas ou canceladas.
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 10
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CaronaObservacaoRequest'
+      responses:
+        '200':
+          description: Observação atualizada com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CaronaStatus'
+        '400':
+          description: Dados inválidos (ex. observação excede o tamanho máximo)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        '401':
+          description: Não autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        '403':
+          description: Usuário autenticado não é o motorista desta carona
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        '404':
+          description: Carona não encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        '409':
+          description: Carona em estado que não permite atualização (FINALIZADA ou CANCELADA)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+
+  /caronas/{id}/passageiros:
+    get:
+      tags: [Caronas]
+      summary: Listar passageiros de uma carona
+      description: Apenas o motorista proprietário pode consultar (RN-CAR-16).
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 10
+      responses:
+        '200':
+          description: Lista de passageiros
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PassageiroCarona'
+        '403':
+          description: Acesso negado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+
+  /caronas/{id}/iniciar:
+    patch:
+      tags: [Caronas]
+      summary: Iniciar uma carona
+      description: >
+        Apenas o motorista proprietário pode iniciar. Carona deve estar com
+        status CRIADA (RN-CAR-20, RN-CAR-21).
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 10
+      responses:
+        '200':
+          description: Carona iniciada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CaronaStatus'
+        '400':
+          description: Status inválido para iniciar
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        '403':
+          description: Acesso negado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+
+  /caronas/{id}/finalizar:
+    patch:
+      tags: [Caronas]
+      summary: Finalizar uma carona
+      description: >
+        Apenas o motorista proprietário pode finalizar. Carona deve estar
+        EM_ANDAMENTO. Reservas ACEITAS são marcadas como FINALIZADAS e
+        participantes ficam elegíveis para avaliação (RN-CAR-22 a RN-CAR-25).
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 10
+      responses:
+        '200':
+          description: Carona finalizada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CaronaStatus'
+        '400':
+          description: Status inválido para finalizar
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        '403':
+          description: Acesso negado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+
+  /caronas/{id}/avaliacoes-pendentes:
+    get:
+      tags: [Avaliações]
+      summary: Listar participantes ainda não avaliados na carona
+      description: >
+        Apenas participantes da carona FINALIZADA podem consultar. Usuários já
+        avaliados não são retornados (RN-AVA-13 a RN-AVA-15).
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 10
+      responses:
+        '200':
+          description: Lista de avaliações pendentes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AvaliacaoPendente'
+        '403':
+          description: Acesso negado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        '404':
+          description: Carona não encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+
+  # ── Trajetos Recorrentes ──────────────────────────────────────────────────
+
+  /trajetos-recorrentes:
+    get:
+      tags: [Trajetos Recorrentes]
+      summary: Listar trajetos recorrentes do motorista autenticado
+      description: >
+        Calculados dinamicamente a partir do histórico. Um trajeto é
+        recorrente quando possui ≥ 2 viagens com a mesma origem e destino.
+        Ordenados por quantidade de utilizações decrescente
+        (RN-TRJ-01 a RN-TRJ-04).
+      responses:
+        '200':
+          description: Lista de trajetos recorrentes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TrajetoRecorrente'
+        '401':
+          description: Não autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+
+  /trajetos-recorrentes/{id}:
+    get:
+      tags: [Trajetos Recorrentes]
+      summary: Consultar detalhes de um trajeto recorrente
+      description: >
+        Apenas o proprietário pode consultar. O trajeto deve ter ≥ 2
+        ocorrências (RN-TRJ-05, RN-TRJ-06).
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          example: 1
+      responses:
+        '200':
+          description: Detalhes do trajeto recorrente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrajetoRecorrenteDetalhes'
+        '403':
+          description: Acesso negado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        '404':
+          description: Trajeto recorrente não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+
+  /trajetos-recorrentes/{id}/recriar:
+    post:
+      tags: [Trajetos Recorrentes]
+      summary: Criar nova carona a partir de um trajeto recorrente
+      description: >
+        Copia origem e destino do trajeto recorrente. Veículo, horário, vagas,
+        contribuição e ponto de encontro devem ser informados novamente.
+        A carona segue todas as regras da US7 (RN-TRJ-07 a RN-TRJ-12).
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecriarTrajetoRequest'
+      responses:
+        '201':
+          description: Carona criada a partir do trajeto recorrente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  caronaId:
+                    type: integer
+                    example: 50
+                  status:
+                    type: string
+                    example: CRIADA
+        '400':
+          description: Dados inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        '403':
+          description: Acesso negado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        '404':
+          description: Trajeto recorrente não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+
+  # ── Interesses de Trajeto ─────────────────────────────────────────────────
+
+  /interesses-trajeto:
+    post:
+      tags: [Busca]
+      summary: Cadastrar interesse em um trajeto
+      description: >
+        Registra interesse do usuário em um trajeto futuro. Não permite
+        duplicatas (RN-BUS-12 a RN-BUS-14).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InteresseTrajetoRequest'
+      responses:
+        '201':
+          description: Interesse cadastrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 5
+        '400':
+          description: Dados inválidos ou interesse duplicado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        '401':
+          description: Não autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+
+    get:
+      tags: [Busca]
+      summary: Listar interesses de trajeto do usuário autenticado
+      description: Retorna apenas interesses do usuário autenticado (RN-BUS-15).
+      responses:
+        '200':
+          description: Lista de interesses
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/InteresseTrajeto'
+        '401':
+          description: Não autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+
+  /interesses-trajeto/{id}:
+    delete:
+      tags: [Busca]
+      summary: Remover um interesse de trajeto
+      description: Apenas o proprietário pode remover (RN-BUS-16, RN-BUS-17).
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 5
+      responses:
+        '204':
+          description: Interesse removido
+        '403':
+          description: Acesso negado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        '404':
+          description: Interesse não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+
+  # ── Reservas ──────────────────────────────────────────────────────────────
+
+  /reservas:
+    post:
+      tags: [Reservas]
+      summary: Solicitar participação em uma carona
+      description: >
+        O valor da contribuição é calculado automaticamente pelo sistema com
+        base no trecho percorrido e quantidade de passageiros. Gera notificação
+        ao motorista (RN-RES-01 a RN-RES-10).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReservaRequest'
+      responses:
+        '201':
+          description: Reserva criada com status PENDENTE
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservaCriada'
+        '400':
+          description: Vagas indisponíveis ou dados inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        '401':
+          description: Não autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+
+  /reservas/simular:
+    post:
+      tags: [Reservas]
+      summary: Simular valor de contribuição de uma reserva
+      description: >
+        Calcula o valor estimado sem criar a reserva. O mesmo algoritmo é
+        aplicado na criação real (RN-RES-34 a RN-RES-37).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReservaSimularRequest'
+      responses:
+        '200':
+          description: Valor estimado calculado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservaSimularResponse'
+        '400':
+          description: Dados inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+
+  /reservas/enviadas:
+    get:
+      tags: [Reservas]
+      summary: Listar reservas enviadas pelo usuário autenticado
+      description: Retorna apenas reservas criadas pelo usuário autenticado (RN-RES-11).
+      responses:
+        '200':
+          description: Lista de reservas enviadas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ReservaEnviada'
+        '401':
+          description: Não autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+
+  /reservas/recebidas:
+    get:
+      tags: [Reservas]
+      summary: Listar reservas recebidas pelo motorista autenticado
+      description: >
+        Retorna solicitações das caronas do motorista com o valor calculado
+        visível antes da decisão (RN-RES-12, RN-RES-13).
+      responses:
+        '200':
+          description: Lista de reservas recebidas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ReservaRecebida'
+        '401':
+          description: Não autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+
+  /reservas/{id}:
+    get:
+      tags: [Reservas]
+      summary: Consultar detalhes de uma reserva
+      description: >
+        Apenas o passageiro responsável ou o motorista da carona podem consultar
+        (RN-RES-14).
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 50
+      responses:
+        '200':
+          description: Detalhes da reserva
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservaDetalhes'
+        '403':
+          description: Acesso negado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        '404':
+          description: Reserva não encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+
+  /reservas/{id}/aceitar:
+    patch:
+      tags: [Reservas]
+      summary: Aceitar uma solicitação de reserva
+      description: >
+        Apenas o motorista pode aceitar. Reserva deve estar PENDENTE e haver
+        vagas suficientes. Vagas são atualizadas e passageiro notificado
+        (RN-RES-15 a RN-RES-19).
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 50
+      responses:
+        '200':
+          description: Reserva aceita
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservaStatus'
+        '400':
+          description: Status inválido ou sem vagas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        '403':
+          description: Acesso negado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+
+  /reservas/{id}/recusar:
+    patch:
+      tags: [Reservas]
+      summary: Recusar uma solicitação de reserva
+      description: >
+        Apenas o motorista pode recusar. Reserva deve estar PENDENTE. Passageiro
+        é notificado (RN-RES-20 a RN-RES-22).
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 50
+      responses:
+        '200':
+          description: Reserva recusada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservaStatus'
+        '400':
+          description: Reserva não está pendente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        '403':
+          description: Acesso negado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+
+  /reservas/{id}/cancelar:
+    patch:
+      tags: [Reservas]
+      summary: Cancelar uma reserva
+      description: >
+        Passageiro pode cancelar a própria reserva; motorista pode cancelar
+        reservas ACEITAS. Vagas devolvidas se reserva estava ACEITA.
+        Usuário afetado é notificado (RN-RES-23 a RN-RES-27).
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 50
+      responses:
+        '200':
+          description: Reserva cancelada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservaStatus'
+        '400':
+          description: Reserva não pode ser cancelada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        '403':
+          description: Acesso negado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+
+  /reservas/{id}/remover:
+    patch:
+      tags: [Caronas]
+      summary: Remover passageiro de uma carona
+      description: >
+        Apenas o motorista proprietário pode remover. Apenas reservas ACEITAS
+        podem ser removidas. Passageiro é notificado (RN-CAR-17 a RN-CAR-19).
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID da reserva
+          example: 20
+      responses:
+        '200':
+          description: Passageiro removido (reserva CANCELADA)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservaStatus'
+        '400':
+          description: Reserva não está aceita
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        '403':
+          description: Acesso negado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+
+  # ── Avaliações ────────────────────────────────────────────────────────────
+
+  /avaliacoes:
+    post:
+      tags: [Avaliações]
+      summary: Registrar avaliação de um participante da carona
+      description: >
+        Apenas participantes da mesma carona FINALIZADA podem avaliar. Nota de
+        1 a 5. Máximo uma avaliação por participante por carona. Reputação do
+        avaliado é recalculada automaticamente (RN-AVA-01 a RN-AVA-07).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AvaliacaoRequest'
+      responses:
+        '201':
+          description: Avaliação registrada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 100
+        '400':
+          description: Dados inválidos ou avaliação duplicada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        '403':
+          description: Usuário não participou da carona
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+
+tags:
+  - name: Auth
+    description: Autenticação via Eureca e gerenciamento de sessão
+  - name: Usuários
+    description: Perfil e configurações do usuário autenticado
+  - name: Segurança
+    description: Bloqueio de usuários
+  - name: Comunicação
+    description: Notificações e sistema de chat
+  - name: Histórico
+    description: Histórico de viagens como passageiro ou motorista
+  - name: Veículos
+    description: Gerenciamento de veículos do motorista
+  - name: Caronas
+    description: Criação e gerenciamento de caronas pelo motorista
+  - name: Busca
+    description: Busca de caronas disponíveis, perfis públicos e interesses
+  - name: Trajetos Recorrentes
+    description: Consulta e reutilização de trajetos frequentes
+  - name: Reservas
+    description: Solicitação e gerenciamento de participação em caronas
+  - name: Avaliações
+    description: Avaliação de participantes após finalização da carona

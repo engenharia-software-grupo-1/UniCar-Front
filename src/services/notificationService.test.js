@@ -5,7 +5,6 @@ const TOKEN = 'token-simulado';
 
 let listarNotificacoes;
 let marcarNotificacaoComoLida;
-let marcarTodasNotificacoesComoLidas;
 
 function comSessao() {
   localStorage.setItem(
@@ -52,7 +51,6 @@ beforeEach(async () => {
   ({
     listarNotificacoes,
     marcarNotificacaoComoLida,
-    marcarTodasNotificacoesComoLidas,
   } = await import('./notificationService.js'));
 });
 
@@ -70,13 +68,6 @@ describe('autenticação', () => {
 
   it('marcarNotificacaoComoLida rejeita sem sessão', async () => {
     await expect(marcarNotificacaoComoLida(1)).rejects.toThrow(
-      'Usuário não autenticado.',
-    );
-    expect(fetch).not.toHaveBeenCalled();
-  });
-
-  it('marcarTodasNotificacoesComoLidas rejeita sem sessão', async () => {
-    await expect(marcarTodasNotificacoesComoLidas()).rejects.toThrow(
       'Usuário não autenticado.',
     );
     expect(fetch).not.toHaveBeenCalled();
@@ -238,13 +229,13 @@ describe('caminho de rede (VITE_ENABLE_MOCKS desligado)', () => {
   });
 
   describe('marcarNotificacaoComoLida', () => {
-    it('faz PATCH /notificacoes/{id}/lida e devolve o corpo da API', async () => {
+    it('faz PATCH /notificacoes/{id}/visualizar e devolve o corpo da API', async () => {
       fetch.mockResolvedValue(respostaJson({ id: 1, lida: true }));
 
       const resultado = await marcarNotificacaoComoLida(1);
 
       const [url, options] = fetch.mock.calls[0];
-      expect(url).toBe(`${BASE_URL}/notificacoes/1/lida`);
+      expect(url).toBe(`${BASE_URL}/notificacoes/1/visualizar`);
       expect(options.method).toBe('PATCH');
       expect(resultado).toEqual({ id: 1, lida: true });
     });
@@ -255,20 +246,7 @@ describe('caminho de rede (VITE_ENABLE_MOCKS desligado)', () => {
       await marcarNotificacaoComoLida('a/b c');
 
       const [url] = fetch.mock.calls[0];
-      expect(url).toBe(`${BASE_URL}/notificacoes/a%2Fb%20c/lida`);
-    });
-  });
-
-  describe('marcarTodasNotificacoesComoLidas', () => {
-    it('faz PATCH /notificacoes/lidas', async () => {
-      fetch.mockResolvedValue(respostaJson({ total: 3 }));
-
-      const resultado = await marcarTodasNotificacoesComoLidas();
-
-      const [url, options] = fetch.mock.calls[0];
-      expect(url).toBe(`${BASE_URL}/notificacoes/lidas`);
-      expect(options.method).toBe('PATCH');
-      expect(resultado).toEqual({ total: 3 });
+      expect(url).toBe(`${BASE_URL}/notificacoes/a%2Fb%20c/visualizar`);
     });
   });
 
@@ -306,14 +284,6 @@ describe('caminho de rede (VITE_ENABLE_MOCKS desligado)', () => {
       fetch.mockRejectedValue(new TypeError('Failed to fetch'));
 
       await expect(listarNotificacoes()).rejects.toThrow(
-        'Não foi possível conectar ao servidor. Tente novamente.',
-      );
-    });
-
-    it('traduz falha de conexão ao marcar todas', async () => {
-      fetch.mockRejectedValue(new TypeError('Failed to fetch'));
-
-      await expect(marcarTodasNotificacoesComoLidas()).rejects.toThrow(
         'Não foi possível conectar ao servidor. Tente novamente.',
       );
     });
@@ -495,49 +465,6 @@ describe('caminho mock (VITE_ENABLE_MOCKS=true)', () => {
     });
   });
 
-  describe('marcarTodasNotificacoesComoLidas', () => {
-    it('não toca na rede', async () => {
-      await marcarTodasNotificacoesComoLidas();
-
-      expect(fetch).not.toHaveBeenCalled();
-    });
-
-    it('devolve o total de notificações afetadas', async () => {
-      await expect(marcarTodasNotificacoesComoLidas()).resolves.toEqual({
-        total: 5,
-      });
-    });
-
-    it('zera a contagem de não lidas', async () => {
-      await marcarTodasNotificacoesComoLidas();
-
-      const notificacoes = await listarNotificacoes();
-      expect(contarNaoLidas(notificacoes)).toBe(0);
-      expect(notificacoes.every((item) => item.lida === true)).toBe(true);
-    });
-
-    it('é idempotente', async () => {
-      await marcarTodasNotificacoesComoLidas();
-      await expect(marcarTodasNotificacoesComoLidas()).resolves.toEqual({
-        total: 5,
-      });
-
-      expect(contarNaoLidas(await listarNotificacoes())).toBe(0);
-    });
-
-    it('não altera a ordenação nem os demais campos', async () => {
-      const antes = await listarNotificacoes();
-
-      await marcarTodasNotificacoesComoLidas();
-
-      const depois = await listarNotificacoes();
-      expect(depois.map((item) => item.id)).toEqual(antes.map((item) => item.id));
-      expect(depois.map((item) => item.titulo)).toEqual(
-        antes.map((item) => item.titulo),
-      );
-    });
-  });
-
   describe('estado do store mock (constante de módulo)', () => {
     it('o estado vive no módulo e persiste entre chamadas', async () => {
       await marcarNotificacaoComoLida(1);
@@ -549,7 +476,8 @@ describe('caminho mock (VITE_ENABLE_MOCKS=true)', () => {
     // Como o store é uma constante do módulo (e não o localStorage), recarregar
     // o módulo devolve tudo ao estado inicial: nada é persistido de verdade.
     it('recarregar o módulo descarta o que foi marcado como lido', async () => {
-      await marcarTodasNotificacoesComoLidas();
+      await marcarNotificacaoComoLida(1);
+      await marcarNotificacaoComoLida(2);
       expect(contarNaoLidas(await listarNotificacoes())).toBe(0);
 
       vi.resetModules();

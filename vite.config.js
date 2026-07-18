@@ -33,6 +33,11 @@ export default defineConfig({
         'src/test/**',
         'src/data/**',
         'src/main.jsx',
+        // Markup estático / re-exports sem lógica testável — deliberadamente
+        // fora da conta para o número refletir só o que vale cobrir.
+        'src/pages/Home/**',
+        'src/pages/NaoEncontrada/**',
+        'src/routes/**',
       ],
       reporter: ['text', 'html', 'json-summary'],
       // Sem isto, um único teste vermelho deixa `test:coverage` MUDO (nenhum

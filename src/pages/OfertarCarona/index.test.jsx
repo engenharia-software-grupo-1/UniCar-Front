@@ -20,6 +20,7 @@ vi.mock('../../services/geocodingService.js', async (importOriginal) => {
   const real = await importOriginal();
   return {
     ...real,
+    buscarSugestoesEndereco: vi.fn(),
     geocodificarEndereco: vi.fn(async (descricao) => {
       const ehDestino = descricao.includes('UFCG');
       return {
@@ -42,6 +43,7 @@ vi.mock('../../services/caronaService.js', () => ({
 import OfertarCarona from './index.jsx';
 import {
   geocodificarEndereco,
+  buscarSugestoesEndereco,
   calcularTetoContribuicao,
   contribuicaoMaxima,
 } from '../../services/geocodingService.js';
@@ -126,6 +128,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   listarVeiculos.mockResolvedValue(VEICULOS);
   listarTrajetosRecorrentes.mockResolvedValue(TRAJETOS_RECORRENTES);
+  buscarSugestoesEndereco.mockResolvedValue([]);
   // Sem histórico por padrão: quem exercita a sugestão sobrescreve.
   buscarUltimaCaronaDoTrajeto.mockResolvedValue(null);
 });
@@ -156,6 +159,26 @@ describe('breadcrumb e navegação entre passos', () => {
     expect(screen.getByText('Informe o horário.')).toBeInTheDocument();
     expect(screen.getByText('Informe o ponto de encontro.')).toBeInTheDocument();
     expect(screen.getByText('Passo 1 de 3')).toBeInTheDocument();
+  });
+
+  it('oferece endereços encontrados pela API e usa a opção escolhida', async () => {
+    const user = userEvent.setup();
+    buscarSugestoesEndereco.mockResolvedValueOnce([
+      {
+        descricao: 'Universidade Federal de Campina Grande, Bodocongó, Campina Grande',
+        latitude: -7.2138,
+        longitude: -35.9092,
+      },
+    ]);
+    renderPagina();
+
+    const campoOrigem = screen.getByPlaceholderText('De onde você sai');
+    await user.type(campoOrigem, 'ufc');
+
+    const opcao = await screen.findByRole('option', { name: /universidade federal de campina grande/i });
+    await user.click(opcao);
+
+    expect(campoOrigem).toHaveValue('Universidade Federal de Campina Grande, Bodocongó, Campina Grande');
   });
 
   it('valida isoladamente apenas os campos ainda em falta', async () => {

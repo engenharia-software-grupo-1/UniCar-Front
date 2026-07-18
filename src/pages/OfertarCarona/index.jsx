@@ -15,6 +15,7 @@ import {
 import { listarVeiculos } from '../../services/vehicleService.js';
 import {
   geocodificarEndereco,
+  buscarSugestoesEndereco,
   calcularDistanciaKm,
   calcularTetoContribuicao,
   contribuicaoMaxima,
@@ -49,6 +50,40 @@ function descricaoVeiculo(veiculo) {
 function dataLocalISO(data) {
   const pad = (n) => String(n).padStart(2, '0');
   return `${data.getFullYear()}-${pad(data.getMonth() + 1)}-${pad(data.getDate())}`;
+}
+
+function useSugestoesEndereco(consulta, ativa) {
+  const [sugestoes, setSugestoes] = useState([]);
+  const [buscando, setBuscando] = useState(false);
+
+  useEffect(() => {
+    const texto = consulta.trim();
+    if (!ativa || texto.length < 3) {
+      return undefined;
+    }
+
+    let ativaBusca = true;
+    const timer = window.setTimeout(async () => {
+      setBuscando(true);
+      try {
+        const resultados = await buscarSugestoesEndereco(texto);
+        if (ativaBusca) setSugestoes(resultados);
+      } catch {
+        // A sugestão é uma conveniência: a validação ao avançar continua
+        // explicando qualquer falha de localização de forma acionável.
+        if (ativaBusca) setSugestoes([]);
+      } finally {
+        if (ativaBusca) setBuscando(false);
+      }
+    }, 350);
+
+    return () => {
+      ativaBusca = false;
+      window.clearTimeout(timer);
+    };
+  }, [consulta, ativa]);
+
+  return { sugestoes, buscando };
 }
 
 function OfertarCarona() {
@@ -87,6 +122,7 @@ function OfertarCarona() {
   // (passo 2) e são reusadas no publicar, sem geocodificar de novo.
   const [origemCoord, setOrigemCoord] = useState(null);
   const [destinoCoord, setDestinoCoord] = useState(null);
+  const [campoEnderecoAtivo, setCampoEnderecoAtivo] = useState(null);
 
   const [veiculos, setVeiculos] = useState([]);
   const [carregandoVeiculos, setCarregandoVeiculos] = useState(true);
@@ -95,6 +131,9 @@ function OfertarCarona() {
   const [erro, setErro] = useState('');
   const [publicando, setPublicando] = useState(false);
   const [geocodificando, setGeocodificando] = useState(false);
+
+  const sugestoesOrigem = useSugestoesEndereco(origem, campoEnderecoAtivo === 'origem');
+  const sugestoesDestino = useSugestoesEndereco(destino, campoEnderecoAtivo === 'destino');
 
   const distanciaKm = useMemo(
     () => (origemCoord && destinoCoord ? calcularDistanciaKm(origemCoord, destinoCoord) : null),
@@ -157,6 +196,8 @@ function OfertarCarona() {
 
       setOrigem(trajeto.origem);
       setDestino(trajeto.destino);
+      setOrigemCoord(null);
+      setDestinoCoord(null);
 
       const ultima = await buscarUltimaCaronaDoTrajeto(trajeto.origem, trajeto.destino);
 
@@ -390,6 +431,19 @@ function OfertarCarona() {
     limparErro('veiculo');
   }
 
+  function selecionarEndereco(campo, endereco) {
+    if (campo === 'origem') {
+      setOrigem(endereco.descricao);
+      setOrigemCoord(endereco);
+    } else {
+      setDestino(endereco.descricao);
+      setDestinoCoord(endereco);
+    }
+
+    limparErro(campo);
+    setCampoEnderecoAtivo(null);
+  }
+
   async function avancar() {
     setErro('');
 
@@ -409,8 +463,8 @@ function OfertarCarona() {
       setGeocodificando(true);
 
       try {
-        const origemGeo = await geocodificarEndereco(origem);
-        const destinoGeo = await geocodificarEndereco(destino);
+        const origemGeo = origemCoord ?? (await geocodificarEndereco(origem));
+        const destinoGeo = destinoCoord ?? (await geocodificarEndereco(destino));
 
         setOrigemCoord(origemGeo);
         setDestinoCoord(destinoGeo);
@@ -571,6 +625,8 @@ function OfertarCarona() {
                     onClick={() => {
                       setOrigem(trajeto.origem);
                       setDestino(trajeto.destino);
+                      setOrigemCoord(null);
+                      setDestinoCoord(null);
                     }}
                   >
                     <strong>
@@ -587,17 +643,37 @@ function OfertarCarona() {
 
             <label className="ofertar-campo">
               <span>Ponto de partida</span>
-              <div className="ofertar-input">
-                <MapPin size={18} />
-                <input
-                  type="text"
-                  value={origem}
-                  onChange={(evento) => {
-                    setOrigem(evento.target.value);
-                    limparErro('origem');
-                  }}
-                  placeholder="De onde você sai"
-                />
+              <div className="ofertar-endereco">
+                <div className="ofertar-input">
+                  <MapPin size={18} />
+                  <input
+                    type="text"
+                    value={origem}
+                    role="combobox"
+                    aria-autocomplete="list"
+                    aria-expanded={campoEnderecoAtivo === 'origem' && sugestoesOrigem.sugestoes.length > 0}
+                    aria-controls="sugestoes-origem"
+                    onFocus={() => setCampoEnderecoAtivo('origem')}
+                    onBlur={() => window.setTimeout(() => setCampoEnderecoAtivo(null), 150)}
+                    onChange={(evento) => {
+                      setOrigem(evento.target.value);
+                      setOrigemCoord(null);
+                      limparErro('origem');
+                    }}
+                    placeholder="De onde você sai"
+                  />
+                </div>
+                {campoEnderecoAtivo === 'origem' && origem.trim().length >= 3 && (sugestoesOrigem.buscando || sugestoesOrigem.sugestoes.length > 0) && (
+                  <ul id="sugestoes-origem" className="ofertar-sugestoes-endereco" role="listbox">
+                    {sugestoesOrigem.buscando && <li className="ofertar-sugestoes-status">Buscando endereços...</li>}
+                    {sugestoesOrigem.sugestoes.map((endereco) => (
+                      <li key={`${endereco.latitude}-${endereco.longitude}`} role="option" onMouseDown={(evento) => evento.preventDefault()} onClick={() => selecionarEndereco('origem', endereco)}>
+                        <MapPin size={16} aria-hidden="true" />
+                        {endereco.descricao}
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
               {errosCampos.origem && (
                 <span className="ofertar-erro-campo">{errosCampos.origem}</span>
@@ -606,17 +682,37 @@ function OfertarCarona() {
 
             <label className="ofertar-campo">
               <span>Destino</span>
-              <div className="ofertar-input">
-                <MapPin size={18} />
-                <input
-                  type="text"
-                  value={destino}
-                  onChange={(evento) => {
-                    setDestino(evento.target.value);
-                    limparErro('destino');
-                  }}
-                  placeholder="Para onde você vai"
-                />
+              <div className="ofertar-endereco">
+                <div className="ofertar-input">
+                  <MapPin size={18} />
+                  <input
+                    type="text"
+                    value={destino}
+                    role="combobox"
+                    aria-autocomplete="list"
+                    aria-expanded={campoEnderecoAtivo === 'destino' && sugestoesDestino.sugestoes.length > 0}
+                    aria-controls="sugestoes-destino"
+                    onFocus={() => setCampoEnderecoAtivo('destino')}
+                    onBlur={() => window.setTimeout(() => setCampoEnderecoAtivo(null), 150)}
+                    onChange={(evento) => {
+                      setDestino(evento.target.value);
+                      setDestinoCoord(null);
+                      limparErro('destino');
+                    }}
+                    placeholder="Para onde você vai"
+                  />
+                </div>
+                {campoEnderecoAtivo === 'destino' && destino.trim().length >= 3 && (sugestoesDestino.buscando || sugestoesDestino.sugestoes.length > 0) && (
+                  <ul id="sugestoes-destino" className="ofertar-sugestoes-endereco" role="listbox">
+                    {sugestoesDestino.buscando && <li className="ofertar-sugestoes-status">Buscando endereços...</li>}
+                    {sugestoesDestino.sugestoes.map((endereco) => (
+                      <li key={`${endereco.latitude}-${endereco.longitude}`} role="option" onMouseDown={(evento) => evento.preventDefault()} onClick={() => selecionarEndereco('destino', endereco)}>
+                        <MapPin size={16} aria-hidden="true" />
+                        {endereco.descricao}
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
               {errosCampos.destino && (
                 <span className="ofertar-erro-campo">{errosCampos.destino}</span>

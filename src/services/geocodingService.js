@@ -1,5 +1,6 @@
 const NOMINATIM_SEARCH_URL = 'https://nominatim.openstreetmap.org/search';
 const CACHE_KEY = 'unicar.geocoding.cache';
+const SUGGESTIONS_CACHE_KEY = 'unicar.geocoding.suggestions';
 const CACHE_TTL_MS = 60 * 60 * 1000;
 let ultimaRequisicao = 0;
 
@@ -19,10 +20,38 @@ export async function geocodificarEndereco(descricao) {
   const chave = texto.toLocaleLowerCase('pt-BR');
   if (cache[chave]) return cache[chave].endereco;
 
+  const [endereco] = await pesquisarEnderecos(texto, 1);
+
+  if (!endereco) {
+    throw new Error(`Não foi possível localizar “${texto}”. Informe um endereço mais completo.`);
+  }
+
+  cache[chave] = { endereco, expiraEm: Date.now() + CACHE_TTL_MS };
+  sessionStorage.setItem(CACHE_KEY, JSON.stringify(cache));
+  return endereco;
+}
+
+// Sugestões para os campos de origem e destino. A consulta é restrita à cidade
+// de atuação do app para evitar opções ambíguas de outras regiões do país.
+export async function buscarSugestoesEndereco(consulta) {
+  const texto = String(consulta || '').trim();
+  if (texto.length < 3) return [];
+
+  const cache = carregarCache(SUGGESTIONS_CACHE_KEY);
+  const chave = texto.toLocaleLowerCase('pt-BR');
+  if (cache[chave]) return cache[chave].enderecos;
+
+  const enderecos = await pesquisarEnderecos(texto, 5);
+  cache[chave] = { enderecos, expiraEm: Date.now() + CACHE_TTL_MS };
+  sessionStorage.setItem(SUGGESTIONS_CACHE_KEY, JSON.stringify(cache));
+  return enderecos;
+}
+
+async function pesquisarEnderecos(texto, limite) {
   const params = new URLSearchParams({
     q: `${texto}, Campina Grande, Paraíba, Brasil`,
     format: 'jsonv2',
-    limit: '1',
+    limit: String(limite),
     countrycodes: 'br',
     'accept-language': 'pt-BR',
   });
@@ -40,23 +69,19 @@ export async function geocodificarEndereco(descricao) {
 
   if (!response.ok) throw new Error('O serviço de localização está indisponível. Tente novamente.');
 
-  const [resultado] = await response.json();
-  const latitude = Number(resultado?.lat);
-  const longitude = Number(resultado?.lon);
-
-  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
-    throw new Error(`Não foi possível localizar “${texto}”. Informe um endereço mais completo.`);
-  }
-
-  const endereco = { descricao: texto, latitude, longitude };
-  cache[chave] = { endereco, expiraEm: Date.now() + CACHE_TTL_MS };
-  sessionStorage.setItem(CACHE_KEY, JSON.stringify(cache));
-  return endereco;
+  const resultados = await response.json();
+  return resultados
+    .map((resultado) => ({
+      descricao: resultado.display_name || resultado.name,
+      latitude: Number(resultado.lat),
+      longitude: Number(resultado.lon),
+    }))
+    .filter((endereco) => endereco.descricao && Number.isFinite(endereco.latitude) && Number.isFinite(endereco.longitude));
 }
 
-function carregarCache() {
+function carregarCache(chaveCache = CACHE_KEY) {
   try {
-    const cache = JSON.parse(sessionStorage.getItem(CACHE_KEY)) || {};
+    const cache = JSON.parse(sessionStorage.getItem(chaveCache)) || {};
     const agora = Date.now();
 
     return Object.fromEntries(

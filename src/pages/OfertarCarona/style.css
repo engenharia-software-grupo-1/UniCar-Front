@@ -120,6 +120,53 @@
   outline: none;
 }
 
+.ofertar-endereco {
+  position: relative;
+}
+
+.ofertar-sugestoes-endereco {
+  position: absolute;
+  z-index: 20;
+  right: 0;
+  left: 0;
+  margin: 6px 0 0;
+  padding: 6px;
+  overflow-y: auto;
+  max-height: 220px;
+  list-style: none;
+  border: 1px solid #dbe6f4;
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: 0 16px 34px rgba(7, 19, 43, 0.14);
+}
+
+.ofertar-sugestoes-endereco li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 10px;
+  color: #33507a;
+  font-size: 13px;
+  line-height: 1.35;
+  cursor: pointer;
+}
+
+.ofertar-sugestoes-endereco li:not(.ofertar-sugestoes-status):hover {
+  background: #f0f5fc;
+  color: #07132b;
+}
+
+.ofertar-sugestoes-endereco li svg {
+  flex: 0 0 auto;
+  margin-top: 1px;
+}
+
+.ofertar-sugestoes-status {
+  color: #587091 !important;
+  cursor: default !important;
+}
+
 .ofertar-observacao {
   margin-top: 18px;
 }

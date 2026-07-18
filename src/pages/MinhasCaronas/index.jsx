@@ -62,6 +62,10 @@ function MinhasCaronas() {
   const [carregandoReservas, setCarregandoReservas] = useState(false);
   const [erroReservas, setErroReservas] = useState('');
   const [reservasCarregadas, setReservasCarregadas] = useState(false);
+  // Gatilho de re-tentativa da aba passageiro. Sem ele, "Tentar novamente" após
+  // erro não teria efeito: reservasCarregadas continua false no catch, e o botão
+  // faria setReservasCarregadas(false) — mesmo valor, sem re-disparar o efeito.
+  const [tentativaReservas, setTentativaReservas] = useState(0);
   const [caronaParaCancelar, setCaronaParaCancelar] = useState(null);
   const [cancelando, setCancelando] = useState(false);
   const [caronaParaIniciar, setCaronaParaIniciar] = useState(null);
@@ -151,7 +155,7 @@ function MinhasCaronas() {
 
     carregarReservas();
     return () => { ativo = false; };
-  }, [aba, reservasCarregadas]);
+  }, [aba, reservasCarregadas, tentativaReservas]);
 
   // A mensagem de sucesso é temporária: some sozinha após alguns segundos.
   useEffect(() => {
@@ -322,7 +326,7 @@ function MinhasCaronas() {
             carregando={carregandoReservas}
             erro={erroReservas}
             reservas={reservas}
-            onTentarNovamente={() => setReservasCarregadas(false)}
+            onTentarNovamente={() => setTentativaReservas((t) => t + 1)}
           />
         )}
       </section>

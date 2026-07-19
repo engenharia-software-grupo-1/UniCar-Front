@@ -223,6 +223,12 @@ function DetalheCarona() {
       setSolicitacoesPendentes((atuais) => atuais.filter(
         (solicitacao) => String(solicitacao.id) !== String(passageiro.reservaId),
       ));
+      if (acao === 'aceitar') {
+        // A API mantém os passageiros aceitos em uma lista separada das
+        // solicitações pendentes; recarregá-la evita precisar atualizar a página.
+        const passageirosAtualizados = await listarPassageirosCarona(id);
+        setPassageirosConfirmados(passageirosAtualizados);
+      }
       setFeedback(`Reserva de ${passageiro.nome} ${acao === 'aceitar' ? 'aceita' : 'recusada'} com sucesso.`);
     } catch (error) {
       setErro(error.message || `Não foi possível ${acao} a reserva.`);

@@ -353,9 +353,19 @@ describe('DetalheCarona — responder solicitações (motorista)', () => {
     return screen.findByText('Maria Souza');
   }
 
-  it('aceita a solicitação: chama aceitarReserva, decrementa a vaga e mostra feedback', async () => {
+  it('aceita a solicitação, recarrega os passageiros confirmados e mostra o novo passageiro', async () => {
     obterCarona.mockResolvedValue(CARONA_MINHA);
     listarReservasPendentesDaCarona.mockResolvedValue([SOLICITACAO]);
+    listarPassageirosCarona
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([{
+        id: 71,
+        reservaId: 501,
+        nome: 'Maria Souza',
+        curso: 'Engenharia',
+        avaliacao: 4.8,
+        status: 'Confirmado',
+      }]);
 
     renderPagina({ state: { minhaCarona: true } });
 
@@ -369,6 +379,8 @@ describe('DetalheCarona — responder solicitações (motorista)', () => {
     expect(
       await screen.findByText('Reserva de Maria Souza aceita com sucesso.'),
     ).toBeInTheDocument();
+    expect(listarPassageirosCarona).toHaveBeenCalledTimes(2);
+    expect(await screen.findByText('Confirmado')).toBeInTheDocument();
     // Vaga decrementada em 1: passa a 1 de 3.
     expect(screen.getByText('1 de 3 disponíveis')).toBeInTheDocument();
     expect(recusarReserva).not.toHaveBeenCalled();

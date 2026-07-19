@@ -192,6 +192,12 @@ describe('listarHistoricoComoPassageiro — normalização de campos', () => {
     ).toBe('2026-06-01T07:00:00');
   });
 
+  it('usa dataCarona retornada pela API para a data da reserva', async () => {
+    expect((await normalizar({ id: 1, dataCarona: '2026-07-20T07:30:00' })).dataHora).toBe(
+      '2026-07-20T07:30:00',
+    );
+  });
+
   it('assume 1 vaga reservada e total nulo quando nada vem', async () => {
     const reserva = await normalizar({ id: 1 });
 

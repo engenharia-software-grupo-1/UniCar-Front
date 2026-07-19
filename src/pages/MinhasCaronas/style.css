@@ -104,7 +104,8 @@
 
 .carona-card__rota {
   margin: 0 0 8px;
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
   gap: 8px;
   color: #07132b;
@@ -113,13 +114,13 @@
 }
 
 .carona-card__rota svg {
-  flex: 0 0 auto;
+  grid-column: 2;
+  grid-row: 1;
   color: #94a3b8;
 }
 
 .carona-card__rota strong,
 .carona-card__rota span {
-  flex: 0 1 auto;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -127,10 +128,15 @@
 }
 
 .carona-card__rota strong {
+  grid-column: 1;
+  grid-row: 1;
+  min-width: 0;
   font-weight: 800;
 }
 
 .carona-card__rota span {
+  grid-column: 3;
+  grid-row: 1;
   color: #385579;
   font-weight: 700;
 }

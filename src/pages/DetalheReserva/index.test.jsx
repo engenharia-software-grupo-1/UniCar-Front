@@ -236,16 +236,6 @@ describe('botão de cancelar', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('navega para trás ao clicar em "Voltar ao histórico"', async () => {
-    renderPagina();
-
-    await screen.findByRole('heading', { name: 'Reserva confirmada' });
-    await userEvent.click(
-      screen.getByRole('button', { name: /voltar ao histórico/i }),
-    );
-
-    expect(navigateMock).toHaveBeenCalledWith(-1);
-  });
 });
 
 describe('modal de cancelamento', () => {

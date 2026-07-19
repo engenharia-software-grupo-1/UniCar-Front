@@ -24,10 +24,10 @@ describe('Topbar', () => {
     '/reservas/42',
     '/reservas/42/chat/7',
     '/minhas-caronas/15/chat/7',
-  ])('não duplica o voltar em %s, que já tem retorno próprio', (rota) => {
+  ])('mostra o voltar global em %s', (rota) => {
     renderNaRota(rota);
 
-    expect(screen.queryByRole('button', { name: 'Voltar' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Voltar' })).toBeInTheDocument();
   });
 
   it('mantém o voltar global nas demais rotas internas', () => {

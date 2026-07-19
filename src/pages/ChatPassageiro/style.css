@@ -29,7 +29,7 @@
   min-height: 86px;
   border-bottom: 1px solid #d8e3f1;
   display: grid;
-  grid-template-columns: auto auto 1fr auto;
+  grid-template-columns: auto 1fr auto;
   align-items: center;
   gap: 14px;
 }

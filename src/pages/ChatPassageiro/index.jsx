@@ -1,13 +1,12 @@
 import { useState } from 'react';
-import { ArrowLeft, Flag, Send } from 'lucide-react';
-import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { Flag, Send } from 'lucide-react';
+import { Link, useLocation, useParams } from 'react-router-dom';
 import './style.css';
 
 export default function ChatPassageiro() {
   const { caronaId, reservaId, usuarioId } = useParams();
   const conversaId = caronaId || reservaId;
   const location = useLocation();
-  const navigate = useNavigate();
   const passageiro = location.state?.passageiro || {};
   const status = String(location.state?.status || '').toUpperCase();
   const permiteMensagem = ['EM_ANDAMENTO', 'ACEITA', 'CRIADA'].includes(status);
@@ -37,9 +36,6 @@ export default function ChatPassageiro() {
     <main className="chat-passageiro-page">
       <section className="chat-passageiro-shell" aria-label={`Conversa com ${nome}`}>
         <header className="chat-passageiro-header">
-          <button type="button" onClick={() => navigate(-1)} aria-label="Voltar">
-            <ArrowLeft size={23} />
-          </button>
           <Link
             to={`/usuarios/${usuarioId}`}
             state={{ perfilFallback: passageiro }}

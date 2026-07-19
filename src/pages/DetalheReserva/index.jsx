@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ArrowLeft, ArrowRight, CalendarDays, CheckCircle2, Clock, MapPin, MessageCircle, Star, UserRound, Users, X, XCircle } from 'lucide-react';
+import { ArrowRight, CalendarDays, CheckCircle2, Clock, MapPin, MessageCircle, Star, UserRound, Users, X, XCircle } from 'lucide-react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import NavegacaoInferior from '../../components/layout/NavegacaoInferior.jsx';
 import StatusReservaBadge from '../../components/common/StatusReservaBadge.jsx';
@@ -82,10 +82,6 @@ function DetalheReserva() {
   return (
     <main className="detalhe-reserva-page">
       <section className="detalhe-reserva-shell">
-        <button className="detalhe-reserva-voltar" type="button" onClick={() => navigate(-1)}>
-          <ArrowLeft size={20} aria-hidden="true" /> Voltar ao histórico
-        </button>
-
         {carregando && <p className="detalhe-reserva-feedback">Carregando reserva...</p>}
 
         {!carregando && erro && (

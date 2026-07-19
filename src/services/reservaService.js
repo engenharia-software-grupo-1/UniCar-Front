@@ -9,10 +9,13 @@ import { shouldUseDevelopmentFallbacks, shouldUseLocalDataMocks } from './apiCon
 // Status de reserva do contrato (US10, "Status Possíveis").
 export const RESERVA_ACEITA = 'ACEITA';
 
-export async function criarReserva(caronaId, quantidadePassageiros) {
+export async function criarReserva(caronaId, quantidadePassageiros, origemEmbarque) {
+  // O backend exige origemEmbarque (EnderecoDTO com descricao + latitude +
+  // longitude) — o passageiro embarca na origem da carona.
   const payload = {
     caronaId: Number(caronaId),
     quantidadePassageiros: Number(quantidadePassageiros),
+    origemEmbarque,
   };
 
   if (shouldUseLocalDataMocks()) {

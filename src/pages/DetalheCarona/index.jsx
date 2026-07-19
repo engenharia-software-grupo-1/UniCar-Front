@@ -27,6 +27,7 @@ import {
   listarReservasPendentesDaCarona,
   recusarReserva,
 } from '../../services/reservaService.js';
+import { geocodificarEndereco } from '../../services/geocodingService.js';
 import './style.css';
 
 const STATUS = {
@@ -255,10 +256,23 @@ function DetalheCarona() {
   }
 
   async function confirmarSolicitacao() {
+    // O endereço de embarque é o que o passageiro digitou na busca; ele é
+    // carregado no location.state e geocodificado aqui para as coordenadas que
+    // o backend exige (origemEmbarque: EnderecoDTO com latitude/longitude).
+    const enderecoEmbarque = location.state?.enderecoEmbarque;
+
+    if (!enderecoEmbarque) {
+      setErroSolicitacao(
+        'Informe seu endereço de embarque na busca antes de solicitar.',
+      );
+      return;
+    }
+
     try {
       setEnviandoSolicitacao(true);
       setErroSolicitacao('');
-      await criarReserva(carona.id, Number(quantidadePassageiros));
+      const origemEmbarque = await geocodificarEndereco(enderecoEmbarque);
+      await criarReserva(carona.id, Number(quantidadePassageiros), origemEmbarque);
       setSolicitada(true);
       setModalSolicitacaoAberto(false);
       setFeedback('Solicitação de participação enviada com sucesso.');

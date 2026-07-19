@@ -206,7 +206,7 @@ function BuscarCarona() {
             </div>
           )}
           {!carregando && caronasFiltradas.map((carona) => (
-            <RideCard key={carona.id} carona={carona} onOpenProfile={(id) => navigate(`/usuarios/${id}`)} />
+            <RideCard key={carona.id} carona={carona} enderecoEmbarque={origem} onOpenProfile={(id) => navigate(`/usuarios/${id}`)} />
           ))}
         </div>
 
@@ -247,7 +247,7 @@ function SelectField({ label, value, onChange, options }) {
   );
 }
 
-function RideCard({ carona, onOpenProfile }) {
+function RideCard({ carona, enderecoEmbarque, onOpenProfile }) {
   const motorista = carona.motorista ?? {};
   const nome = carona.motoristaNome || motorista.nome || 'Motorista';
   const iniciais = nome.split(' ').slice(0, 2).map((parte) => parte[0]).join('').toUpperCase();
@@ -262,7 +262,7 @@ function RideCard({ carona, onOpenProfile }) {
   const diasRecorrencia = carona.diasRecorrencia || carona.recurring?.days || [];
 
   return (
-    <Link to={`/caronas/${carona.id}`} state={{ carona, origem: 'busca' }} className="ride-card">
+    <Link to={`/caronas/${carona.id}`} state={{ carona, origem: 'busca', enderecoEmbarque }} className="ride-card">
       <span
         role="link"
         tabIndex={0}

@@ -28,6 +28,10 @@ const CURSOS = [
 ];
 const GENEROS = ['Qualquer', 'Feminino', 'Masculino', 'Outro'];
 const CARONAS_POR_PAGINA = 5;
+// Raio de busca padrão (km). Espelha o default do backend (BuscaCaronaService,
+// RAIO_PADRAO_KM = 5) e é o teto de proximidade origem-passageiro ↔ origem-carona.
+const RAIO_PADRAO_KM = 5;
+const RAIO_MAXIMO_KM = 50;
 
 function useSugestoesEndereco(consulta, ativa) {
   const [sugestoes, setSugestoes] = useState([]);
@@ -84,6 +88,10 @@ function BuscarCarona() {
   const [mostrarFiltros, setMostrarFiltros] = useState(false);
   const [vagasMinimas, setVagasMinimas] = useState(1);
   const [precoMaximo, setPrecoMaximo] = useState(20);
+  // Filtros aplicados no backend (BuscaCaronaFiltroDTO): dia da viagem
+  // (dataHoraSaida — filtrado por dia inteiro) e raio de proximidade (raioKm).
+  const [dataBusca, setDataBusca] = useState('');
+  const [raioKm, setRaioKm] = useState(RAIO_PADRAO_KM);
   const [campoEnderecoAtivo, setCampoEnderecoAtivo] = useState(null);
   const [quantidadeExibida, setQuantidadeExibida] = useState(CARONAS_POR_PAGINA);
 
@@ -210,6 +218,9 @@ function BuscarCarona() {
         destinoCoordenadas: coordsDestino,
         curso,
         genero,
+        raioKm,
+        // O backend filtra por DIA (ignora a hora), então mandamos o início do dia.
+        dataHoraSaida: dataBusca ? `${dataBusca}T00:00:00` : undefined,
       });
       setCaronas(resultado);
       setBuscaRealizada(true);
@@ -300,6 +311,17 @@ function BuscarCarona() {
 
           {mostrarFiltros && (
             <div className="buscar-painel-filtros">
+              <div className="buscar-campo-data">
+                <label htmlFor="filtro-data">Data da viagem</label>
+                <input
+                  id="filtro-data"
+                  type="date"
+                  value={dataBusca}
+                  min={hojeISO()}
+                  onChange={(evento) => setDataBusca(evento.target.value)}
+                />
+              </div>
+              <RangeField label={`Raio de busca: ${raioKm} km`} min="1" max={String(RAIO_MAXIMO_KM)} value={raioKm} onChange={setRaioKm} />
               <RangeField label={`Vagas mínimas: ${vagasMinimas}`} min="1" max="4" value={vagasMinimas} onChange={setVagasMinimas} />
               <RangeField label={`Preço máximo: R$ ${precoMaximo}`} min="0" max="30" value={precoMaximo} onChange={setPrecoMaximo} />
               <div className="buscar-grid">
@@ -370,6 +392,16 @@ function identificarUsuario(usuario = {}) {
   const id = usuario.id ?? usuario.usuarioId ?? usuario.userId;
 
   return id == null ? '' : String(id);
+}
+
+// Data de hoje em YYYY-MM-DD (horário local) para o atributo `min` do seletor de
+// data — não faz sentido buscar caronas em dias passados (o backend também filtra
+// só caronas futuras).
+function hojeISO() {
+  const hoje = new Date();
+  const mes = String(hoje.getMonth() + 1).padStart(2, '0');
+  const dia = String(hoje.getDate()).padStart(2, '0');
+  return `${hoje.getFullYear()}-${mes}-${dia}`;
 }
 
 function identificarMotorista(carona = {}) {

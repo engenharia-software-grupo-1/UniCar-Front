@@ -103,22 +103,39 @@
 }
 
 .carona-card__rota {
-  margin: 0 0 6px;
-  display: flex;
+  margin: 0 0 10px;
+  padding: 12px 14px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
+  gap: 10px;
+  border: 1px solid #e5edf7;
+  border-radius: 14px;
+  background: #f8fbff;
   color: #07132b;
-  font-size: 17px;
-  font-weight: 800;
+  font-size: 14px;
+  line-height: 1.35;
 }
 
 .carona-card__rota svg {
   color: #94a3b8;
 }
 
+.carona-card__rota strong,
 .carona-card__rota span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.carona-card__rota strong {
   font-weight: 800;
+}
+
+.carona-card__rota span {
+  color: #385579;
+  font-weight: 700;
 }
 
 .carona-card__passageiros {

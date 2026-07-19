@@ -770,6 +770,9 @@ function ajustarCaronaMotorista(carona = {}) {
       ...((motorista.curso || motorista.nomeCurso || motorista.course)
         ? { curso: motorista.curso || motorista.nomeCurso || motorista.course }
         : {}),
+      ...((motorista.fotoUrl || motorista.linkFoto || motorista.fotoPerfil || motorista.avatarUrl)
+        ? { fotoUrl: motorista.fotoUrl || motorista.linkFoto || motorista.fotoPerfil || motorista.avatarUrl }
+        : {}),
       avaliacao: motorista.avaliacao ?? motorista.rating ?? '',
     },
     veiculo: {
@@ -797,6 +800,9 @@ function normalizarPassageiros(passageiros) {
     id: passageiro.usuarioId ?? passageiro.userId ?? passageiro.id ?? index,
     reservaId: getReservaId(passageiro),
     nome: passageiro.nome || passageiro.nomeCompleto || passageiro.name || 'Passageiro',
+    ...((passageiro.fotoUrl || passageiro.linkFoto || passageiro.fotoPerfil || passageiro.avatarUrl)
+      ? { fotoUrl: passageiro.fotoUrl || passageiro.linkFoto || passageiro.fotoPerfil || passageiro.avatarUrl }
+      : {}),
     curso: passageiro.curso || passageiro.nomeCurso || passageiro.course || 'Comunidade UFCG',
     avaliacao: passageiro.avaliacao ?? passageiro.rating ?? 4.8,
     status: normalizarStatusReserva(passageiro.status || passageiro.situacao),
@@ -883,6 +889,7 @@ function ajustarCarona(carona = {}) {
       id: motorista.id ?? motorista.usuarioId ?? '',
       nome: motorista.nomeCompleto || motorista.nome || motorista.name || '',
       avatar: motorista.avatar || primeiraLetra(motorista.nomeCompleto || motorista.nome || motorista.name),
+      fotoUrl: motorista.fotoUrl || motorista.linkFoto || motorista.fotoPerfil || motorista.avatarUrl || '',
       avaliacao: motorista.avaliacao || motorista.rating || '',
       curso: motorista.curso || motorista.course || '',
       genero: motorista.genero || motorista.gender || '',

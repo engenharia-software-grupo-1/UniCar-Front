@@ -186,12 +186,14 @@ function isUsuarioJaBloqueado(error) {
 
 function toBlockedUser(usuario) {
   const nome = usuario.nomeCompleto || usuario.nome || usuario.name || 'Usuário';
+  const fotoUrl = usuario.fotoUrl || usuario.linkFoto || usuario.fotoPerfil || usuario.avatarUrl || '';
 
   return {
     id: usuario.id ?? usuario.usuarioId ?? usuario.userId ?? '',
     name: nome,
     course: usuario.curso || usuario.nomeCurso || usuario.course || 'Curso não informado',
     avatar: getInitials(nome),
+    ...(fotoUrl ? { fotoUrl } : {}),
     blockedAt: formatarDataBloqueio(usuario.blockedAt || usuario.bloqueadoEm || usuario.createdAt),
   };
 }

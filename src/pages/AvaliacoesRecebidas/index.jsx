@@ -159,7 +159,9 @@ function AvaliacaoItem({ avaliacao }) {
             className="avaliacoes-avatar"
             aria-label={`Ver perfil de ${avaliacao.from}`}
           >
-            {getInitial(avaliacao.from)}
+            {avaliacao.fotoUrl ? (
+              <img src={avaliacao.fotoUrl} alt={`Foto de ${avaliacao.from}`} />
+            ) : getInitial(avaliacao.from)}
           </Link>
 
           <div>

@@ -61,6 +61,8 @@
   text-decoration: none;
 }
 
+.chat-passageiro-avatar img { width: 100%; height: 100%; border-radius: inherit; object-fit: cover; }
+
 .chat-passageiro-identidade { min-width: 0; display: grid; gap: 3px; }
 .chat-passageiro-identidade strong { font-size: 17px; font-weight: 900; }
 .chat-passageiro-identidade span { color: #57749d; font-size: 14px; font-weight: 700; }

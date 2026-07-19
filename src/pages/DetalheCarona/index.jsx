@@ -524,7 +524,9 @@ function DetalheCarona() {
                       aria-label={`Ver perfil de ${passageiro.nome}`}
                       state={{ perfilFallback: passageiro }}
                     >
-                      {getInitial(passageiro.nome)}
+                      {passageiro.fotoUrl ? (
+                        <img src={passageiro.fotoUrl} alt={`Foto de ${passageiro.nome}`} />
+                      ) : getInitial(passageiro.nome)}
                     </Link>
                     <div className="detalhe-passenger__info">
                       <strong>{passageiro.nome}</strong>

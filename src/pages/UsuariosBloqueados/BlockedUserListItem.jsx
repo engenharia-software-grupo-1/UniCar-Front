@@ -13,7 +13,9 @@ export default function BlockedUserListItem({
         className="bloqueados-avatar"
         aria-label={`Ver perfil de ${usuario.name}`}
       >
-        {usuario.avatar}
+        {usuario.fotoUrl ? (
+          <img src={usuario.fotoUrl} alt={`Foto de ${usuario.name}`} />
+        ) : usuario.avatar}
       </Link>
 
       <div className="bloqueados-info">

@@ -178,6 +178,9 @@ components:
         curso:
           type: string
           example: Engenharia Elétrica
+        linkFoto:
+          type: string
+          format: uri
         dataBloqueio:
           type: string
           format: date-time
@@ -229,6 +232,9 @@ components:
             nome:
               type: string
               example: João Silva
+            linkFoto:
+              type: string
+              format: uri
         carona:
           type: object
           properties:
@@ -349,6 +355,9 @@ components:
         motorista:
           type: string
           example: João Silva
+        motoristaLinkFoto:
+          type: string
+          format: uri
         status:
           type: string
           example: FINALIZADA
@@ -404,6 +413,9 @@ components:
             nome:
               type: string
               example: João Silva
+            linkFoto:
+              type: string
+              format: uri
         status:
           type: string
           example: FINALIZADA
@@ -422,6 +434,9 @@ components:
               nome:
                 type: string
                 example: Maria Oliveira
+              linkFoto:
+                type: string
+                format: uri
 
     # ─── Chat ────────────────────────────────────────────────────────────────
 
@@ -437,6 +452,9 @@ components:
         nomeParticipante:
           type: string
           example: João Silva
+        linkFotoParticipante:
+          type: string
+          format: uri
         ultimaMensagem:
           type: string
           example: Tudo certo para amanhã.
@@ -679,6 +697,9 @@ components:
             nome:
               type: string
               example: Maria Oliveira
+            linkFoto:
+              type: string
+              format: uri
             reputacao:
               type: number
               format: float
@@ -696,6 +717,9 @@ components:
         nome:
           type: string
           example: Maria Oliveira
+        linkFoto:
+          type: string
+          format: uri
         quantidadePassageiros:
           type: integer
           example: 2
@@ -777,12 +801,19 @@ components:
             nome:
               type: string
               example: Maria Oliveira
+            linkFoto:
+              type: string
+              format: uri
             genero:
               type: string
               example: FEMININO
             curso:
               type: string
               example: Ciência da Computação
+            linkFoto:
+              type: string
+              format: uri
+              example: https://cdn.exemplo.com/maria.jpg
             reputacao:
               type: number
               format: float

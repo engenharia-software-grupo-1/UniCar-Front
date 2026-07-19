@@ -19,6 +19,7 @@ export default function ChatPassageiro() {
   const permiteMensagem = !['FINALIZADA', 'CANCELADA', 'RECUSADA', 'CONCLUIDA', 'REMOVIDA'].includes(status);
   const usuarioAutenticadoId = getSession()?.usuario?.id;
   const [nome, setNome] = useState(passageiro.nome || 'Passageiro');
+  const [fotoUrl, setFotoUrl] = useState(passageiro.fotoUrl || passageiro.linkFoto || '');
   const [chatId, setChatId] = useState(null);
   const [mensagens, setMensagens] = useState([]);
   const [texto, setTexto] = useState('');
@@ -40,6 +41,7 @@ export default function ChatPassageiro() {
         if (ativo) {
           setChatId(chat.id);
           setNome(chat.nomeParticipante || passageiro.nome || 'Passageiro');
+          setFotoUrl(chat.linkFotoParticipante || passageiro.fotoUrl || passageiro.linkFoto || '');
           setMensagens(lista);
         }
 
@@ -89,7 +91,7 @@ export default function ChatPassageiro() {
             className="chat-passageiro-avatar"
             aria-label={`Ver perfil de ${nome}`}
           >
-            {nome.charAt(0).toUpperCase()}
+            {fotoUrl ? <img src={fotoUrl} alt={`Foto de ${nome}`} /> : nome.charAt(0).toUpperCase()}
           </Link>
           <div className="chat-passageiro-identidade">
             <strong>{nome}</strong>

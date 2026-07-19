@@ -534,7 +534,11 @@ function RideCard({ carona, enderecoEmbarque, onOpenProfile }) {
           }
         }}
       >
-        {iniciais || 'U'}
+        {motorista.fotoUrl ? (
+          <img src={motorista.fotoUrl} alt={`Foto de ${nome}`} />
+        ) : (
+          iniciais || 'U'
+        )}
       </span>
       <div className="ride-conteudo">
         <div className="ride-motorista">

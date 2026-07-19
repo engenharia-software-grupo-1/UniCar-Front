@@ -159,7 +159,7 @@ function DetalheReserva() {
 
             {reserva.passageiros.length > 0 && <Card titulo={`RESERVAS (${reserva.passageiros.length})`}>
               <div className="detalhe-reserva-reservas-topo"><span><Users size={16} /> {reserva.passageiros.length}/{reserva.carona.vagasTotais || reserva.passageiros.length} vagas</span></div>
-              <ul className="detalhe-reserva-reservas">{reserva.passageiros.map((passageiro) => <li key={passageiro.id}><Link className="detalhe-reserva-avatar-link" to={`/usuarios/${passageiro.id}`} aria-label={`Ver perfil de ${passageiro.nome}`}><span className="detalhe-reserva-avatar">{passageiro.nome[0]}</span></Link><div><strong>{passageiro.nome}</strong>{passageiro.avaliacao !== null && <span><Star size={14} fill="currentColor" /> {formatarAvaliacao(passageiro.avaliacao)}</span>}</div><em>Confirmado</em></li>)}</ul>
+              <ul className="detalhe-reserva-reservas">{reserva.passageiros.map((passageiro) => <li key={passageiro.id}><Link className="detalhe-reserva-avatar-link" to={`/usuarios/${passageiro.id}`} aria-label={`Ver perfil de ${passageiro.nome}`}>{passageiro.fotoPerfil ? <img src={passageiro.fotoPerfil} alt={`Foto de ${passageiro.nome}`} /> : <span className="detalhe-reserva-avatar">{passageiro.nome[0]}</span>}</Link><div><strong>{passageiro.nome}</strong>{passageiro.avaliacao !== null && <span><Star size={14} fill="currentColor" /> {formatarAvaliacao(passageiro.avaliacao)}</span>}</div><em>Confirmado</em></li>)}</ul>
             </Card>}
 
             {reserva.podeCancelar && (

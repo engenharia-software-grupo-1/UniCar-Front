@@ -295,7 +295,7 @@ function normalizarResumoReserva(reserva = {}) {
     motorista: {
       id: motorista.id ?? motorista.usuarioId ?? reserva.motoristaId ?? '',
       nome: motoristaNome,
-      fotoPerfil: motorista.fotoPerfil || motorista.avatarUrl || motorista.avatar || '',
+      fotoPerfil: motorista.fotoPerfil || motorista.linkFoto || motorista.avatarUrl || motorista.avatar || '',
       avaliacao: motorista.avaliacao ?? motorista.rating ?? null,
     },
     carona: {
@@ -398,7 +398,7 @@ export function normalizarDetalhesReserva(resposta = {}) {
     motorista: {
       id: motorista.id ?? motorista.usuarioId ?? reserva.motoristaId,
       nome: motorista.nome || motorista.nomeCompleto || 'Motorista',
-      fotoPerfil: motorista.fotoPerfil || motorista.avatarUrl || motorista.avatar || '',
+      fotoPerfil: motorista.fotoPerfil || motorista.linkFoto || motorista.avatarUrl || motorista.avatar || '',
       avaliacao: motorista.avaliacao ?? motorista.rating ?? null,
     },
     passageiros: (Array.isArray(reserva.reservas)
@@ -410,6 +410,12 @@ export function normalizarDetalhesReserva(resposta = {}) {
           : []).map((item) => ({
       id: item.id,
       nome: item.nome || item.passageiro?.nome || 'Passageiro',
+      fotoPerfil:
+        item.fotoPerfil ||
+        item.linkFoto ||
+        item.passageiro?.fotoPerfil ||
+        item.passageiro?.linkFoto ||
+        '',
       avaliacao: item.avaliacao ?? item.passageiro?.avaliacao ?? null,
       status: item.status || 'ACEITA',
     })),
@@ -471,7 +477,7 @@ function ajustarReserva(reserva = {}) {
     motorista: {
       id: motorista.id ?? motorista.usuarioId ?? '',
       nome: motorista.nome || motorista.nomeCompleto || 'Motorista',
-      fotoPerfil: motorista.fotoPerfil || motorista.avatarUrl || motorista.avatar || '',
+      fotoPerfil: motorista.fotoPerfil || motorista.linkFoto || motorista.avatarUrl || motorista.avatar || '',
       avaliacao: motorista.avaliacao ?? motorista.rating ?? null,
     },
     carona: {

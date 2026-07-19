@@ -31,7 +31,13 @@ function normalizarReservaPassageiro(reserva = {}) {
       id: motorista.id ?? motorista.usuarioId ?? motorista.userId ?? reserva.motoristaId ?? '',
       nome: motorista.nome || motorista.nomeCompleto || 'Motorista',
       avaliacao: motorista.avaliacao ?? motorista.rating ?? '',
-      fotoPerfil: motorista.fotoPerfil || motorista.avatarUrl || motorista.avatar || '',
+      fotoPerfil:
+        motorista.fotoPerfil ||
+        motorista.linkFoto ||
+        motorista.avatarUrl ||
+        motorista.avatar ||
+        reserva.motoristaLinkFoto ||
+        '',
     },
   };
 }

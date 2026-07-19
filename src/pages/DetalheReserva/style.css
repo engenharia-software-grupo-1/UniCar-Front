@@ -40,7 +40,7 @@
 .detalhe-reserva-item dt { color:#64748b; font-size:11px; }
 .detalhe-reserva-item dd { margin:3px 0 0; font-size:13px; font-weight:700; }
 .detalhe-reserva-motorista { display:flex; align-items:center; gap:12px; }
-.detalhe-reserva-motorista img,.detalhe-reserva-avatar { width:48px; height:48px; border-radius:50%; object-fit:cover; background:#e8eeff; color:#3456d1; display:grid; place-items:center; font-weight:800; }
+.detalhe-reserva-motorista img,.detalhe-reserva-avatar,.detalhe-reserva-avatar-link > img { width:48px; height:48px; border-radius:50%; object-fit:cover; background:#e8eeff; color:#3456d1; display:grid; place-items:center; font-weight:800; }
 .detalhe-reserva-avatar-link { border-radius:50%; color:inherit; display:inline-flex; flex:none; text-decoration:none; }
 .detalhe-reserva-avatar-link:focus-visible { outline:3px solid rgba(52,86,209,.3); outline-offset:3px; }
 .detalhe-reserva-motorista > div { display:grid; gap:4px; }

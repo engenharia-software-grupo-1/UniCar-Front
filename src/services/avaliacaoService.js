@@ -146,6 +146,13 @@ function normalizarAvaliacao(avaliacao = {}) {
     avaliacao.avaliador?.usuarioId ??
     avaliacao.usuario?.id ??
     avaliacao.usuario?.usuarioId;
+  const fotoUrl =
+    avaliacao.fotoUrl ??
+    avaliacao.linkFoto ??
+    avaliacao.avaliador?.linkFoto ??
+    avaliacao.avaliador?.fotoUrl ??
+    avaliacao.usuario?.linkFoto ??
+    '';
 
   return {
     id:
@@ -163,6 +170,7 @@ function normalizarAvaliacao(avaliacao = {}) {
       avaliacao.usuario?.nomeCompleto ??
       'Usuário UniCar',
     ...(autorId ? { autorId } : {}),
+    ...(fotoUrl ? { fotoUrl } : {}),
     comentario:
       avaliacao.comentario ??
       avaliacao.comment ??

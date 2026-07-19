@@ -192,6 +192,8 @@
   transition: transform .18s ease, box-shadow .18s ease;
 }
 
+.avaliacoes-avatar img { width: 100%; height: 100%; border-radius: inherit; object-fit: cover; }
+
 .avaliacoes-avatar:hover,
 .avaliacoes-avatar:focus-visible {
   transform: scale(1.06);

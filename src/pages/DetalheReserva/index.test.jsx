@@ -101,6 +101,7 @@ describe('carregamento', () => {
     ).toBeInTheDocument();
     expect(screen.getByText('Marina Souza')).toBeInTheDocument();
     expect(screen.getByText('Você é passageiro(a)')).toBeInTheDocument();
+    expect(screen.queryByText('Chegada')).not.toBeInTheDocument();
   });
 
   it('abre a conversa com o motorista', async () => {

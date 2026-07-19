@@ -312,19 +312,7 @@ export async function obterDetalhesReserva(id) {
 
     try {
       const carona = await apiRequest(`/caronas/${encodeURIComponent(detalhes.carona.id)}`);
-      const motorista = carona?.motorista || carona?.condutor || {};
-
-      return {
-        ...detalhes,
-        motorista: {
-          id: motorista.id ?? motorista.usuarioId ?? detalhes.motorista.id,
-          nome: motorista.nome || motorista.nomeCompleto || detalhes.motorista.nome,
-          fotoPerfil:
-            motorista.fotoPerfil || motorista.fotoUrl || motorista.avatarUrl ||
-            detalhes.motorista.fotoPerfil,
-          avaliacao: motorista.avaliacao ?? motorista.rating ?? detalhes.motorista.avaliacao,
-        },
-      };
+      return normalizarDetalhesReserva(combinarReservaComCarona(resposta, carona));
     } catch {
       return detalhes;
     }
@@ -349,7 +337,7 @@ function obterDetalheReservaMock(id) {
 export function normalizarDetalhesReserva(resposta = {}) {
   const reserva = resposta.reserva || resposta;
   const carona = reserva.carona || {};
-  const motorista = reserva.motorista || carona.motorista || carona.condutor || {};
+  const motorista = carona.motorista || carona.condutor || reserva.motorista || {};
   const status = String(reserva.status || 'PENDENTE').toUpperCase();
 
   return {
@@ -371,11 +359,23 @@ export function normalizarDetalhesReserva(resposta = {}) {
       origem: descricao(carona.origem ?? reserva.origem),
       destino: descricao(carona.destino ?? reserva.destino),
       dataViagem:
-        carona.dataHoraSaida || carona.dataHora || carona.dataViagem || reserva.dataHora || '',
+        carona.dataCarona ||
+        reserva.dataCarona ||
+        carona.dataHoraSaida ||
+        carona.dataHora ||
+        carona.dataViagem ||
+        reserva.dataHora ||
+        '',
       dataHoraChegada: carona.dataHoraChegada || carona.chegadaPrevista || '',
-      paradas: Array.isArray(carona.paradas) ? carona.paradas.map(descricao) : [],
-      valor: Number(carona.valor ?? carona.preco ?? reserva.valorContribuicao ?? 0),
-      vagasTotais: Number(carona.vagasTotais ?? carona.quantidadeVagas ?? carona.totalVagas ?? 0),
+      paradas: Array.isArray(carona.paradas ?? carona.pontosParada)
+        ? (carona.paradas ?? carona.pontosParada).map(descricao)
+        : [],
+      valor: Number(
+        carona.valor ?? carona.valorContribuicao ?? carona.preco ?? reserva.valorContribuicao ?? 0,
+      ),
+      vagasTotais: Number(
+        carona.vagasTotais ?? carona.quantidadeVagas ?? carona.totalVagas ?? carona.vagas ?? 0,
+      ),
     },
     motorista: {
       id: motorista.id ?? motorista.usuarioId ?? reserva.motoristaId,
@@ -383,12 +383,35 @@ export function normalizarDetalhesReserva(resposta = {}) {
       fotoPerfil: motorista.fotoPerfil || motorista.avatarUrl || motorista.avatar || '',
       avaliacao: motorista.avaliacao ?? motorista.rating ?? null,
     },
-    passageiros: (Array.isArray(reserva.reservas) ? reserva.reservas : []).map((item) => ({
+    passageiros: (Array.isArray(reserva.reservas)
+      ? reserva.reservas
+      : Array.isArray(carona.reservas)
+        ? carona.reservas
+        : Array.isArray(carona.passageiros)
+          ? carona.passageiros
+          : []).map((item) => ({
       id: item.id,
       nome: item.nome || item.passageiro?.nome || 'Passageiro',
       avaliacao: item.avaliacao ?? item.passageiro?.avaliacao ?? null,
       status: item.status || 'ACEITA',
     })),
+  };
+}
+
+function combinarReservaComCarona(resposta = {}, carona = {}) {
+  if (resposta.reserva) {
+    return {
+      ...resposta,
+      reserva: {
+        ...resposta.reserva,
+        carona: { ...resposta.reserva.carona, ...carona },
+      },
+    };
+  }
+
+  return {
+    ...resposta,
+    carona: { ...resposta.carona, ...carona },
   };
 }
 

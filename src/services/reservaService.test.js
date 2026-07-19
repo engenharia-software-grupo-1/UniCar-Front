@@ -156,7 +156,7 @@ describe('listarReservasPendentesDaCarona', () => {
 });
 
 describe('obterDetalhesReserva', () => {
-  it('completa o motorista consultando o detalhe da carona', async () => {
+  it('preenche os detalhes da reserva com os dados completos da carona', async () => {
     fetch.mockImplementation((url) => {
       if (url.endsWith('/reservas/42')) {
         return Promise.resolve(respostaJson({
@@ -169,6 +169,12 @@ describe('obterDetalhesReserva', () => {
       if (url.endsWith('/caronas/10')) {
         return Promise.resolve(respostaJson({
           id: 10,
+          origem: 'Prata',
+          destino: 'UFCG — Campus Sede',
+          dataCarona: '2026-07-20T07:30:00',
+          valorContribuicao: 6,
+          quantidadeVagas: 4,
+          paradas: ['Shopping Partage'],
           motorista: { id: 3, nome: 'João Silva' },
         }));
       }
@@ -183,6 +189,14 @@ describe('obterDetalhesReserva', () => {
       nome: 'João Silva',
       fotoPerfil: '',
       avaliacao: null,
+    });
+    expect(reserva.carona).toMatchObject({
+      origem: 'Prata',
+      destino: 'UFCG — Campus Sede',
+      dataViagem: '2026-07-20T07:30:00',
+      valor: 6,
+      vagasTotais: 4,
+      paradas: ['Shopping Partage'],
     });
   });
 });

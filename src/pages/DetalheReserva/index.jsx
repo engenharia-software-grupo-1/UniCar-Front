@@ -119,7 +119,6 @@ function DetalheReserva() {
                 <dl className="detalhe-reserva-metricas">
                   <Item icone={<CalendarDays />} termo="Data" valor={formatarData(reserva.carona.dataViagem)} />
                   <Item icone={<Clock />} termo="Saída" valor={formatarHora(reserva.carona.dataViagem)} />
-                  <Item icone={<Clock />} termo="Chegada" valor={formatarHora(reserva.carona.dataHoraChegada)} />
                 </dl>
                 {reserva.carona.paradas.length > 0 && <div className="detalhe-reserva-paradas"><h3>Pontos de parada</h3><ol>{reserva.carona.paradas.map((parada, indice) => <li key={parada}><b>{indice + 1}</b>{parada}</li>)}</ol></div>}
                 <div className="detalhe-reserva-valor"><span>＄ Contribuição por passageiro</span><strong>{formatarMoeda(reserva.carona.valor)}</strong></div>

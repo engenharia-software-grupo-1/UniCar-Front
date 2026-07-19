@@ -25,6 +25,22 @@
 .buscar-field--erro { border-color: #c7372f; }
 .buscar-field-erro { display: block; margin: 5px 2px 0; color: #b3261e; font-size: .72rem; }
 
+.buscar-endereco { position: relative; }
+.buscar-sugestoes-endereco {
+  position: absolute; z-index: 20; top: calc(100% + 4px); left: 0; right: 0;
+  margin: 0; padding: 4px; list-style: none;
+  border: 1px solid #d8e0ea; border-radius: 8px; background: #fff;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, .14); max-height: 240px; overflow-y: auto;
+}
+.buscar-sugestoes-endereco li {
+  display: flex; align-items: center; gap: 8px; padding: 9px 10px; border-radius: 6px;
+  color: #28354b; font-size: 13px; line-height: 1.35; cursor: pointer;
+}
+.buscar-sugestoes-endereco li:hover { background: #f0f4fa; }
+.buscar-sugestoes-endereco li svg { flex-shrink: 0; color: #748096; }
+.buscar-sugestoes-status { color: #7a8392; font-size: 12px; padding: 9px 10px; cursor: default; }
+.buscar-sugestoes-status:hover { background: transparent; }
+
 .buscar-acoes { display: flex; gap: 8px; margin-top: 12px; }
 .buscar-botao { flex: 1; min-height: 42px; border: 0; border-radius: 8px; background: #07132b; color: #fff; font-size: 14px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; }
 .buscar-botao:hover { background: #0b1f3b; }

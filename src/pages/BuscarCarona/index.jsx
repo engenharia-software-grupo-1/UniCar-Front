@@ -13,7 +13,43 @@ import {
   Star,
 } from 'lucide-react';
 import { buscarCaronas } from '../../services/caronaService.js';
+import { buscarSugestoesEndereco } from '../../services/geocodingService.js';
 import './style.css';
+
+// Sugestões de endereço com debounce, espelhando o mecanismo do OfertarCarona.
+// A busca só dispara com o campo ativo e ao menos 3 caracteres.
+function useSugestoesEndereco(consulta, ativa) {
+  const [sugestoes, setSugestoes] = useState([]);
+  const [buscando, setBuscando] = useState(false);
+
+  useEffect(() => {
+    const texto = consulta.trim();
+    if (!ativa || texto.length < 3) {
+      return undefined;
+    }
+
+    let ativaBusca = true;
+    const timer = window.setTimeout(async () => {
+      setBuscando(true);
+      try {
+        const resultados = await buscarSugestoesEndereco(texto);
+        if (ativaBusca) setSugestoes(resultados);
+      } catch {
+        // Sugestão é conveniência: se falhar, o usuário digita o endereço mesmo.
+        if (ativaBusca) setSugestoes([]);
+      } finally {
+        if (ativaBusca) setBuscando(false);
+      }
+    }, 350);
+
+    return () => {
+      ativaBusca = false;
+      window.clearTimeout(timer);
+    };
+  }, [consulta, ativa]);
+
+  return { sugestoes, buscando };
+}
 
 const CURSOS = [
   'Qualquer',
@@ -42,6 +78,9 @@ function BuscarCarona() {
   const [mostrarFiltros, setMostrarFiltros] = useState(false);
   const [vagasMinimas, setVagasMinimas] = useState(1);
   const [precoMaximo, setPrecoMaximo] = useState(20);
+  const [campoEnderecoAtivo, setCampoEnderecoAtivo] = useState(null);
+
+  const sugestoesOrigem = useSugestoesEndereco(origem, campoEnderecoAtivo === 'origem');
 
 
 
@@ -113,7 +152,18 @@ function BuscarCarona() {
         </header>
 
         <div className="buscar-formulario">
-          <Field icon={MapPin} placeholder="De onde você sai" value={origem} onChange={setOrigem} erro={erroOrigem} />
+          <CampoEndereco
+            placeholder="De onde você sai"
+            value={origem}
+            onChange={(valor) => { setOrigem(valor); setErroOrigem(''); }}
+            onSelecionar={(endereco) => { setOrigem(endereco.descricao); setCampoEnderecoAtivo(null); }}
+            onFocus={() => setCampoEnderecoAtivo('origem')}
+            onBlur={() => window.setTimeout(() => setCampoEnderecoAtivo(null), 150)}
+            ativo={campoEnderecoAtivo === 'origem'}
+            sugestoes={sugestoesOrigem.sugestoes}
+            buscando={sugestoesOrigem.buscando}
+            erro={erroOrigem}
+          />
           <Field icon={MapPin} placeholder="Para onde vai" value={destino} onChange={setDestino} erro={erroDestino} />
 
           <div className="buscar-acoes">
@@ -196,6 +246,48 @@ function Field({ icon: Icon, placeholder, value, onChange, erro }) {
       <div className={`buscar-field${erro ? ' buscar-field--erro' : ''}`}>
         <Icon size={17} />
         <input type="text" placeholder={placeholder} value={value} onChange={(evento) => onChange(evento.target.value)} />
+      </div>
+      {erro && <span className="buscar-field-erro">{erro}</span>}
+    </div>
+  );
+}
+
+function CampoEndereco({ placeholder, value, onChange, onSelecionar, onFocus, onBlur, ativo, sugestoes, buscando, erro }) {
+  const mostrarLista = ativo && value.trim().length >= 3 && (buscando || sugestoes.length > 0);
+
+  return (
+    <div className="buscar-field-wrapper">
+      <div className="buscar-endereco">
+        <div className={`buscar-field${erro ? ' buscar-field--erro' : ''}`}>
+          <MapPin size={17} />
+          <input
+            type="text"
+            role="combobox"
+            aria-autocomplete="list"
+            aria-expanded={ativo && sugestoes.length > 0}
+            placeholder={placeholder}
+            value={value}
+            onFocus={onFocus}
+            onBlur={onBlur}
+            onChange={(evento) => onChange(evento.target.value)}
+          />
+        </div>
+        {mostrarLista && (
+          <ul className="buscar-sugestoes-endereco" role="listbox">
+            {buscando && <li className="buscar-sugestoes-status">Buscando endereços...</li>}
+            {sugestoes.map((endereco) => (
+              <li
+                key={`${endereco.latitude}-${endereco.longitude}`}
+                role="option"
+                onMouseDown={(evento) => evento.preventDefault()}
+                onClick={() => onSelecionar(endereco)}
+              >
+                <MapPin size={16} aria-hidden="true" />
+                {endereco.descricao}
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
       {erro && <span className="buscar-field-erro">{erro}</span>}
     </div>

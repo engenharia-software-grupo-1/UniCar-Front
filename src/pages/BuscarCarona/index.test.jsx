@@ -182,7 +182,11 @@ describe('realizarBusca', () => {
     const user = userEvent.setup();
     await user.click(screen.getByRole('button', { name: 'Filtros' }));
 
-    const selects = screen.getAllByRole('combobox');
+    // O input de origem também tem role="combobox" (autocomplete de endereço);
+    // aqui interessam só os <select> de Curso e Gênero.
+    const selects = screen
+      .getAllByRole('combobox')
+      .filter((elemento) => elemento.tagName === 'SELECT');
     await user.selectOptions(selects[0], 'Direito');
     await user.selectOptions(selects[1], 'Feminino');
     await user.click(screen.getByRole('button', { name: 'Buscar' }));

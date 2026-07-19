@@ -24,6 +24,7 @@ import { obterPerfilPublicoUsuario } from '../../services/publicProfileService.j
 import {
   aceitarReserva,
   criarReserva,
+  listarReservasDaCarona,
   listarReservasPendentesDaCarona,
   recusarReserva,
 } from '../../services/reservaService.js';
@@ -183,13 +184,18 @@ function DetalheCarona() {
       try {
         setCarregandoSolicitacoes(true);
         setErroSolicitacoes('');
-        const [reservas, passageirosDaCarona] = await Promise.all([
+        // O endereço de embarque dos CONFIRMADOS vem de /reservas/recebidas
+        // (origemEmbarque), não de /caronas/{id}/passageiros — cujo DTO ainda
+        // pode não expor o campo no backend em produção. Enriquecemos por
+        // reservaId para o motorista saber onde buscar cada passageiro.
+        const [reservas, passageirosDaCarona, recebidasDaCarona] = await Promise.all([
           listarReservasPendentesDaCarona(id),
           listarPassageirosCarona(id),
+          listarReservasDaCarona(id).catch(() => []),
         ]);
         if (ativo) {
           setSolicitacoesPendentes(reservas);
-          setPassageirosConfirmados(passageirosDaCarona);
+          setPassageirosConfirmados(enriquecerEmbarque(passageirosDaCarona, recebidasDaCarona));
         }
       } catch (error) {
         if (ativo) setErroSolicitacoes(error.message || 'Não foi possível carregar as solicitações.');
@@ -227,8 +233,13 @@ function DetalheCarona() {
       if (acao === 'aceitar') {
         // A API mantém os passageiros aceitos em uma lista separada das
         // solicitações pendentes; recarregá-la evita precisar atualizar a página.
-        const passageirosAtualizados = await listarPassageirosCarona(id);
-        setPassageirosConfirmados(passageirosAtualizados);
+        // Reenriquece o embarque com /reservas/recebidas para o passageiro
+        // recém-aceito não perder o endereço na troca de lista.
+        const [passageirosAtualizados, recebidasDaCarona] = await Promise.all([
+          listarPassageirosCarona(id),
+          listarReservasDaCarona(id).catch(() => []),
+        ]);
+        setPassageirosConfirmados(enriquecerEmbarque(passageirosAtualizados, recebidasDaCarona));
       }
       setFeedback(`Reserva de ${passageiro.nome} ${acao === 'aceitar' ? 'aceita' : 'recusada'} com sucesso.`);
     } catch (error) {
@@ -785,6 +796,22 @@ function normalizarSolicitacaoComoPassageiro(solicitacao) {
 function extrairEmbarque(embarque) {
   if (!embarque) return '';
   return typeof embarque === 'string' ? embarque : embarque.descricao || '';
+}
+
+// Completa o endereço de embarque dos passageiros confirmados a partir das
+// reservas recebidas (origemEmbarque), casando por reservaId. Preserva o que o
+// passageiro já trouxer; só preenche quando está vazio.
+function enriquecerEmbarque(passageiros, reservas) {
+  const embarquePorReserva = new Map(
+    (Array.isArray(reservas) ? reservas : [])
+      .filter((reserva) => reserva.origemEmbarque)
+      .map((reserva) => [String(reserva.id), reserva.origemEmbarque]),
+  );
+
+  return (Array.isArray(passageiros) ? passageiros : []).map((passageiro) => ({
+    ...passageiro,
+    embarque: passageiro.embarque || embarquePorReserva.get(String(passageiro.reservaId)) || '',
+  }));
 }
 
 function normalizarStatusPassageiro(status) {

@@ -208,10 +208,11 @@ describe('caronasFiltradas — filtros padrão e aliases', () => {
 
     await screen.findByText('Tres');
 
-    // Abre o painel e sobe o mínimo de vagas para 3 (primeiro slider).
+    // Abre o painel e sobe o mínimo de vagas para 3. Ordem dos sliders no
+    // painel: [0] raio de busca, [1] vagas mínimas, [2] preço máximo.
     await userEvent.click(screen.getByRole('button', { name: 'Filtros' }));
     const sliders = screen.getAllByRole('slider');
-    fireEvent.change(sliders[0], { target: { value: '3' } });
+    fireEvent.change(sliders[1], { target: { value: '3' } });
 
     expect(screen.getByText('Tres')).toBeInTheDocument();
     expect(screen.queryByText('Duas')).not.toBeInTheDocument();
@@ -246,6 +247,8 @@ describe('realizarBusca', () => {
         destinoCoordenadas: { latitude: -7.21, longitude: -35.9 },
         curso: 'Qualquer',
         genero: 'Qualquer',
+        raioKm: 5,
+        dataHoraSaida: undefined,
       }),
     );
   });
@@ -272,7 +275,32 @@ describe('realizarBusca', () => {
         destinoCoordenadas: null,
         curso: 'Direito',
         genero: 'Feminino',
+        raioKm: 5,
+        dataHoraSaida: undefined,
       }),
+    );
+  });
+
+  it('envia dataHoraSaida (início do dia) e raioKm escolhidos nos filtros', async () => {
+    renderPagina('/buscar-carona');
+
+    const user = userEvent.setup();
+    await user.type(screen.getByPlaceholderText('De onde você sai'), 'Centro');
+    await user.click(screen.getByRole('button', { name: 'Filtros' }));
+
+    fireEvent.change(screen.getByLabelText('Data da viagem'), { target: { value: '2027-03-15' } });
+    // O primeiro slider do painel é o raio de busca.
+    fireEvent.change(screen.getAllByRole('slider')[0], { target: { value: '12' } });
+
+    await user.click(screen.getByRole('button', { name: 'Buscar' }));
+
+    await waitFor(() =>
+      expect(buscarCaronas).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          raioKm: 12,
+          dataHoraSaida: '2027-03-15T00:00:00',
+        }),
+      ),
     );
   });
 

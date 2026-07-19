@@ -1078,6 +1078,32 @@ describe('buscarCaronas — filtros de gênero e curso', () => {
     expect(url).not.toMatch(/[?&]destino=/);
   });
 
+  it('envia raioKm e dataHoraSaida quando informados', async () => {
+    fetch.mockResolvedValue(respostaJson([]));
+
+    const { buscarCaronas } = await importarService();
+    await buscarCaronas({
+      origemCoordenadas: { latitude: -7.2166, longitude: -35.9095 },
+      raioKm: 12,
+      dataHoraSaida: '2027-03-15T00:00:00',
+    });
+
+    const [url] = fetch.mock.calls[0];
+    expect(url).toContain('raioKm=12');
+    expect(url).toContain('dataHoraSaida=2027-03-15T00%3A00%3A00');
+  });
+
+  it('não envia raioKm nem dataHoraSaida quando ausentes', async () => {
+    fetch.mockResolvedValue(respostaJson([]));
+
+    const { buscarCaronas } = await importarService();
+    await buscarCaronas({ origemCoordenadas: { latitude: -7.2166, longitude: -35.9095 } });
+
+    const [url] = fetch.mock.calls[0];
+    expect(url).not.toContain('raioKm');
+    expect(url).not.toContain('dataHoraSaida');
+  });
+
   it('não envia filtro de gênero/curso quando o valor é "Qualquer"', async () => {
     fetch.mockResolvedValue(respostaJson([]));
 

@@ -208,6 +208,10 @@ function NotificacaoCard({ notificacao, onAbrir }) {
 
 function NotificacaoModal({ notificacao, onClose }) {
   const Icone = ICONES_POR_TIPO[notificacao.tipo] || Bell;
+  const paragrafos = getMensagemDetalhada(notificacao)
+    .split(/\n{2,}/)
+    .map((paragrafo) => paragrafo.trim())
+    .filter(Boolean);
 
   return (
     <div className="notificacoes-modal-overlay" role="presentation" onClick={onClose}>
@@ -241,7 +245,9 @@ function NotificacaoModal({ notificacao, onClose }) {
         </header>
 
         <div className="notificacoes-modal__body">
-          <p>{getMensagemDetalhada(notificacao)}</p>
+          {paragrafos.map((paragrafo, indice) => (
+            <p key={`${indice}-${paragrafo}`}>{paragrafo}</p>
+          ))}
         </div>
 
         <footer className="notificacoes-modal__actions">

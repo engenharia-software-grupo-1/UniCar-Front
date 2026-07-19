@@ -342,6 +342,10 @@
   max-width: 500px;
 }
 
+.notificacoes-modal__body p + p {
+  margin-top: 14px;
+}
+
 .notificacoes-modal__actions {
   margin-top: 24px;
   display: flex;

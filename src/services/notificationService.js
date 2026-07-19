@@ -149,6 +149,8 @@ function normalizarConteudoNotificacao(conteudo) {
   }
 
   const textoSemTags = conteudo
+    // O título já é apresentado no cabeçalho do card/modal.
+    .replace(/<h1\b[^>]*>[\s\S]*?<\/h1>/gi, '')
     .replace(/<br\s*\/?\s*>/gi, '\n')
     .replace(/<\/?(?:p|div|h[1-6]|li|ul|ol)\b[^>]*>/gi, '\n')
     .replace(/<[^>]*>/g, '');

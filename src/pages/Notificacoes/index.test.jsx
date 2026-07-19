@@ -125,4 +125,28 @@ describe('Notificacoes', () => {
     );
     expect(screen.getByText(contagemNaoLidas('1 não lida'))).toBeInTheDocument();
   });
+
+  it('separa os parágrafos da mensagem detalhada', async () => {
+    listarNotificacoes.mockResolvedValue([{
+      id: 4,
+      titulo: 'Nova solicitação de reserva',
+      mensagem: 'Olá!\n\nDetalhes da solicitação\nPassageiro: Oscar\nDestino: UFCG\n\nAcesse o UniCar para analisar a solicitação.',
+      detalhes: 'Olá!\n\nDetalhes da solicitação\nPassageiro: Oscar\nDestino: UFCG\n\nAcesse o UniCar para analisar a solicitação.',
+      dataHora: '2026-07-04T08:55:00-03:00',
+      lida: false,
+      tipo: 'sistema',
+    }]);
+
+    const user = userEvent.setup();
+    renderPagina();
+
+    await user.click(await screen.findByRole('button', { name: /Nova solicitação de reserva/ }));
+
+    const modal = screen.getByRole('dialog');
+    expect(within(modal).getByText('Olá!')).toBeInTheDocument();
+    expect(within(modal).getByText(/Passageiro: Oscar/)).toBeInTheDocument();
+    expect(
+      within(modal).getByText('Acesse o UniCar para analisar a solicitação.'),
+    ).toBeInTheDocument();
+  });
 });

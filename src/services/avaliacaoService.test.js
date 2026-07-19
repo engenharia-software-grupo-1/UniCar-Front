@@ -36,6 +36,12 @@ async function importarCriarAvaliacao() {
   return service.criarAvaliacao;
 }
 
+async function importarListarAvaliacoesPendentes() {
+  vi.resetModules();
+  const service = await import('./avaliacaoService.js');
+  return service.listarAvaliacoesPendentes;
+}
+
 beforeEach(() => {
   localStorage.clear();
   vi.stubGlobal('fetch', vi.fn());
@@ -208,6 +214,36 @@ describe('criarAvaliacao', () => {
 
     await expect(criarAvaliacao(payload)).rejects.toThrow(
       'Não foi possível conectar ao servidor. Tente novamente.',
+    );
+  });
+});
+
+describe('listarAvaliacoesPendentes', () => {
+  it('consulta os participantes pendentes usando o caronaId', async () => {
+    comSessao();
+    fetch.mockResolvedValue(respostaApi([
+      { usuarioId: 5, nome: 'Marina', tipo: 'MOTORISTA' },
+    ]));
+
+    const listarAvaliacoesPendentes = await importarListarAvaliacoesPendentes();
+
+    await expect(listarAvaliacoesPendentes('10/20')).resolves.toEqual([
+      { id: 5, nome: 'Marina', tipo: 'MOTORISTA' },
+    ]);
+    expect(fetch.mock.calls[0][0]).toBe(
+      `${BASE_URL}/caronas/10%2F20/avaliacoes-pendentes`,
+    );
+    expect(fetch.mock.calls[0][1].headers.Authorization).toBe(`Bearer ${TOKEN}`);
+  });
+
+  it('rejeita uma resposta fora do contrato', async () => {
+    comSessao();
+    fetch.mockResolvedValue(respostaApi({ participantes: [] }));
+
+    const listarAvaliacoesPendentes = await importarListarAvaliacoesPendentes();
+
+    await expect(listarAvaliacoesPendentes(10)).rejects.toThrow(
+      'Resposta de avaliaÃ§Ãµes pendentes invÃ¡lida.',
     );
   });
 });

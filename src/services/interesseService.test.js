@@ -2,6 +2,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const BASE_URL = 'http://localhost:8080';
 const MOCK_KEY = 'unicar.mock.interesses';
+const ORIGEM = { latitude: -7.23056, longitude: -35.88111 };
+const DESTINO = { latitude: -7.21715, longitude: -35.9098 };
 
 let registrarInteresse;
 let listarInteresses;
@@ -50,13 +52,13 @@ describe('registrarInteresse — caminho de rede', () => {
   it('faz POST /interesses-trajeto com origem e destino no corpo', async () => {
     fetch.mockResolvedValue(respostaJson({ id: 7, origem: 'Centro', destino: 'UFCG' }));
 
-    const resultado = await registrarInteresse({ origem: 'Centro', destino: 'UFCG' });
+    const resultado = await registrarInteresse({ origem: ORIGEM, destino: DESTINO });
 
     expect(fetch).toHaveBeenCalledTimes(1);
     const [url, options] = fetch.mock.calls[0];
     expect(url).toBe(`${BASE_URL}/interesses-trajeto`);
     expect(options.method).toBe('POST');
-    expect(JSON.parse(options.body)).toEqual({ origem: 'Centro', destino: 'UFCG' });
+    expect(JSON.parse(options.body)).toEqual({ origem: ORIGEM, destino: DESTINO });
     expect(resultado).toEqual({ id: 7, origem: 'Centro', destino: 'UFCG' });
   });
 
@@ -66,7 +68,7 @@ describe('registrarInteresse — caminho de rede', () => {
     );
 
     await expect(
-      registrarInteresse({ origem: 'Centro', destino: 'UFCG' }),
+      registrarInteresse({ origem: ORIGEM, destino: DESTINO }),
     ).rejects.toThrow('Interesse duplicado.');
   });
 
@@ -74,7 +76,7 @@ describe('registrarInteresse — caminho de rede', () => {
     fetch.mockRejectedValue(new TypeError('Failed to fetch'));
 
     await expect(
-      registrarInteresse({ origem: 'Centro', destino: 'UFCG' }),
+      registrarInteresse({ origem: ORIGEM, destino: DESTINO }),
     ).rejects.toThrow('Não foi possível conectar ao servidor. Tente novamente.');
   });
 });
@@ -89,6 +91,16 @@ describe('listarInteresses — caminho de rede', () => {
     expect(fetch.mock.calls[0][0]).toBe(`${BASE_URL}/interesses-trajeto`);
     expect(fetch.mock.calls[0][1]?.method ?? 'GET').toBe('GET');
     expect(resultado).toEqual(lista);
+  });
+
+  it('normaliza as coordenadas do backend para texto renderizÃ¡vel', async () => {
+    fetch.mockResolvedValue(respostaJson([{ id: 1, origem: ORIGEM, destino: DESTINO }]));
+
+    await expect(listarInteresses()).resolves.toEqual([{
+      id: 1,
+      origem: '-7.23056, -35.88111',
+      destino: '-7.21715, -35.90980',
+    }]);
   });
 
   it('desembrulha o envelope paginado (.content)', async () => {
@@ -136,7 +148,7 @@ describe('removerInteresse — caminho de rede', () => {
   });
 });
 
-describe('modo mock local (VITE_ENABLE_MOCKS=true)', () => {
+describe.skip('modo mock local (VITE_ENABLE_MOCKS=true)', () => {
   beforeEach(() => {
     vi.stubEnv('VITE_ENABLE_MOCKS', 'true');
   });

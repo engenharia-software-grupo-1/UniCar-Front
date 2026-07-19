@@ -119,6 +119,24 @@ export async function criarAvaliacao({ caronaId, avaliadoId, nota, comentario } 
   });
 }
 
+export async function listarAvaliacoesPendentes(caronaId) {
+  obterToken();
+
+  const participantes = await apiRequest(
+    `/caronas/${encodeURIComponent(caronaId)}/avaliacoes-pendentes`,
+  );
+
+  if (!Array.isArray(participantes)) {
+    throw new Error('Resposta de avaliaÃ§Ãµes pendentes invÃ¡lida.');
+  }
+
+  return participantes.map((participante) => ({
+    id: participante.usuarioId,
+    nome: participante.nome,
+    tipo: participante.tipo,
+  }));
+}
+
 function normalizarAvaliacao(avaliacao = {}) {
   const autorId =
     avaliacao.autorId ??

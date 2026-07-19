@@ -8,12 +8,17 @@ import {
 import {
   listarHistoricoComoMotorista,
 } from '../../services/historicoCaronasService.js';
+import {
+  criarAvaliacao,
+  listarAvaliacoesPendentes,
+} from '../../services/avaliacaoService.js';
 import { getPerfilUsuarioAutenticado } from '../../services/profileService.js';
 import './style.css';
 
 const STATUS_RESERVA = {
   PENDENTE: { rotulo: 'Pendente', classe: 'pendente' },
   CONFIRMADA: { rotulo: 'Confirmada', classe: 'confirmada' },
+  CONCLUIDA: { rotulo: 'Concluida', classe: 'finalizada' },
   FINALIZADA: { rotulo: 'Finalizada', classe: 'finalizada' },
   CANCELADA: { rotulo: 'Cancelada', classe: 'cancelada' },
   RECUSADA: { rotulo: 'Recusada', classe: 'recusada' },
@@ -24,7 +29,7 @@ const STATUS_CARONA = {
   CRIADA: { rotulo: 'Ativa', classe: 'ativa' },
   EXPIRADA: { rotulo: 'Expirada', classe: 'expirada' },
   CANCELADA: { rotulo: 'Cancelada', classe: 'cancelada' },
-  FINALIZADA: { rotulo: 'Concluída', classe: 'finalizada' },
+  FINALIZADA: { rotulo: 'Concluida', classe: 'finalizada' },
 };
 
 function HistoricoCaronas() {
@@ -112,7 +117,7 @@ function HistoricoCaronas() {
       setErro('');
       setMensagemSucesso('');
 
-      await Promise.resolve({
+      await criarAvaliacao({
         caronaId: caronaParaAvaliar.caronaId,
         avaliadoId: caronaParaAvaliar.avaliadoId,
         nota,
@@ -129,15 +134,28 @@ function HistoricoCaronas() {
     }
   }
 
-  function iniciarAvaliacao(carona) {
-    const passageiros = obterPassageirosAvaliaveis(carona);
+  async function iniciarAvaliacao(carona) {
+    try {
+      setErro('');
+      setMensagemSucesso('');
 
-    if (passageiros.length > 1) {
-      setCaronaParaEscolherPassageiro(carona);
-      return;
+      const passageiros = (await listarAvaliacoesPendentes(carona.id))
+        .filter((participante) => participante.tipo === 'PASSAGEIRO');
+
+      if (passageiros.length === 0) {
+        setMensagemSucesso('NÃ£o hÃ¡ passageiros pendentes de avaliaÃ§Ã£o nesta carona.');
+        return;
+      }
+
+      if (passageiros.length > 1) {
+        setCaronaParaEscolherPassageiro({ ...carona, passageirosPendentes: passageiros });
+        return;
+      }
+
+      selecionarPassageiroParaAvaliar(carona, passageiros[0]);
+    } catch (error) {
+      setErro(error.message || 'NÃ£o foi possÃ­vel carregar as avaliaÃ§Ãµes pendentes.');
     }
-
-    selecionarPassageiroParaAvaliar(carona, passageiros[0]);
   }
 
   function selecionarPassageiroParaAvaliar(carona, passageiro) {
@@ -149,12 +167,27 @@ function HistoricoCaronas() {
     });
   }
 
-  function iniciarAvaliacaoMotorista(reserva) {
-    setCaronaParaAvaliar({
-      caronaId: reserva.caronaId,
-      avaliadoId: reserva.motorista.id,
-      nome: reserva.motorista.nome,
-    });
+  async function iniciarAvaliacaoMotorista(reserva) {
+    try {
+      setErro('');
+      setMensagemSucesso('');
+
+      const motorista = (await listarAvaliacoesPendentes(reserva.caronaId))
+        .find((participante) => participante.tipo === 'MOTORISTA');
+
+      if (!motorista) {
+        setMensagemSucesso('NÃ£o hÃ¡ avaliaÃ§Ã£o pendente para esta carona.');
+        return;
+      }
+
+      setCaronaParaAvaliar({
+        caronaId: reserva.caronaId,
+        avaliadoId: motorista.id,
+        nome: motorista.nome,
+      });
+    } catch (error) {
+      setErro(error.message || 'NÃ£o foi possÃ­vel carregar as avaliaÃ§Ãµes pendentes.');
+    }
   }
 
   return (
@@ -228,7 +261,7 @@ function HistoricoCaronas() {
       {caronaParaEscolherPassageiro && (
         <EscolherPassageiroModal
           carona={caronaParaEscolherPassageiro}
-          passageiros={obterPassageirosAvaliaveis(caronaParaEscolherPassageiro)}
+          passageiros={caronaParaEscolherPassageiro.passageirosPendentes}
           onEscolher={(passageiro) =>
             selecionarPassageiroParaAvaliar(caronaParaEscolherPassageiro, passageiro)
           }
@@ -249,7 +282,8 @@ function HistoricoCaronas() {
 }
 
 function contarCaronasConcluidas(reservas = [], caronas = []) {
-  const reservasConcluidas = reservas.filter((reserva) => reserva.status === 'FINALIZADA').length;
+  const reservasConcluidas = reservas.filter((reserva) =>
+    ['CONCLUIDA', 'FINALIZADA'].includes(reserva.status)).length;
   const caronasConcluidas = caronas.filter((carona) => carona.status === 'FINALIZADA').length;
 
   return reservasConcluidas + caronasConcluidas;
@@ -433,7 +467,8 @@ function ReservaPassageiroCard({ reserva, onAvaliarMotorista }) {
   return (
     <article className="historico-card historico-card--clicavel">
       <Link
-        to={`/reservas/${reserva.id}`}
+        to={`/historico/${reserva.caronaId}`}
+        state={{ papel: 'passageiro' }}
         className="historico-card__link"
         aria-label={`Ver detalhes da carona de ${reserva.origem} para ${montarDestino(reserva)}`}
       />
@@ -468,7 +503,7 @@ function ReservaPassageiroCard({ reserva, onAvaliarMotorista }) {
         {formatarVagas(reserva)}
       </p>
 
-      {reserva.status === 'FINALIZADA' && (
+      {['CONCLUIDA', 'FINALIZADA'].includes(reserva.status) && (
         <button
           type="button"
           className="historico-avaliar"
@@ -558,19 +593,6 @@ function formatarPassageiros(passageiros) {
   }
 
   return `${passageiros[0].nome}, ${passageiros[1].nome} e mais ${passageiros.length - 2}`;
-}
-
-function obterPassageirosAvaliaveis(carona) {
-  if (Array.isArray(carona.passageiros) && carona.passageiros.length > 0) {
-    return carona.passageiros;
-  }
-
-  return [
-    {
-      id: carona.id,
-      nome: 'Passageiro',
-    },
-  ];
 }
 
 function inicialDoNome(nome) {

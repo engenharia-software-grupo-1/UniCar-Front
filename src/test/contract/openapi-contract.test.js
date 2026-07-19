@@ -45,20 +45,66 @@ function pathsDoServico(codigo) {
   return [...paths];
 }
 
+function metodosDoContrato() {
+  const operacoes = new Map();
+  const rePath = /^ {2}(\/[^\s:]+):\r?\n([\s\S]*?)(?=^ {2}\/|(?![\s\S]))/gm;
+  let pathMatch;
+
+  while ((pathMatch = rePath.exec(OPENAPI)) !== null) {
+    const metodos = new Set();
+    const reMetodo = /^ {4}(get|post|put|patch|delete):/gm;
+    let metodoMatch;
+
+    while ((metodoMatch = reMetodo.exec(pathMatch[2])) !== null) {
+      metodos.add(metodoMatch[1].toUpperCase());
+    }
+
+    operacoes.set(normalizar(pathMatch[1]), metodos);
+  }
+
+  return operacoes;
+}
+
+function operacoesDoServico(codigo) {
+  const operacoes = [];
+  const re = /apiRequest\(\s*[`'"]([^`'"]+)[`'"]/g;
+  let match;
+
+  while ((match = re.exec(codigo)) !== null) {
+    const opcoes = codigo.slice(re.lastIndex, re.lastIndex + 160);
+    const metodo = opcoes.match(/^\s*,\s*\{\s*method:\s*['"](GET|POST|PUT|PATCH|DELETE)['"]/i);
+    operacoes.push({
+      path: match[1],
+      metodo: metodo?.[1]?.toUpperCase() || 'GET',
+    });
+  }
+
+  return operacoes;
+}
+
 const CONTRATO = pathsDoContrato();
+const METODOS_CONTRATO = metodosDoContrato();
 
 // Divergências CONHECIDAS: o front chama um path ausente do contrato, mas o fix
 // depende de decisão (qual endpoint usar) ou de backend futuro. Rastreadas aqui
 // (path já normalizado) para o teste vigiar divergências NOVAS sem travar na
 // dívida conhecida. Ao resolver uma, remova-a daqui — o teste avisa se sobrar
 // entrada obsoleta.
-const DIVERGENCIAS_CONHECIDAS = {};
+const DIVERGENCIAS_CONHECIDAS = {
+  // Implementado em UsuarioController, mas ainda ausente do YAML versionado no backend.
+  'profileService.js': ['/usuarios/me/foto'],
+};
 
 const SERVICES = readdirSync(SERVICES_DIR)
   .filter((f) => f.endsWith('.js') && !f.endsWith('.test.js'))
   .map((f) => ({
     nome: f,
-    endpoints: pathsDoServico(readFileSync(join(SERVICES_DIR, f), 'utf8')),
+    codigo: readFileSync(join(SERVICES_DIR, f), 'utf8'),
+  }))
+  .map((service) => ({
+    nome: service.nome,
+    endpoints: pathsDoServico(service.codigo),
+    operacoes: operacoesDoServico(service.codigo),
   }))
   .filter((s) => s.endpoints.length > 0);
 
@@ -108,4 +154,22 @@ describe('contrato: todo endpoint chamado pelo front existe no openapi', () => {
       [],
     );
   });
+});
+
+describe('contrato: mÃ©todos HTTP usados pelo front', () => {
+  it.each(SERVICES.map((s) => [s.nome, s]))(
+    '%s usa apenas operaÃ§Ãµes declaradas no contrato',
+    (_nome, service) => {
+      const conhecidas = DIVERGENCIAS_CONHECIDAS[service.nome] || [];
+      const invalidas = service.operacoes.filter(({ path, metodo }) =>
+        !conhecidas.includes(normalizar(path)) &&
+        !METODOS_CONTRATO.get(normalizar(path))?.has(metodo));
+
+      expect(
+        invalidas,
+        `OperaÃ§Ãµes fora do contrato em ${service.nome}:\n` +
+          invalidas.map(({ path, metodo }) => `  ${metodo} ${path}`).join('\n'),
+      ).toEqual([]);
+    },
+  );
 });

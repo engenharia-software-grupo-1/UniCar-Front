@@ -66,22 +66,25 @@ export async function atualizarPerfilUsuarioAutenticado(dadosAtualizados) {
   const payload = {
     genero: toGeneroApiValue(dadosAtualizados.genero),
     receberEmail: dadosAtualizados.recebeEmails,
-    curso: dadosAtualizados.curso,
   };
 
-  if (fotoFoiInformada) {
-    payload.fotoUrl = dadosAtualizados.fotoUrl || '';
-  }
-
-  const usuarioApi = normalizeUsuario(await apiRequest('/usuarios/me', {
+  let usuarioApi = normalizeUsuario(await apiRequest('/usuarios/me', {
     method: 'PATCH',
     body: JSON.stringify(payload),
   }));
+
+  if (fotoFoiInformada && dadosAtualizados.fotoUrl) {
+    usuarioApi = normalizeUsuario(await apiRequest('/usuarios/me/foto', {
+      method: 'PATCH',
+      body: JSON.stringify({ linkFoto: dadosAtualizados.fotoUrl }),
+    }));
+  }
+
   const usuarioAtualizado = {
     ...usuarioApi,
     curso: usuarioApi.curso || dadosAtualizados.curso || session.usuario?.curso || '',
     fotoUrl:
-      fotoFoiInformada
+      fotoFoiInformada && dadosAtualizados.fotoUrl
         ? dadosAtualizados.fotoUrl
         : getFotoPerfil(usuarioApi) || getFotoPerfil(session.usuario),
   };
@@ -147,6 +150,7 @@ function toGeneroApiValue(genero) {
 function getFotoPerfil(usuario = {}) {
   const foto = (
     usuario.fotoUrl ||
+    usuario.linkFoto ||
     usuario.fotoPerfil ||
     usuario.avatarUrl ||
     usuario.avatar ||

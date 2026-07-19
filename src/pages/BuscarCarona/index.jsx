@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { buscarCaronas } from '../../services/caronaService.js';
 import { getSession } from '../../services/authService.js';
-import { buscarSugestoesEndereco } from '../../services/geocodingService.js';
+import { buscarSugestoesEndereco, geocodificarEndereco } from '../../services/geocodingService.js';
 import './style.css';
 
 const CURSOS = [
@@ -68,6 +68,11 @@ function BuscarCarona() {
   const location = useLocation();
   const [origem, setOrigem] = useState(() => new URLSearchParams(location.search).get('origem') ?? '');
   const [destino, setDestino] = useState(() => new URLSearchParams(location.search).get('destino') ?? '');
+  // Coordenadas resolvidas da origem/destino. A origem é obrigatória para a busca
+  // por proximidade e vira o endereço de embarque do passageiro; guardar as
+  // coordenadas aqui evita re-geocodificar o texto na hora de reservar.
+  const [origemCoordenadas, setOrigemCoordenadas] = useState(null);
+  const [destinoCoordenadas, setDestinoCoordenadas] = useState(null);
   const [curso, setCurso] = useState('Qualquer');
   const [genero, setGenero] = useState('Qualquer');
   const [erroOrigem, setErroOrigem] = useState('');
@@ -90,8 +95,12 @@ function BuscarCarona() {
 
   useEffect(() => {
     const parametros = new URLSearchParams(location.search);
-    const origemInicial = parametros.get('origem') ?? '';
-    const destinoInicial = parametros.get('destino') ?? '';
+    const origemInicial = (parametros.get('origem') ?? '').trim();
+    const destinoInicial = (parametros.get('destino') ?? '').trim();
+
+    // Sem origem não há como filtrar por proximidade — o passageiro precisa
+    // informar de onde sai. Não dispara busca automática nesse caso.
+    if (!origemInicial) return undefined;
 
     let ativo = true;
 
@@ -99,7 +108,27 @@ function BuscarCarona() {
       try {
         setCarregando(true);
         setErroBusca('');
-        const resultado = await buscarCaronas({ origem: origemInicial, destino: destinoInicial });
+        setErroOrigem('');
+
+        const origemGeo = await geocodificarEndereco(origemInicial);
+        const coordsOrigem = { latitude: origemGeo.latitude, longitude: origemGeo.longitude };
+
+        let coordsDestino = null;
+        if (destinoInicial) {
+          const destinoGeo = await geocodificarEndereco(destinoInicial).catch(() => null);
+          if (destinoGeo) {
+            coordsDestino = { latitude: destinoGeo.latitude, longitude: destinoGeo.longitude };
+          }
+        }
+
+        if (!ativo) return;
+        setOrigemCoordenadas(coordsOrigem);
+        setDestinoCoordenadas(coordsDestino);
+
+        const resultado = await buscarCaronas({
+          origemCoordenadas: coordsOrigem,
+          destinoCoordenadas: coordsDestino,
+        });
         if (ativo) {
           setCaronas(resultado);
           setBuscaRealizada(true);
@@ -125,25 +154,67 @@ function BuscarCarona() {
   }), [caronas, precoMaximo, usuarioAtualId, vagasMinimas]);
   const caronasExibidas = caronasFiltradas.slice(0, quantidadeExibida);
   const temMaisCaronas = caronasFiltradas.length > quantidadeExibida;
+  // Endereço de embarque levado ao detalhe da carona: quando já temos as
+  // coordenadas da origem, vai o objeto completo (EnderecoDTO) — assim a reserva
+  // não precisa re-geocodificar o texto. Sem coordenadas, cai no texto (fallback).
+  const enderecoEmbarque = origemCoordenadas
+    ? { descricao: origem, latitude: origemCoordenadas.latitude, longitude: origemCoordenadas.longitude }
+    : origem;
 
   useEffect(() => {
     setQuantidadeExibida(CARONAS_POR_PAGINA);
   }, [caronasFiltradas]);
 
   async function realizarBusca() {
+    setErroBusca('');
+    setErroOrigem('');
+    setErroDestino('');
+
+    const origemTexto = origem.trim();
+    if (!origemTexto) {
+      setErroOrigem('Informe seu endereço de partida para ver caronas próximas.');
+      return;
+    }
+
+    // A origem é obrigatória e precisa virar coordenadas (o backend filtra por
+    // proximidade). Reaproveita as coordenadas já resolvidas via sugestão; se o
+    // usuário só digitou, geocodifica o texto uma vez.
+    let coordsOrigem = origemCoordenadas;
+    if (!coordsOrigem) {
+      try {
+        const geo = await geocodificarEndereco(origemTexto);
+        coordsOrigem = { latitude: geo.latitude, longitude: geo.longitude };
+        setOrigemCoordenadas(coordsOrigem);
+      } catch (erro) {
+        setErroOrigem(erro.message || 'Não foi possível localizar seu endereço de partida.');
+        return;
+      }
+    }
+
+    // Destino é opcional e não bloqueia a busca se não resolver.
+    let coordsDestino = destinoCoordenadas;
+    if (!coordsDestino && destino.trim()) {
+      try {
+        const geo = await geocodificarEndereco(destino.trim());
+        coordsDestino = { latitude: geo.latitude, longitude: geo.longitude };
+        setDestinoCoordenadas(coordsDestino);
+      } catch {
+        coordsDestino = null;
+      }
+    }
+
     try {
       setCarregando(true);
-      setErroBusca('');
-      setErroOrigem('');
-      setErroDestino('');
-      const resultado = await buscarCaronas({ origem, destino, curso, genero ,
+      const resultado = await buscarCaronas({
+        origemCoordenadas: coordsOrigem,
+        destinoCoordenadas: coordsDestino,
+        curso,
+        genero,
       });
       setCaronas(resultado);
       setBuscaRealizada(true);
     } catch (erro) {
-      setErroBusca(
-        erro.message || 'Não foi possível buscar as caronas.'
-      );
+      setErroBusca(erro.message || 'Não foi possível buscar as caronas.');
     } finally {
       setCarregando(false);
     }
@@ -169,7 +240,12 @@ function BuscarCarona() {
             icon={MapPin}
             placeholder="De onde você sai"
             value={origem}
-            onChange={setOrigem}
+            onChange={(valor) => {
+              setOrigem(valor);
+              // O texto não corresponde mais às coordenadas resolvidas: descarta
+              // para forçar nova geocodificação na próxima busca.
+              setOrigemCoordenadas(null);
+            }}
             erro={erroOrigem}
             ativo={campoEnderecoAtivo === 'origem'}
             onFocus={() => setCampoEnderecoAtivo('origem')}
@@ -178,6 +254,7 @@ function BuscarCarona() {
             buscandoSugestoes={sugestoesOrigem.buscando}
             onSelect={(endereco) => {
               setOrigem(endereco.descricao);
+              setOrigemCoordenadas({ latitude: endereco.latitude, longitude: endereco.longitude });
               setCampoEnderecoAtivo(null);
               setErroOrigem('');
             }}
@@ -187,7 +264,10 @@ function BuscarCarona() {
             icon={MapPin}
             placeholder="Para onde vai"
             value={destino}
-            onChange={setDestino}
+            onChange={(valor) => {
+              setDestino(valor);
+              setDestinoCoordenadas(null);
+            }}
             erro={erroDestino}
             ativo={campoEnderecoAtivo === 'destino'}
             onFocus={() => setCampoEnderecoAtivo('destino')}
@@ -196,6 +276,7 @@ function BuscarCarona() {
             buscandoSugestoes={sugestoesDestino.buscando}
             onSelect={(endereco) => {
               setDestino(endereco.descricao);
+              setDestinoCoordenadas({ latitude: endereco.latitude, longitude: endereco.longitude });
               setCampoEnderecoAtivo(null);
               setErroDestino('');
             }}
@@ -267,7 +348,7 @@ function BuscarCarona() {
             </div>
           )}
           {!carregando && caronasExibidas.map((carona) => (
-            <RideCard key={carona.id} carona={carona} enderecoEmbarque={origem} onOpenProfile={(id) => navigate(`/usuarios/${id}`)} />
+            <RideCard key={carona.id} carona={carona} enderecoEmbarque={enderecoEmbarque} onOpenProfile={(id) => navigate(`/usuarios/${id}`)} />
           ))}
           {!carregando && temMaisCaronas && (
             <button

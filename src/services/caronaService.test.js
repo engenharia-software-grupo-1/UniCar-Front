@@ -1057,14 +1057,25 @@ describe('buscarCaronas — filtros de gênero e curso', () => {
     );
 
     const { buscarCaronas } = await importarService();
-    await buscarCaronas({ origem: 'Centro', destino: 'UFCG', genero: 'Feminino', curso: 'Direito' });
+    await buscarCaronas({
+      origemCoordenadas: { latitude: -7.2166, longitude: -35.9095 },
+      destinoCoordenadas: { latitude: -7.21, longitude: -35.9 },
+      genero: 'Feminino',
+      curso: 'Direito',
+    });
 
     const [url] = fetch.mock.calls[0];
     expect(url).toContain('generoMotorista=FEMININO');
     expect(url).toContain('cursoMotorista=Direito');
+    // Coordenadas do passageiro: é o que o backend usa para o filtro de proximidade.
+    expect(url).toContain('origemLatitude=-7.2166');
+    expect(url).toContain('origemLongitude=-35.9095');
+    expect(url).toContain('destinoLatitude=-7.21');
     // Nomes/valores antigos que o backend ignorava não podem mais ser enviados.
     expect(url).not.toMatch(/[?&]genero=/);
     expect(url).not.toMatch(/[?&]curso=/);
+    expect(url).not.toMatch(/[?&]origem=/);
+    expect(url).not.toMatch(/[?&]destino=/);
   });
 
   it('não envia filtro de gênero/curso quando o valor é "Qualquer"', async () => {

@@ -16,8 +16,16 @@ vi.mock('../../services/caronaService.js', () => ({
   buscarCaronas: vi.fn(),
 }));
 
+// A busca agora resolve as coordenadas do passageiro antes de chamar o serviço,
+// então o geocoding também é mockado.
+vi.mock('../../services/geocodingService.js', () => ({
+  geocodificarEndereco: vi.fn(),
+  buscarSugestoesEndereco: vi.fn(),
+}));
+
 import BuscarCarona from './index.jsx';
 import { buscarCaronas } from '../../services/caronaService.js';
+import { geocodificarEndereco, buscarSugestoesEndereco } from '../../services/geocodingService.js';
 
 // Monta uma carona de busca com os campos mínimos que a página lê.
 function carona(overrides = {}) {
@@ -32,7 +40,10 @@ function carona(overrides = {}) {
   };
 }
 
-function renderPagina(rota = '/buscar-carona') {
+// O padrão já traz uma origem na query para a página disparar a busca inicial
+// (sem origem não há filtro de proximidade e a busca não roda). Os testes que
+// exercitam "origem vazia" passam a rota `/buscar-carona` explicitamente.
+function renderPagina(rota = '/buscar-carona?origem=Centro') {
   return render(
     <MemoryRouter initialEntries={[rota]}>
       <BuscarCarona />
@@ -50,6 +61,14 @@ beforeEach(() => {
   vi.clearAllMocks();
   localStorage.clear();
   buscarCaronas.mockResolvedValue([]);
+  buscarSugestoesEndereco.mockResolvedValue([]);
+  // Coordenadas determinísticas por texto: UFCG difere das demais para dá para
+  // distinguir origem de destino nas asserções.
+  geocodificarEndereco.mockImplementation(async (texto) => ({
+    descricao: texto,
+    latitude: String(texto).includes('UFCG') ? -7.21 : -7.22,
+    longitude: String(texto).includes('UFCG') ? -35.9 : -35.88,
+  }));
 });
 
 afterEach(() => {
@@ -57,25 +76,29 @@ afterEach(() => {
 });
 
 describe('carregamento inicial', () => {
-  it('busca ao montar usando origem/destino da query string e pré-preenche os campos', async () => {
+  it('geocodifica a origem/destino da query string e busca por COORDENADAS', async () => {
     buscarCaronas.mockResolvedValue([]);
 
     renderPagina('/buscar-carona?origem=Centro&destino=UFCG');
 
     await waitFor(() =>
-      expect(buscarCaronas).toHaveBeenCalledWith({ origem: 'Centro', destino: 'UFCG' }),
+      expect(buscarCaronas).toHaveBeenLastCalledWith({
+        origemCoordenadas: { latitude: -7.22, longitude: -35.88 },
+        destinoCoordenadas: { latitude: -7.21, longitude: -35.9 },
+      }),
     );
 
     expect(screen.getByPlaceholderText('De onde você sai')).toHaveValue('Centro');
     expect(screen.getByPlaceholderText('Para onde vai')).toHaveValue('UFCG');
   });
 
-  it('busca com origem/destino vazios quando não há query string', async () => {
+  it('não busca ao montar quando a query string não traz origem', async () => {
     renderPagina('/buscar-carona');
 
     await waitFor(() =>
-      expect(buscarCaronas).toHaveBeenCalledWith({ origem: '', destino: '' }),
+      expect(screen.getByPlaceholderText('De onde você sai')).toHaveValue(''),
     );
+    expect(buscarCaronas).not.toHaveBeenCalled();
   });
 
   it('mostra o estado de carregando enquanto a busca inicial não resolve', async () => {
@@ -83,7 +106,7 @@ describe('carregamento inicial', () => {
 
     renderPagina();
 
-    expect(screen.getByText('Buscando caronas...')).toBeInTheDocument();
+    expect(await screen.findByText('Buscando caronas...')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Buscando...' })).toBeDisabled();
   });
 
@@ -198,10 +221,19 @@ describe('caronasFiltradas — filtros padrão e aliases', () => {
 });
 
 describe('realizarBusca', () => {
-  it('envia origem, destino, curso e gênero (padrão "Qualquer") ao serviço', async () => {
-    renderPagina();
+  it('exige a origem: bloqueia a busca e mostra erro quando ela está vazia', async () => {
+    renderPagina('/buscar-carona');
 
-    await waitFor(() => expect(buscarCaronas).toHaveBeenCalledTimes(1));
+    await userEvent.click(screen.getByRole('button', { name: 'Buscar' }));
+
+    expect(
+      await screen.findByText('Informe seu endereço de partida para ver caronas próximas.'),
+    ).toBeInTheDocument();
+    expect(buscarCaronas).not.toHaveBeenCalled();
+  });
+
+  it('geocodifica a origem/destino e envia COORDENADAS, curso e gênero (padrão "Qualquer")', async () => {
+    renderPagina('/buscar-carona');
 
     const user = userEvent.setup();
     await user.type(screen.getByPlaceholderText('De onde você sai'), 'Bodocongó');
@@ -210,20 +242,19 @@ describe('realizarBusca', () => {
 
     await waitFor(() =>
       expect(buscarCaronas).toHaveBeenLastCalledWith({
-        origem: 'Bodocongó',
-        destino: 'UFCG',
+        origemCoordenadas: { latitude: -7.22, longitude: -35.88 },
+        destinoCoordenadas: { latitude: -7.21, longitude: -35.9 },
         curso: 'Qualquer',
         genero: 'Qualquer',
       }),
     );
   });
 
-  it('envia curso e gênero escolhidos nos filtros', async () => {
-    renderPagina();
-
-    await waitFor(() => expect(buscarCaronas).toHaveBeenCalledTimes(1));
+  it('envia curso e gênero escolhidos nos filtros junto das coordenadas', async () => {
+    renderPagina('/buscar-carona');
 
     const user = userEvent.setup();
+    await user.type(screen.getByPlaceholderText('De onde você sai'), 'Centro');
     await user.click(screen.getByRole('button', { name: 'Filtros' }));
 
     // O input de origem também tem role="combobox" (autocomplete de endereço);
@@ -237,12 +268,36 @@ describe('realizarBusca', () => {
 
     await waitFor(() =>
       expect(buscarCaronas).toHaveBeenLastCalledWith({
-        origem: '',
-        destino: '',
+        origemCoordenadas: { latitude: -7.22, longitude: -35.88 },
+        destinoCoordenadas: null,
         curso: 'Direito',
         genero: 'Feminino',
       }),
     );
+  });
+
+  it('reaproveita as coordenadas da sugestão selecionada, sem geocodificar de novo', async () => {
+    renderPagina('/buscar-carona');
+
+    const user = userEvent.setup();
+    const campoOrigem = screen.getByPlaceholderText('De onde você sai');
+    // Simula digitação parcial e sugestões vindas do geocoding.
+    buscarSugestoesEndereco.mockResolvedValue([
+      { descricao: 'Cajá, Campina Grande', latitude: -7.3, longitude: -35.95 },
+    ]);
+    await user.type(campoOrigem, 'Cajá');
+    await user.click(await screen.findByText('Cajá, Campina Grande'));
+    await user.click(screen.getByRole('button', { name: 'Buscar' }));
+
+    await waitFor(() =>
+      expect(buscarCaronas).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          origemCoordenadas: { latitude: -7.3, longitude: -35.95 },
+        }),
+      ),
+    );
+    // A coordenada veio da sugestão: nenhuma geocodificação de texto foi feita.
+    expect(geocodificarEndereco).not.toHaveBeenCalled();
   });
 
   it('mostra erro quando a busca acionada pelo botão falha', async () => {

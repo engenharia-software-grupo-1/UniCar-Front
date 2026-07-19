@@ -53,7 +53,7 @@ afterEach(() => {
 });
 
 describe('obterDetalhesHistorico — chamada à API', () => {
-  it('faz GET /historico/{id}', async () => {
+  it('faz GET /caronas/{id}, disponível no backend atual', async () => {
     comSessao();
     fetch.mockResolvedValue(respostaJson({ id: 42 }));
 
@@ -63,7 +63,7 @@ describe('obterDetalhesHistorico — chamada à API', () => {
 
     const [url, options] = fetch.mock.calls[0];
 
-    expect(url).toBe(`${BASE_URL}/historico/42`);
+    expect(url).toBe(`${BASE_URL}/caronas/42`);
     // O apiRequest não passa `method`, então o fetch usa o GET padrão.
     expect(options.method).toBeUndefined();
     expect(options.body).toBeUndefined();
@@ -75,7 +75,7 @@ describe('obterDetalhesHistorico — chamada à API', () => {
 
     await obterDetalhesHistorico('abc');
 
-    expect(fetch.mock.calls[0][0]).toBe(`${BASE_URL}/historico/abc`);
+    expect(fetch.mock.calls[0][0]).toBe(`${BASE_URL}/caronas/abc`);
   });
 
   it('envia Authorization: Bearer <token> quando há sessão', async () => {

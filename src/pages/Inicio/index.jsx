@@ -37,10 +37,10 @@ function Inicio() {
         setCarregando(true);
         setErro('');
 
-        const [perfil, proxima, listaSugestoes] = await Promise.all([
-          getPerfilUsuarioAutenticado(),
+        const perfil = await getPerfilUsuarioAutenticado();
+        const [proxima, listaSugestoes] = await Promise.all([
           buscarProximaCarona().catch(() => null),
-          buscarSugestoesDeCaronas().catch(() => []),
+          buscarSugestoesDeCaronas(perfil).catch(() => []),
         ]);
 
         if (!ativo) {
@@ -188,7 +188,7 @@ function Inicio() {
         <section className="inicio-section" aria-labelledby="sugestoes">
           <div className="inicio-section-header">
             <h2 id="sugestoes">SUGESTÕES PARA VOCÊ</h2>
-            <Link to="/inicio">Ver todas</Link>
+            <Link to="/buscar-carona">Encontrar caronas</Link>
           </div>
 
           <div className="inicio-suggestions">

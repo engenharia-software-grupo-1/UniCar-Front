@@ -214,6 +214,7 @@ describe('Inicio — sugestões', () => {
     expect(within(artigo).getByText('07:15')).toBeInTheDocument();
     // formatarPreco: número 5 → moeda BRL
     expect(within(artigo).getByText(/R\$\s*5,00/)).toBeInTheDocument();
+    expect(buscarSugestoesDeCaronas).toHaveBeenCalledWith(PERFIL);
   });
 
   it('mostra "Nenhuma sugestão encontrada." quando a lista vem vazia', async () => {

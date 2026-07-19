@@ -54,6 +54,33 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
+describe('listarPassageirosCarona', () => {
+  it('busca os passageiros confirmados da carona e normaliza a resposta', async () => {
+    fetch.mockResolvedValue(respostaJson([
+      {
+        reservaId: 70,
+        usuarioId: 5,
+        nome: 'Carlos Lima',
+        quantidadePassageiros: 1,
+        status: 'ACEITA',
+      },
+    ]));
+
+    const { listarPassageirosCarona } = await importarService();
+    const passageiros = await listarPassageirosCarona(10);
+
+    expect(fetch.mock.calls[0][0]).toBe(`${BASE_URL}/caronas/10/passageiros`);
+    expect(passageiros).toEqual([
+      expect.objectContaining({
+        id: 5,
+        reservaId: 70,
+        nome: 'Carlos Lima',
+        status: 'Confirmado',
+      }),
+    ]);
+  });
+});
+
 describe('listarMinhasCaronas', () => {
   it('busca /caronas/minhas e enriquece cada item com /caronas/{id}', async () => {
     fetch.mockImplementation((url) => {
@@ -268,6 +295,36 @@ describe('mock local (dev / VITE_ENABLE_MOCKS)', () => {
 
     expect(caronas.find((carona) => carona.id === 10).status).toBe('CANCELADA');
     expect(fetch).not.toHaveBeenCalled();
+  });
+});
+
+describe('iniciar e finalizar carona com resposta 204', () => {
+  function respostaSemConteudo() {
+    return {
+      ok: true,
+      status: 204,
+      headers: { get: () => null },
+    };
+  }
+
+  it('normaliza o início para EM_ANDAMENTO', async () => {
+    fetch.mockResolvedValue(respostaSemConteudo());
+    const { iniciarCarona } = await importarService();
+
+    await expect(iniciarCarona(10)).resolves.toEqual({
+      id: 10,
+      status: 'EM_ANDAMENTO',
+    });
+  });
+
+  it('normaliza a finalização para FINALIZADA', async () => {
+    fetch.mockResolvedValue(respostaSemConteudo());
+    const { finalizarCarona } = await importarService();
+
+    await expect(finalizarCarona(10)).resolves.toEqual({
+      id: 10,
+      status: 'FINALIZADA',
+    });
   });
 });
 
@@ -983,6 +1040,45 @@ describe('buscarProximaCarona', () => {
   });
 });
 
+describe('buscarCaronas — filtros de gênero e curso', () => {
+  it('envia generoMotorista (enum em maiúsculo) e cursoMotorista, não genero/curso', async () => {
+    fetch.mockResolvedValue(
+      respostaJson([
+        {
+          id: 30,
+          origem: { descricao: 'Centro' },
+          destino: { descricao: 'UFCG' },
+          dataHoraSaida: '2030-08-01T07:00:00',
+          vagasDisponiveis: 2,
+          status: 'CRIADA',
+          motorista: { id: 4, nome: 'Ana', curso: 'Direito', genero: 'FEMININO' },
+        },
+      ]),
+    );
+
+    const { buscarCaronas } = await importarService();
+    await buscarCaronas({ origem: 'Centro', destino: 'UFCG', genero: 'Feminino', curso: 'Direito' });
+
+    const [url] = fetch.mock.calls[0];
+    expect(url).toContain('generoMotorista=FEMININO');
+    expect(url).toContain('cursoMotorista=Direito');
+    // Nomes/valores antigos que o backend ignorava não podem mais ser enviados.
+    expect(url).not.toMatch(/[?&]genero=/);
+    expect(url).not.toMatch(/[?&]curso=/);
+  });
+
+  it('não envia filtro de gênero/curso quando o valor é "Qualquer"', async () => {
+    fetch.mockResolvedValue(respostaJson([]));
+
+    const { buscarCaronas } = await importarService();
+    await buscarCaronas({ genero: 'Qualquer', curso: 'Qualquer' });
+
+    const [url] = fetch.mock.calls[0];
+    expect(url).not.toContain('generoMotorista');
+    expect(url).not.toContain('cursoMotorista');
+  });
+});
+
 describe('buscarSugestoesDeCaronas', () => {
   it('usa a busca do US9 (GET /caronas), não o inexistente /caronas/sugestoes', async () => {
     fetch.mockResolvedValue(
@@ -992,6 +1088,8 @@ describe('buscarSugestoesDeCaronas', () => {
           origem: { descricao: 'Malvinas' },
           destino: { descricao: 'UFCG' },
           dataHoraSaida: '2026-08-01T07:00:00',
+          vagasDisponiveis: 2,
+          status: 'CRIADA',
           motorista: { id: 3, nome: 'Marina Souza' },
         },
       ]),
@@ -1006,5 +1104,28 @@ describe('buscarSugestoesDeCaronas', () => {
 
     expect(sugestoes).toHaveLength(1);
     expect(sugestoes[0].origem).toBe('Malvinas');
+  });
+
+  it('exclui carona própria e seleciona no máximo seis sugestões compatíveis', async () => {
+    fetch.mockResolvedValue(respostaJson(Array.from({ length: 8 }, (_, indice) => ({
+      id: indice + 1,
+      origem: { descricao: 'Bodocongó' },
+      destino: { descricao: 'UFCG' },
+      dataHoraSaida: `2030-08-${String(indice + 1).padStart(2, '0')}T07:00:00`,
+      vagasDisponiveis: 2,
+      status: 'CRIADA',
+      motorista: {
+        id: indice === 0 ? 99 : indice,
+        nome: `Motorista ${indice}`,
+        curso: indice === 7 ? 'Computação' : 'Outro curso',
+      },
+    }))));
+
+    const { buscarSugestoesDeCaronas } = await importarService();
+    const sugestoes = await buscarSugestoesDeCaronas({ id: 99, curso: 'Computação' });
+
+    expect(sugestoes).toHaveLength(6);
+    expect(sugestoes.some((carona) => carona.motorista.id === 99)).toBe(false);
+    expect(sugestoes[0].motorista.curso).toBe('Computação');
   });
 });

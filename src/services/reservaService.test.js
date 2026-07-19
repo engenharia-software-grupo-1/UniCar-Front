@@ -115,3 +115,64 @@ describe('listarReservasAceitas', () => {
     expect(aceitas.map((reserva) => reserva.id)).toEqual([50]);
   });
 });
+
+describe('listarReservasPendentesDaCarona', () => {
+  it('busca as recebidas e mantém apenas as pendentes da carona informada', async () => {
+    fetch.mockImplementation((url) => {
+      if (url.endsWith('/reservas/recebidas')) {
+        return Promise.resolve(respostaJson([
+          { id: 70, status: 'PENDENTE', usuario: { id: 5, nome: 'Maria' } },
+          { id: 71, status: 'PENDENTE', usuario: { id: 6, nome: 'José' } },
+          { id: 72, status: 'ACEITA', usuario: { id: 7, nome: 'Ana' } },
+        ]));
+      }
+      if (url.endsWith('/reservas/70')) {
+        return Promise.resolve(respostaJson({ carona: { id: 10 } }));
+      }
+      if (url.endsWith('/reservas/71')) {
+        return Promise.resolve(respostaJson({ carona: { id: 11 } }));
+      }
+      throw new Error(`URL inesperada: ${url}`);
+    });
+
+    const { listarReservasPendentesDaCarona } = await importarService();
+    const reservas = await listarReservasPendentesDaCarona(10);
+
+    expect(reservas).toEqual([
+      expect.objectContaining({ id: 70, status: 'PENDENTE', caronaId: 10 }),
+    ]);
+    expect(fetch.mock.calls.map(([url]) => url)).not.toContain(`${BASE_URL}/reservas/72`);
+  });
+});
+
+describe('obterDetalhesReserva', () => {
+  it('completa o motorista consultando o detalhe da carona', async () => {
+    fetch.mockImplementation((url) => {
+      if (url.endsWith('/reservas/42')) {
+        return Promise.resolve(respostaJson({
+          id: 42,
+          status: 'PENDENTE',
+          quantidadePassageiros: 1,
+          carona: { id: 10, origem: 'Bodocongó', destino: 'UFCG' },
+        }));
+      }
+      if (url.endsWith('/caronas/10')) {
+        return Promise.resolve(respostaJson({
+          id: 10,
+          motorista: { id: 3, nome: 'João Silva' },
+        }));
+      }
+      throw new Error(`URL inesperada: ${url}`);
+    });
+
+    const { obterDetalhesReserva } = await importarService();
+    const reserva = await obterDetalhesReserva(42);
+
+    expect(reserva.motorista).toEqual({
+      id: 3,
+      nome: 'João Silva',
+      fotoPerfil: '',
+      avaliacao: null,
+    });
+  });
+});

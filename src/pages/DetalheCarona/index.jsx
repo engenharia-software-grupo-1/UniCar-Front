@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useLocation, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import {
   Ban,
   Car,
@@ -10,7 +10,6 @@ import {
   MessageCircle,
   MessageSquareText,
   Pencil,
-  Send,
   Shield,
   Star,
   UserMinus,
@@ -19,7 +18,7 @@ import {
   X,
   XCircle,
 } from 'lucide-react';
-import { obterCarona, removerReservaCarona } from '../../services/caronaService.js';
+import { listarPassageirosCarona, obterCarona, removerReservaCarona } from '../../services/caronaService.js';
 import { getPerfilUsuarioAutenticado } from '../../services/profileService.js';
 import { obterPerfilPublicoUsuario } from '../../services/publicProfileService.js';
 import {
@@ -48,6 +47,7 @@ const MOTIVOS_DENUNCIA = [
 function DetalheCarona() {
   const { id } = useParams();
   const location = useLocation();
+  const navigate = useNavigate();
   const [carona, setCarona] = useState(null);
   const [perfil, setPerfil] = useState(null);
   const [carregando, setCarregando] = useState(true);
@@ -65,13 +65,12 @@ function DetalheCarona() {
   const [modalDenunciaAberto, setModalDenunciaAberto] = useState(false);
   const [motivoDenuncia, setMotivoDenuncia] = useState(MOTIVOS_DENUNCIA[0]);
   const [denunciaEnviada, setDenunciaEnviada] = useState(false);
-  const [mensagens, setMensagens] = useState([]);
-  const [textoMensagem, setTextoMensagem] = useState('');
   const [feedback, setFeedback] = useState(location.state?.mensagem || '');
   const [reservaParaRemover, setReservaParaRemover] = useState(null);
   const [removendoReserva, setRemovendoReserva] = useState(false);
   const [processandoSolicitacao, setProcessandoSolicitacao] = useState(null);
   const [solicitacoesPendentes, setSolicitacoesPendentes] = useState([]);
+  const [passageirosConfirmados, setPassageirosConfirmados] = useState([]);
   const [carregandoSolicitacoes, setCarregandoSolicitacoes] = useState(false);
   const [erroSolicitacoes, setErroSolicitacoes] = useState('');
 
@@ -184,8 +183,14 @@ function DetalheCarona() {
       try {
         setCarregandoSolicitacoes(true);
         setErroSolicitacoes('');
-        const reservas = await listarReservasPendentesDaCarona(id);
-        if (ativo) setSolicitacoesPendentes(reservas);
+        const [reservas, passageirosDaCarona] = await Promise.all([
+          listarReservasPendentesDaCarona(id),
+          listarPassageirosCarona(id),
+        ]);
+        if (ativo) {
+          setSolicitacoesPendentes(reservas);
+          setPassageirosConfirmados(passageirosDaCarona);
+        }
       } catch (error) {
         if (ativo) setErroSolicitacoes(error.message || 'Não foi possível carregar as solicitações.');
       } finally {
@@ -202,7 +207,11 @@ function DetalheCarona() {
     [solicitacoesPendentes],
   );
   const itensPassageiros = isMinhaCarona
-    ? [...passageiros.filter((passageiro) => passageiro.status !== 'Pendente'), ...solicitacoesComoPassageiros]
+    ? [
+        ...(passageirosConfirmados.length > 0 ? passageirosConfirmados : passageiros)
+          .filter((passageiro) => passageiro.status !== 'Pendente'),
+        ...solicitacoesComoPassageiros,
+      ]
     : passageiros;
 
   async function responderSolicitacao(passageiro, acao) {
@@ -215,34 +224,18 @@ function DetalheCarona() {
       setSolicitacoesPendentes((atuais) => atuais.filter(
         (solicitacao) => String(solicitacao.id) !== String(passageiro.reservaId),
       ));
+      if (acao === 'aceitar') {
+        // A API mantém os passageiros aceitos em uma lista separada das
+        // solicitações pendentes; recarregá-la evita precisar atualizar a página.
+        const passageirosAtualizados = await listarPassageirosCarona(id);
+        setPassageirosConfirmados(passageirosAtualizados);
+      }
       setFeedback(`Reserva de ${passageiro.nome} ${acao === 'aceitar' ? 'aceita' : 'recusada'} com sucesso.`);
     } catch (error) {
       setErro(error.message || `Não foi possível ${acao} a reserva.`);
     } finally {
       setProcessandoSolicitacao(null);
     }
-  }
-
-  function enviarMensagem() {
-    const texto = textoMensagem.trim();
-
-    if (!texto) {
-      return;
-    }
-
-    setMensagens((atuais) => [
-      ...atuais,
-      {
-        id: Date.now(),
-        autor: 'Voce',
-        texto,
-        horario: new Date().toLocaleTimeString('pt-BR', {
-          hour: '2-digit',
-          minute: '2-digit',
-        }),
-      },
-    ]);
-    setTextoMensagem('');
   }
 
   function abrirConfirmacaoSolicitacao() {
@@ -464,13 +457,6 @@ function DetalheCarona() {
               >
                 Passageiros
               </button>
-              <button
-                type="button"
-                className={abaAtiva === 'chat' ? 'is-active' : ''}
-                onClick={() => setAbaAtiva('chat')}
-              >
-                Chat
-              </button>
             </div>
 
             {abaAtiva === 'info' && (
@@ -526,13 +512,18 @@ function DetalheCarona() {
                     >
                       {getInitial(passageiro.nome)}
                     </Link>
-                    <div>
+                    <div className="detalhe-passenger__info">
                       <strong>{passageiro.nome}</strong>
                       <p>{passageiro.curso}</p>
-                      <span>
-                        <Star size={13} fill="currentColor" />
-                        {formatarAvaliacao(passageiro.avaliacao)}
-                      </span>
+                      <div className="detalhe-passenger__meta">
+                        <span>
+                          <Star size={13} fill="currentColor" />
+                          {formatarAvaliacao(passageiro.avaliacao)}
+                        </span>
+                        <em className={passageiro.status === 'Confirmado' ? 'is-confirmed' : ''}>
+                          {passageiro.status}
+                        </em>
+                      </div>
                       {passageiro.status === 'Pendente' && (
                         <div className="detalhe-passenger-request-info">
                           <span><Users size={14} /> {formatarQuantidadePassageiros(passageiro.quantidadePassageiros)}</span>
@@ -540,67 +531,45 @@ function DetalheCarona() {
                         </div>
                       )}
                     </div>
-                    <em className={passageiro.status === 'Confirmado' ? 'is-confirmed' : ''}>
-                      {passageiro.status}
-                    </em>
-                    {isMinhaCarona && passageiro.status === 'Confirmado' && (
-                      <button
-                        type="button"
-                        className="detalhe-remove-reservation"
-                        onClick={() => setReservaParaRemover(passageiro)}
-                      >
-                        <UserMinus size={16} />
-                        Remover Reserva
-                      </button>
-                    )}
-                    {isMinhaCarona && passageiro.status === 'Pendente' && (
-                      <div className="detalhe-solicitacao__acoes">
-                        <button type="button" className="is-accept" disabled={processandoSolicitacao === passageiro.reservaId} onClick={() => responderSolicitacao(passageiro, 'aceitar')}>
-                          <UserCheck size={16} /> Aceitar
+                    {isMinhaCarona && (
+                      <div className="detalhe-passenger__actions">
+                        <button
+                          type="button"
+                          className="detalhe-passenger-chat"
+                          aria-label={`Conversar com ${passageiro.nome}`}
+                          onClick={() => navigate(
+                            `/minhas-caronas/${carona.id}/chat/${passageiro.id}`,
+                            { state: { passageiro, status: carona.status } },
+                          )}
+                        >
+                          <MessageCircle size={17} aria-hidden="true" />
                         </button>
-                        <button type="button" className="is-reject" disabled={processandoSolicitacao === passageiro.reservaId} onClick={() => responderSolicitacao(passageiro, 'recusar')}>
-                          <XCircle size={16} /> Recusar
-                        </button>
+                        {passageiro.status === 'Confirmado' && (
+                          <button
+                            type="button"
+                            className="detalhe-remove-reservation"
+                            onClick={() => setReservaParaRemover(passageiro)}
+                          >
+                            <UserMinus size={16} />
+                            Remover reserva
+                          </button>
+                        )}
+                        {passageiro.status === 'Pendente' && (
+                          <div className="detalhe-solicitacao__acoes">
+                            <button type="button" className="is-accept" disabled={processandoSolicitacao === passageiro.reservaId} onClick={() => responderSolicitacao(passageiro, 'aceitar')}>
+                              <UserCheck size={16} /> Aceitar
+                            </button>
+                            <button type="button" className="is-reject" disabled={processandoSolicitacao === passageiro.reservaId} onClick={() => responderSolicitacao(passageiro, 'recusar')}>
+                              <XCircle size={16} /> Recusar
+                            </button>
+                          </div>
+                        )}
                       </div>
                     )}
                       </article>
                     ))}
                   </>
                 )}
-              </section>
-            )}
-
-            {abaAtiva === 'chat' && (
-              <section className="detalhe-card detalhe-chat-card">
-                <div className="detalhe-chat-messages">
-                  {mensagens.map((mensagem) => (
-                    <article
-                      className={mensagem.autor === 'Voce' ? 'is-me' : ''}
-                      key={mensagem.id}
-                    >
-                      <strong>{mensagem.autor}</strong>
-                      <p>{mensagem.texto}</p>
-                      <span>{mensagem.horario}</span>
-                    </article>
-                  ))}
-                </div>
-
-                <div className="detalhe-chat-input">
-                  <MessageCircle size={18} />
-                  <input
-                    value={textoMensagem}
-                    onChange={(event) => setTextoMensagem(event.target.value)}
-                    onKeyDown={(event) => {
-                      if (event.key === 'Enter') {
-                        enviarMensagem();
-                      }
-                    }}
-                    placeholder="Mensagem"
-                  />
-                  <button type="button" onClick={enviarMensagem} aria-label="Enviar mensagem">
-                    <Send size={18} />
-                  </button>
-                </div>
               </section>
             )}
 

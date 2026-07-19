@@ -16,41 +16,6 @@ import { buscarCaronas } from '../../services/caronaService.js';
 import { buscarSugestoesEndereco } from '../../services/geocodingService.js';
 import './style.css';
 
-// Sugestões de endereço com debounce, espelhando o mecanismo do OfertarCarona.
-// A busca só dispara com o campo ativo e ao menos 3 caracteres.
-function useSugestoesEndereco(consulta, ativa) {
-  const [sugestoes, setSugestoes] = useState([]);
-  const [buscando, setBuscando] = useState(false);
-
-  useEffect(() => {
-    const texto = consulta.trim();
-    if (!ativa || texto.length < 3) {
-      return undefined;
-    }
-
-    let ativaBusca = true;
-    const timer = window.setTimeout(async () => {
-      setBuscando(true);
-      try {
-        const resultados = await buscarSugestoesEndereco(texto);
-        if (ativaBusca) setSugestoes(resultados);
-      } catch {
-        // Sugestão é conveniência: se falhar, o usuário digita o endereço mesmo.
-        if (ativaBusca) setSugestoes([]);
-      } finally {
-        if (ativaBusca) setBuscando(false);
-      }
-    }, 350);
-
-    return () => {
-      ativaBusca = false;
-      window.clearTimeout(timer);
-    };
-  }, [consulta, ativa]);
-
-  return { sugestoes, buscando };
-}
-
 const CURSOS = [
   'Qualquer',
   'Ciência da Computação',
@@ -61,6 +26,40 @@ const CURSOS = [
   'Letras',
 ];
 const GENEROS = ['Qualquer', 'Feminino', 'Masculino', 'Outro'];
+
+function useSugestoesEndereco(consulta, ativa) {
+  const [sugestoes, setSugestoes] = useState([]);
+  const [buscando, setBuscando] = useState(false);
+
+  useEffect(() => {
+    const texto = consulta.trim();
+    // Sem busca com campo inativo ou texto curto. Não é preciso limpar as
+    // sugestões aqui: o dropdown só renderiza com o campo ativo e texto >= 3.
+    if (!ativa || texto.length < 3) {
+      return undefined;
+    }
+
+    let buscaAtiva = true;
+    const timer = window.setTimeout(async () => {
+      setBuscando(true);
+      try {
+        const resultados = await buscarSugestoesEndereco(texto);
+        if (buscaAtiva) setSugestoes(resultados);
+      } catch {
+        if (buscaAtiva) setSugestoes([]);
+      } finally {
+        if (buscaAtiva) setBuscando(false);
+      }
+    }, 350);
+
+    return () => {
+      buscaAtiva = false;
+      window.clearTimeout(timer);
+    };
+  }, [consulta, ativa]);
+
+  return { sugestoes, buscando };
+}
 
 function BuscarCarona() {
   const navigate = useNavigate();
@@ -81,6 +80,7 @@ function BuscarCarona() {
   const [campoEnderecoAtivo, setCampoEnderecoAtivo] = useState(null);
 
   const sugestoesOrigem = useSugestoesEndereco(origem, campoEnderecoAtivo === 'origem');
+  const sugestoesDestino = useSugestoesEndereco(destino, campoEnderecoAtivo === 'destino');
 
 
 
@@ -152,19 +152,42 @@ function BuscarCarona() {
         </header>
 
         <div className="buscar-formulario">
-          <CampoEndereco
+          <Field
+            id="origem"
+            icon={MapPin}
             placeholder="De onde você sai"
             value={origem}
-            onChange={(valor) => { setOrigem(valor); setErroOrigem(''); }}
-            onSelecionar={(endereco) => { setOrigem(endereco.descricao); setCampoEnderecoAtivo(null); }}
+            onChange={setOrigem}
+            erro={erroOrigem}
+            ativo={campoEnderecoAtivo === 'origem'}
             onFocus={() => setCampoEnderecoAtivo('origem')}
             onBlur={() => window.setTimeout(() => setCampoEnderecoAtivo(null), 150)}
-            ativo={campoEnderecoAtivo === 'origem'}
             sugestoes={sugestoesOrigem.sugestoes}
-            buscando={sugestoesOrigem.buscando}
-            erro={erroOrigem}
+            buscandoSugestoes={sugestoesOrigem.buscando}
+            onSelect={(endereco) => {
+              setOrigem(endereco.descricao);
+              setCampoEnderecoAtivo(null);
+              setErroOrigem('');
+            }}
           />
-          <Field icon={MapPin} placeholder="Para onde vai" value={destino} onChange={setDestino} erro={erroDestino} />
+          <Field
+            id="destino"
+            icon={MapPin}
+            placeholder="Para onde vai"
+            value={destino}
+            onChange={setDestino}
+            erro={erroDestino}
+            ativo={campoEnderecoAtivo === 'destino'}
+            onFocus={() => setCampoEnderecoAtivo('destino')}
+            onBlur={() => window.setTimeout(() => setCampoEnderecoAtivo(null), 150)}
+            sugestoes={sugestoesDestino.sugestoes}
+            buscandoSugestoes={sugestoesDestino.buscando}
+            onSelect={(endereco) => {
+              setDestino(endereco.descricao);
+              setCampoEnderecoAtivo(null);
+              setErroDestino('');
+            }}
+          />
 
           <div className="buscar-acoes">
             <button type="button" className="buscar-botao" onClick={realizarBusca} disabled={carregando}>
@@ -240,65 +263,78 @@ function BuscarCarona() {
   );
 }
 
-function Field({ icon: Icon, placeholder, value, onChange, erro }) {
+function Field({
+  id,
+  icon: Icon,
+  placeholder,
+  value,
+  onChange,
+  erro,
+  ativo,
+  onFocus,
+  onBlur,
+  sugestoes,
+  buscandoSugestoes,
+  onSelect,
+}) {
+  const listaId = `buscar-sugestoes-${id}`;
+
   return (
     <div className="buscar-field-wrapper">
       <div className={`buscar-field${erro ? ' buscar-field--erro' : ''}`}>
         <Icon size={17} />
-        <input type="text" placeholder={placeholder} value={value} onChange={(evento) => onChange(evento.target.value)} />
+        <input
+          type="text"
+          placeholder={placeholder}
+          value={value}
+          role="combobox"
+          aria-autocomplete="list"
+          aria-expanded={ativo && (buscandoSugestoes || sugestoes.length > 0)}
+          aria-controls={listaId}
+          onFocus={onFocus}
+          onBlur={onBlur}
+          onChange={(evento) => onChange(evento.target.value)}
+        />
       </div>
-      {erro && <span className="buscar-field-erro">{erro}</span>}
-    </div>
-  );
-}
-
-function CampoEndereco({ placeholder, value, onChange, onSelecionar, onFocus, onBlur, ativo, sugestoes, buscando, erro }) {
-  const mostrarLista = ativo && value.trim().length >= 3 && (buscando || sugestoes.length > 0);
-
-  return (
-    <div className="buscar-field-wrapper">
-      <div className="buscar-endereco">
-        <div className={`buscar-field${erro ? ' buscar-field--erro' : ''}`}>
-          <MapPin size={17} />
-          <input
-            type="text"
-            role="combobox"
-            aria-autocomplete="list"
-            aria-expanded={ativo && sugestoes.length > 0}
-            placeholder={placeholder}
-            value={value}
-            onFocus={onFocus}
-            onBlur={onBlur}
-            onChange={(evento) => onChange(evento.target.value)}
-          />
-        </div>
-        {mostrarLista && (
-          <ul className="buscar-sugestoes-endereco" role="listbox">
-            {buscando && <li className="buscar-sugestoes-status">Buscando endereços...</li>}
-            {sugestoes.map((endereco) => (
-              <li
-                key={`${endereco.latitude}-${endereco.longitude}`}
-                role="option"
-                onMouseDown={(evento) => evento.preventDefault()}
-                onClick={() => onSelecionar(endereco)}
-              >
-                <MapPin size={16} aria-hidden="true" />
-                {endereco.descricao}
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+      {ativo && value.trim().length >= 3 && (buscandoSugestoes || sugestoes.length > 0) && (
+        <ul id={listaId} className="buscar-sugestoes-endereco" role="listbox">
+          {buscandoSugestoes && <li className="buscar-sugestoes-status">Buscando endereços...</li>}
+          {sugestoes.map((endereco) => (
+            <li
+              key={`${endereco.latitude}-${endereco.longitude}`}
+              role="option"
+              onMouseDown={(evento) => evento.preventDefault()}
+              onClick={() => onSelect(endereco)}
+            >
+              <MapPin size={16} aria-hidden="true" />
+              {endereco.descricao}
+            </li>
+          ))}
+        </ul>
+      )}
       {erro && <span className="buscar-field-erro">{erro}</span>}
     </div>
   );
 }
 
 function RangeField({ label, min, max, value, onChange }) {
+  const minimo = Number(min);
+  const maximo = Number(max);
+  const preenchido = maximo > minimo
+    ? ((Number(value) - minimo) / (maximo - minimo)) * 100
+    : 0;
+
   return (
     <div className="buscar-range">
       <label>{label}</label>
-      <input type="range" min={min} max={max} value={value} onChange={(evento) => onChange(Number(evento.target.value))} />
+      <input
+        type="range"
+        min={min}
+        max={max}
+        value={value}
+        onChange={(evento) => onChange(Number(evento.target.value))}
+        style={{ '--preenchido': `${preenchido}%` }}
+      />
     </div>
   );
 }

@@ -1,6 +1,6 @@
 .avaliacoes-page {
   min-height: 100vh;
-  background-color: #eef5fa;
+  background-color: var(--app-page-background);
   padding: 36px 20px;
   display: flex;
   justify-content: center;

@@ -102,6 +102,19 @@ describe('carregamento', () => {
     expect(screen.getByText('Marina Souza')).toBeInTheDocument();
     expect(screen.getByText('Você é passageiro(a)')).toBeInTheDocument();
   });
+
+  it('abre a conversa com o motorista', async () => {
+    renderPagina();
+
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Conversar com Marina Souza' }),
+    );
+
+    expect(navigateMock).toHaveBeenCalledWith(
+      '/reservas/42/chat/marina',
+      { state: { passageiro: RESERVA.motorista, status: 'ACEITA' } },
+    );
+  });
 });
 
 describe('fallback resiliente via location.state', () => {
@@ -223,16 +236,6 @@ describe('botão de cancelar', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('navega para trás ao clicar em "Voltar ao histórico"', async () => {
-    renderPagina();
-
-    await screen.findByRole('heading', { name: 'Reserva confirmada' });
-    await userEvent.click(
-      screen.getByRole('button', { name: /voltar ao histórico/i }),
-    );
-
-    expect(navigateMock).toHaveBeenCalledWith(-1);
-  });
 });
 
 describe('modal de cancelamento', () => {

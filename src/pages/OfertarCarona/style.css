@@ -219,6 +219,30 @@
 /* Dropdown de veículo — customizado para estilizar também a lista aberta. */
 .ofertar-dropdown {
   position: relative;
+  flex: 1;
+  min-width: 0;
+}
+
+.ofertar-veiculo-controle {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+}
+
+.ofertar-adicionar-veiculo {
+  width: 50px;
+  flex: 0 0 50px;
+  border: 1px solid #07132b;
+  border-radius: 14px;
+  background: #07132b;
+  color: #ffffff;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.ofertar-adicionar-veiculo:hover {
+  background: #132443;
 }
 
 .ofertar-dropdown-trigger {

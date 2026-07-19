@@ -51,7 +51,9 @@ export async function listarHistoricoComoMotorista() {
     return HISTORICO_MOTORISTA_MOCK.map(normalizarCaronaMotorista);
   }
 
-  const resposta = await apiRequest('/historico/motorista');
+  // O backend atual ainda não expõe /historico/motorista. A listagem de
+  // caronas do próprio motorista já permite montar o histórico no front.
+  const resposta = await apiRequest('/caronas/minhas');
   return extrairLista(resposta).map(normalizarCaronaMotorista);
 }
 
@@ -69,6 +71,7 @@ function normalizarCaronaMotorista(carona = {}) {
       carona.reservasConfirmadas ??
       carona.quantidadeReservas ??
       carona.quantidadePassageiros ??
+      carona.totalPassageiros ??
       passageiros.length,
   );
   const vagasTotal = obterNumero(
@@ -80,9 +83,9 @@ function normalizarCaronaMotorista(carona = {}) {
   );
 
   return {
-    id: carona.id,
+    id: carona.id ?? carona.caronaId,
     status: carona.status || 'ATIVA',
-    dataHoraSaida: carona.dataHoraSaida || carona.dataHora || '',
+    dataHoraSaida: carona.dataHoraSaida || carona.dataHora || carona.dataViagem || '',
     origem: descricaoLocal(carona.origem),
     destino: descricaoLocal(carona.destino),
     pontoEncontro: carona.pontoEncontro || carona.pontoReferencia || '',

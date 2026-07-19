@@ -66,18 +66,58 @@ function maisProxima(caronas) {
 }
 
 // Sugestões da tela Início. Também não existe GET /caronas/sugestoes — mas o GET
-// /caronas da busca (US9) já devolve exatamente o que uma sugestão é: caronas
-// CRIADAS (RN-BUS-01), de outras pessoas (RN-BUS-02), futuras (RN-BUS-04), com
-// vaga (RN-BUS-05) e respeitando bloqueios (RN-BUS-03). Buscar sem filtro nenhum
-// é o mesmo que pedir sugestões.
-export async function buscarSugestoesDeCaronas() {
+// /caronas da busca (US9) já devolve exatamente o que uma sugestão é. A seleção
+// local é uma salvaguarda para não exibir a própria carona e para entregar uma
+// lista curta, ordenada para o perfil atual.
+export async function buscarSugestoesDeCaronas(perfilUsuario = {}) {
   if (shouldUseLocalDataMocks()) {
     // O store local só tem caronas do próprio usuário e sugestão é, por
     // definição, carona dos outros (RN-BUS-02) — não há o que sugerir.
     return [];
   }
 
-  return buscarCaronas();
+  const caronas = await buscarCaronas();
+
+  return selecionarSugestoesDeCaronas(caronas, perfilUsuario);
+}
+
+function selecionarSugestoesDeCaronas(caronas, perfilUsuario) {
+  const usuarioId = perfilUsuario?.id ?? perfilUsuario?.usuarioId ?? perfilUsuario?.userId;
+  const cursoUsuario = normalizarTextoBusca(perfilUsuario?.curso);
+  const agora = Date.now();
+
+  return caronas
+    .filter((carona) => usuarioId == null || String(carona.motorista?.id) !== String(usuarioId))
+    .filter((carona) => Number(carona.vagasDisponiveis) > 0)
+    .filter((carona) => String(carona.status).toUpperCase() === 'CRIADA')
+    .filter((carona) => {
+      const horario = new Date(carona.horario || carona.dataHoraSaida).getTime();
+      return Number.isNaN(horario) || horario >= agora;
+    })
+    .sort((primeira, segunda) => {
+      const primeiraCombinaCurso = Number(
+        Boolean(cursoUsuario) && normalizarTextoBusca(primeira.motorista?.curso) === cursoUsuario,
+      );
+      const segundaCombinaCurso = Number(
+        Boolean(cursoUsuario) && normalizarTextoBusca(segunda.motorista?.curso) === cursoUsuario,
+      );
+
+      if (primeiraCombinaCurso !== segundaCombinaCurso) {
+        return segundaCombinaCurso - primeiraCombinaCurso;
+      }
+
+      const horarioPrimeira = new Date(primeira.horario || primeira.dataHoraSaida).getTime();
+      const horarioSegunda = new Date(segunda.horario || segunda.dataHoraSaida).getTime();
+      if (horarioPrimeira !== horarioSegunda) {
+        return horarioPrimeira - horarioSegunda;
+      }
+
+      const vagas = Number(segunda.vagasDisponiveis) - Number(primeira.vagasDisponiveis);
+      if (vagas !== 0) return vagas;
+
+      return Number(primeira.preco) - Number(segunda.preco);
+    })
+    .slice(0, 6);
 }
 
 // Detalha uma carona (GET /caronas/{id}), trazendo ponto de encontro, vagas etc.
@@ -102,6 +142,15 @@ export async function obterCarona(id) {
     }
     throw error;
   }
+}
+
+export async function listarPassageirosCarona(id) {
+  const resposta = await apiRequest(`/caronas/${encodeURIComponent(id)}/passageiros`);
+  const passageiros = Array.isArray(resposta)
+    ? resposta
+    : resposta?.content || resposta?.passageiros || resposta?.items || [];
+
+  return normalizarPassageiros(passageiros);
 }
 
 // Cria caronas (POST /caronas). A recorrência não é um atributo da carona: os
@@ -207,6 +256,17 @@ function normalizarObservacao(observacao) {
 }
 
 // Busca uma carona via endpoint GET /caronas
+// Rótulo do <select> de gênero (UI) → nome do enum Genero do backend.
+const GENERO_UI_PARA_API = {
+  Feminino: 'FEMININO',
+  Masculino: 'MASCULINO',
+  Outro: 'OUTRO',
+};
+
+function mapearGeneroParaApi(genero) {
+  return GENERO_UI_PARA_API[genero] ?? String(genero).toUpperCase();
+}
+
 export async function buscarCaronas(filtros = {}) {
   const params = new URLSearchParams();
 
@@ -218,12 +278,16 @@ export async function buscarCaronas(filtros = {}) {
     params.append('destino', filtros.destino);
   }
 
+  // O backend filtra por `generoMotorista` (comparação exata com o enum Genero:
+  // MASCULINO|FEMININO|OUTRO|NAO_INFORMADO) e `cursoMotorista` (LIKE, sem caixa).
+  // Enviar `genero`/`curso` ou o rótulo com acentuação/caixa da UI faz o filtro
+  // ser ignorado — por isso a busca não filtrava.
   if (filtros.genero && filtros.genero !== 'Qualquer') {
-    params.append('genero', filtros.genero);
+    params.append('generoMotorista', mapearGeneroParaApi(filtros.genero));
   }
 
   if (filtros.curso && filtros.curso !== 'Qualquer') {
-    params.append('curso', filtros.curso);
+    params.append('cursoMotorista', filtros.curso);
   }
 
   if (shouldUseLocalDataMocks()) {
@@ -370,7 +434,8 @@ export async function cancelarCarona(id) {
 }
 
 // Inicia uma carona do motorista (PATCH /caronas/{id}/iniciar) — contrato
-// US7-BACK-08. Sem corpo; devolve { id, status: 'EM_ANDAMENTO' }.
+// US7-BACK-08. O backend responde 204 sem corpo; normalizamos o retorno para a
+// tela conseguir atualizar o card imediatamente.
 export async function iniciarCarona(id) {
   if (shouldUseLocalDataMocks()) {
     const caronas = carregarCaronasMock();
@@ -384,13 +449,15 @@ export async function iniciarCarona(id) {
     return { id: Number(id), status: 'EM_ANDAMENTO' };
   }
 
-  return apiRequest(`/caronas/${id}/iniciar`, {
+  const resposta = await apiRequest(`/caronas/${id}/iniciar`, {
     method: 'PATCH',
   });
+
+  return resposta || { id: Number(id), status: 'EM_ANDAMENTO' };
 }
 
-// Inicia uma carona do motorista (PATCH /caronas/{id}/finalizar) — contrato
-// US7-BACK-09. Sem corpo; devolve { id, status: 'FINALIZADA' }.
+// Finaliza uma carona do motorista (PATCH /caronas/{id}/finalizar) — contrato
+// US7-BACK-09. O backend também responde 204 sem corpo.
 export async function finalizarCarona(id) {
   if (shouldUseLocalDataMocks()) {
     const caronas = carregarCaronasMock();
@@ -407,9 +474,11 @@ export async function finalizarCarona(id) {
     };
   }
 
-  return apiRequest(`/caronas/${id}/finalizar`, {
+  const resposta = await apiRequest(`/caronas/${id}/finalizar`, {
     method: 'PATCH',
   });
+
+  return resposta || { id: Number(id), status: 'FINALIZADA' };
 }
 
 // Remove uma reserva da carona (PATCH /reservas/{reservaId}/remover).

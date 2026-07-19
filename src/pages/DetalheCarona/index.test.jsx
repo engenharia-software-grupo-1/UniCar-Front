@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 
 vi.mock('../../services/caronaService.js', () => ({
+  listarPassageirosCarona: vi.fn(),
   obterCarona: vi.fn(),
   removerReservaCarona: vi.fn(),
 }));
@@ -23,8 +24,12 @@ vi.mock('../../services/reservaService.js', () => ({
   recusarReserva: vi.fn(),
 }));
 
+vi.mock('../../services/geocodingService.js', () => ({
+  geocodificarEndereco: vi.fn(),
+}));
+
 import DetalheCarona from './index.jsx';
-import { obterCarona, removerReservaCarona } from '../../services/caronaService.js';
+import { listarPassageirosCarona, obterCarona, removerReservaCarona } from '../../services/caronaService.js';
 import { getPerfilUsuarioAutenticado } from '../../services/profileService.js';
 import { obterPerfilPublicoUsuario } from '../../services/publicProfileService.js';
 import {
@@ -33,12 +38,14 @@ import {
   listarReservasPendentesDaCarona,
   recusarReserva,
 } from '../../services/reservaService.js';
+import { geocodificarEndereco } from '../../services/geocodingService.js';
 
 const CARONA_BASE = {
   id: 10,
   status: 'CRIADA',
   dataHoraSaida: '2026-08-25T07:30:00',
   origem: 'Bodocongó',
+  origemCoordenadas: { latitude: -7.2166, longitude: -35.9095 },
   destino: 'UFCG',
   pontoEncontro: 'Portão principal',
   observacao: '',
@@ -55,6 +62,7 @@ function renderPagina({ state } = {}) {
     <MemoryRouter initialEntries={[{ pathname: '/minhas-caronas/10', state }]}>
       <Routes>
         <Route path="/minhas-caronas/:id" element={<DetalheCarona />} />
+        <Route path="/minhas-caronas/:caronaId/chat/:usuarioId" element={<div>Chat do passageiro</div>} />
       </Routes>
     </MemoryRouter>,
   );
@@ -68,6 +76,7 @@ beforeEach(() => {
   getPerfilUsuarioAutenticado.mockResolvedValue(null);
   obterPerfilPublicoUsuario.mockResolvedValue(null);
   listarReservasPendentesDaCarona.mockResolvedValue([]);
+  listarPassageirosCarona.mockResolvedValue([]);
   aceitarReserva.mockResolvedValue({});
   recusarReserva.mockResolvedValue({});
   removerReservaCarona.mockResolvedValue(undefined);
@@ -122,25 +131,47 @@ describe('DetalheCarona — observações do motorista', () => {
 });
 
 describe('DetalheCarona — solicitação de participação', () => {
-  it('confirma a reserva e atualiza a ação da tela', async () => {
+  // O passageiro informa o endereço de embarque na busca; ele chega no
+  // location.state e é geocodificado aqui para as coordenadas que o back exige.
+  const ENDERECO_EMBARQUE = 'Rua Aprígio Veloso, Bodocongó';
+  const EMBARQUE_GEO = { descricao: 'Bodocongó', latitude: -7.2166, longitude: -35.9095 };
+
+  it('geocodifica o endereço de embarque, confirma a reserva e atualiza a ação da tela', async () => {
     obterCarona.mockResolvedValue(CARONA_BASE);
+    geocodificarEndereco.mockResolvedValue(EMBARQUE_GEO);
     criarReserva.mockResolvedValue({ id: 50, status: 'PENDENTE' });
+
+    renderPagina({ state: { enderecoEmbarque: ENDERECO_EMBARQUE } });
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Solicitar Participação' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Confirmar solicitação' }));
+
+    expect(geocodificarEndereco).toHaveBeenCalledWith(ENDERECO_EMBARQUE);
+    expect(criarReserva).toHaveBeenCalledWith(10, 1, EMBARQUE_GEO);
+    expect(await screen.findByText('Solicitação de participação enviada com sucesso.')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Solicitação enviada' })).toBeDisabled();
+  });
+
+  it('bloqueia a solicitação quando não há endereço de embarque no state', async () => {
+    obterCarona.mockResolvedValue(CARONA_BASE);
 
     renderPagina();
 
     await userEvent.click(await screen.findByRole('button', { name: 'Solicitar Participação' }));
     await userEvent.click(screen.getByRole('button', { name: 'Confirmar solicitação' }));
 
-    expect(criarReserva).toHaveBeenCalledWith(10, 1);
-    expect(await screen.findByText('Solicitação de participação enviada com sucesso.')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Solicitação enviada' })).toBeDisabled();
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Informe seu endereço de embarque na busca antes de solicitar.',
+    );
+    expect(criarReserva).not.toHaveBeenCalled();
   });
 
   it('mostra dentro do modal o erro ao enviar', async () => {
     obterCarona.mockResolvedValue(CARONA_BASE);
+    geocodificarEndereco.mockResolvedValue(EMBARQUE_GEO);
     criarReserva.mockRejectedValue(new Error('Não foi possível concluir a reserva.'));
 
-    renderPagina();
+    renderPagina({ state: { enderecoEmbarque: ENDERECO_EMBARQUE } });
 
     await userEvent.click(await screen.findByRole('button', { name: 'Solicitar Participação' }));
     await userEvent.click(screen.getByRole('button', { name: 'Confirmar solicitação' }));
@@ -345,9 +376,19 @@ describe('DetalheCarona — responder solicitações (motorista)', () => {
     return screen.findByText('Maria Souza');
   }
 
-  it('aceita a solicitação: chama aceitarReserva, decrementa a vaga e mostra feedback', async () => {
+  it('aceita a solicitação, recarrega os passageiros confirmados e mostra o novo passageiro', async () => {
     obterCarona.mockResolvedValue(CARONA_MINHA);
     listarReservasPendentesDaCarona.mockResolvedValue([SOLICITACAO]);
+    listarPassageirosCarona
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([{
+        id: 71,
+        reservaId: 501,
+        nome: 'Maria Souza',
+        curso: 'Engenharia',
+        avaliacao: 4.8,
+        status: 'Confirmado',
+      }]);
 
     renderPagina({ state: { minhaCarona: true } });
 
@@ -361,6 +402,8 @@ describe('DetalheCarona — responder solicitações (motorista)', () => {
     expect(
       await screen.findByText('Reserva de Maria Souza aceita com sucesso.'),
     ).toBeInTheDocument();
+    expect(listarPassageirosCarona).toHaveBeenCalledTimes(2);
+    expect(await screen.findByText('Confirmado')).toBeInTheDocument();
     // Vaga decrementada em 1: passa a 1 de 3.
     expect(screen.getByText('1 de 3 disponíveis')).toBeInTheDocument();
     expect(recusarReserva).not.toHaveBeenCalled();
@@ -436,6 +479,40 @@ describe('DetalheCarona — remover reserva de passageiro confirmado (motorista)
       ],
     };
   }
+
+  it('mostra passageiros confirmados mesmo sem solicitações pendentes', async () => {
+    obterCarona.mockResolvedValue({
+      ...caronaComConfirmado({ vagasDisponiveis: 2, quantidadeVagas: 3 }),
+      passageiros: [],
+    });
+    listarReservasPendentesDaCarona.mockResolvedValue([]);
+    listarPassageirosCarona.mockResolvedValue([
+      { id: 'carlos', reservaId: 701, nome: 'Carlos Lima', curso: 'Física', status: 'Confirmado' },
+    ]);
+
+    renderPagina({ state: { minhaCarona: true } });
+
+    await screen.findByRole('heading', { name: 'Você (motorista)' });
+    await userEvent.click(screen.getByRole('button', { name: 'Passageiros' }));
+
+    expect(await screen.findByText('Não há solicitações pendentes.')).toBeInTheDocument();
+    expect(screen.getByText('Carlos Lima')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Conversar com Carlos Lima' })).toBeInTheDocument();
+  });
+
+  it('exibe o balão de chat no passageiro e abre a página da conversa', async () => {
+    obterCarona.mockResolvedValue(
+      caronaComConfirmado({ vagasDisponiveis: 2, quantidadeVagas: 3 }),
+    );
+
+    renderPagina({ state: { minhaCarona: true } });
+
+    await screen.findByRole('heading', { name: 'Você (motorista)' });
+    await userEvent.click(screen.getByRole('button', { name: 'Passageiros' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Conversar com Carlos Lima' }));
+
+    expect(screen.getByText('Chat do passageiro')).toBeInTheDocument();
+  });
 
   it('reincrementa a vaga ao remover um passageiro confirmado', async () => {
     obterCarona.mockResolvedValue(

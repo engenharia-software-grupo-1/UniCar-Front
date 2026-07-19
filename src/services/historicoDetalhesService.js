@@ -195,7 +195,9 @@ export async function obterDetalhesHistorico(id) {
   }
 
   try {
-    const detalhe = await apiRequest(`/historico/${id}`);
+    // A rota /historico/{id} consta no contrato, mas não existe no backend
+    // atual. O detalhe da própria carona contém os dados necessários à tela.
+    const detalhe = await apiRequest(`/caronas/${encodeURIComponent(id)}`);
 
     return normalizarDetalheHistorico(detalhe);
   } catch (error) {
@@ -240,6 +242,7 @@ function validarParticipante(detalhe) {
 }
 
 function normalizarDetalheHistorico(detalhe = {}) {
+  detalhe = detalhe || {};
   const motorista = detalhe.motorista || detalhe.condutor || {};
   const reservas = extrairLista(detalhe.reservas || detalhe.passageiros || detalhe.participantesReserva);
 
@@ -252,7 +255,9 @@ function normalizarDetalheHistorico(detalhe = {}) {
     destino: descricaoLocal(detalhe.destino),
     pontoReferencia: detalhe.pontoReferencia || detalhe.pontoEncontro || '',
     paradas: extrairLista(detalhe.paradas || detalhe.pontosParada).map(descricaoLocal).filter(Boolean),
-    valor: Number(detalhe.valor ?? detalhe.custo ?? detalhe.preco ?? 0),
+    valor: Number(
+      detalhe.valor ?? detalhe.valorContribuicao ?? detalhe.custo ?? detalhe.preco ?? 0,
+    ),
     custos: detalhe.custos || detalhe.descricaoCustos || '',
     vagasTotais: detalhe.vagasTotais ?? detalhe.quantidadeVagas ?? detalhe.totalVagas ?? 0,
     veiculo: detalhe.veiculo ? {

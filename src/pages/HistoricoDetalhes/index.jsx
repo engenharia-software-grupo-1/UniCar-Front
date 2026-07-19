@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { getSession } from '../../services/authService.js';
 import { obterDetalhesHistorico } from '../../services/historicoDetalhesService.js';
+import { listarReservasDaCarona } from '../../services/reservaService.js';
 import './style.css';
 
 const STATUS = {
@@ -43,6 +44,19 @@ function HistoricoDetalhes() {
 
         const dados = await obterDetalhesHistorico(id);
 
+        // O detalhe de /caronas/{id} não inclui passageiros. Para o motorista,
+        // a rota específica devolve as reservas aceitas da carona.
+        if (location.state?.papel === 'motorista') {
+          const reservas = await listarReservasDaCarona(id).catch(() => []);
+          dados.reservas = reservas.map((reserva) => ({
+            id: reserva.id,
+            usuarioId: reserva.solicitante?.id,
+            nome: reserva.solicitante?.nome || 'Passageiro',
+            vagas: reserva.quantidadePassageiros || 1,
+            status: reserva.status || 'FINALIZADA',
+          }));
+        }
+
         if (ativo) {
           setDetalhe(dados);
         }
@@ -65,7 +79,7 @@ function HistoricoDetalhes() {
     return () => {
       ativo = false;
     };
-  }, [id]);
+  }, [id, location.state?.papel]);
 
   return (
     <main className="historico-detalhes-page">
@@ -101,9 +115,12 @@ function ConteudoDetalhe({ detalhe, papel }) {
   const finalizada = status.classe === 'finalizada' || status.classe === 'confirmada';
   const usuario = getSession()?.usuario || {};
   const usuarioId = usuario.id ?? usuario.usuarioId ?? usuario.userId;
-  const motorista = papel === 'motorista' || String(detalhe.motorista.id) === String(usuarioId);
-  const totalVagas = Number(detalhe.vagasTotais || detalhe.reservas.reduce((total, reserva) => total + Number(reserva.vagas || 1), 0));
-  const vagasOcupadas = detalhe.reservas.reduce((total, reserva) => total + Number(reserva.vagas || 1), 0);
+  const dadosMotorista = detalhe.motorista || {};
+  const reservas = Array.isArray(detalhe.reservas) ? detalhe.reservas : [];
+  const paradas = Array.isArray(detalhe.paradas) ? detalhe.paradas : [];
+  const motorista = papel === 'motorista' || String(dadosMotorista.id) === String(usuarioId);
+  const totalVagas = Number(detalhe.vagasTotais || reservas.reduce((total, reserva) => total + Number(reserva.vagas || 1), 0));
+  const vagasOcupadas = reservas.reduce((total, reserva) => total + Number(reserva.vagas || 1), 0);
 
   return (
     <>
@@ -134,10 +151,10 @@ function ConteudoDetalhe({ detalhe, papel }) {
             <Metrica icone={<Clock />} rotulo="Saída" valor={formatarHora(detalhe.dataHoraSaida)} />
             <Metrica icone={<Clock />} rotulo="Chegada" valor={formatarHora(detalhe.dataHoraChegada)} />
           </div>
-          {detalhe.paradas.length > 0 && <div className="historico-detalhes-paradas-bloco">
+          {paradas.length > 0 && <div className="historico-detalhes-paradas-bloco">
             <h3>Pontos de parada</h3>
             <ol className="historico-detalhes-paradas">
-              {detalhe.paradas.map((parada, indice) => <li key={parada}><b>{indice + 1}</b><span>{parada}</span></li>)}
+              {paradas.map((parada, indice) => <li key={parada}><b>{indice + 1}</b><span>{parada}</span></li>)}
             </ol>
           </div>}
           <div className="historico-detalhes-valor">
@@ -150,12 +167,12 @@ function ConteudoDetalhe({ detalhe, papel }) {
       <section className="historico-detalhes-card">
         <h2 className="historico-detalhes-label">Motorista</h2>
         <div className="historico-detalhes-motorista">
-          <Avatar pessoa={detalhe.motorista} />
+          <Avatar pessoa={dadosMotorista} />
           <div>
-            <strong>{detalhe.motorista.nome}</strong>
+            <strong>{dadosMotorista.nome || 'Motorista'}</strong>
             <span>
               <Star size={15} fill="currentColor" aria-hidden="true" />
-              {formatarMedia(detalhe.motorista.avaliacao)}
+              {formatarMedia(dadosMotorista.avaliacao)}
             </span>
           </div>
           {detalhe.veiculo && <div className="historico-detalhes-veiculo">
@@ -167,11 +184,11 @@ function ConteudoDetalhe({ detalhe, papel }) {
 
       <section className="historico-detalhes-card">
         <div className="historico-detalhes-reservas-topo">
-          <h2 className="historico-detalhes-label">Reservas ({detalhe.reservas.length})</h2>
+          <h2 className="historico-detalhes-label">Reservas ({reservas.length})</h2>
           <span><Users size={15} /> {vagasOcupadas}/{totalVagas} vagas</span>
         </div>
         <ul className="historico-detalhes-reservas">
-          {detalhe.reservas.map((reserva) => (
+          {reservas.map((reserva) => (
             <li key={reserva.id}>
               <Avatar pessoa={reserva} />
               <div>
@@ -194,6 +211,7 @@ function Metrica({ icone, rotulo, valor }) {
 }
 
 function Avatar({ pessoa }) {
+  pessoa = pessoa || {};
   const usuarioId = pessoa.usuarioId ?? pessoa.id;
   const conteudo = pessoa.fotoPerfil
     ? <img className="historico-detalhes-avatar" src={pessoa.fotoPerfil} alt={`Foto de ${pessoa.nome}`} />

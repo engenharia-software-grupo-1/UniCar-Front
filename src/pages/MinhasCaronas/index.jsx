@@ -487,9 +487,9 @@ function CaronaCard({ carona, onCancelar, onIniciar, onFinalizar }) {
       </div>
 
       <p className="carona-card__rota">
-        <strong>{carona.origem || 'Origem'}</strong>
+        <strong title={carona.origem || 'Origem'}>{carona.origem || 'Origem'}</strong>
         <ArrowRight size={18} aria-hidden="true" />
-        <span>{montarDestino(carona)}</span>
+        <span title={montarDestino(carona)}>{montarDestino(carona)}</span>
       </p>
 
       {mostrarPassageiros && (

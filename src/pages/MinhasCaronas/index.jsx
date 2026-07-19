@@ -536,6 +536,7 @@ function CaronaCard({ carona, onCancelar, onIniciar, onFinalizar }) {
               }
             }}
             aria-label="Editar carona"
+            title="Editar carona"
           >
             <Pencil size={18} aria-hidden="true" />
           </Link>
@@ -545,6 +546,7 @@ function CaronaCard({ carona, onCancelar, onIniciar, onFinalizar }) {
             className="carona-card__cancelar"
             disabled={!podeCancelar}
             aria-label="Cancelar carona"
+            title="Cancelar carona"
             onClick={podeCancelar ? () => onCancelar(carona) : undefined}
           >
             <X size={18} aria-hidden="true" />
@@ -557,6 +559,7 @@ function CaronaCard({ carona, onCancelar, onIniciar, onFinalizar }) {
           state={{ minhaCarona: true, carona }}
           className="carona-card__detalhes"
           aria-label="Ver detalhes da carona"
+          title="Ver detalhes da carona"
         >
           <Eye size={18} aria-hidden="true" />
         </Link>

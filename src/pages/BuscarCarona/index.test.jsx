@@ -48,6 +48,7 @@ function textoContador(container) {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  localStorage.clear();
   buscarCaronas.mockResolvedValue([]);
 });
 
@@ -108,6 +109,29 @@ describe('carregamento inicial', () => {
 });
 
 describe('caronasFiltradas — filtros padrão e aliases', () => {
+  it('não exibe caronas criadas pelo usuário autenticado', async () => {
+    localStorage.setItem('unicar.session', JSON.stringify({
+      token: 'token-de-teste',
+      usuario: { id: 17 },
+    }));
+    buscarCaronas.mockResolvedValue([
+      carona({
+        id: 1,
+        motorista: { id: 17, nome: 'Minha própria carona' },
+      }),
+      carona({
+        id: 2,
+        motorista: { id: 24, nome: 'Outra motorista' },
+      }),
+    ]);
+
+    const { container } = renderPagina();
+
+    expect(await screen.findByText('Outra motorista')).toBeInTheDocument();
+    expect(screen.queryByText('Minha própria carona')).not.toBeInTheDocument();
+    expect(textoContador(container)).toBe('1 carona encontrada');
+  });
+
   it('filtra por vagas mínimas e preço máximo padrão, cobrindo os aliases de vagas', async () => {
     buscarCaronas.mockResolvedValue([
       // Passa: vagasDisponiveis >= 1 e preço <= 20.
@@ -148,7 +172,7 @@ describe('caronasFiltradas — filtros padrão e aliases', () => {
 
     expect(screen.getByText('Tres')).toBeInTheDocument();
     expect(screen.queryByText('Duas')).not.toBeInTheDocument();
-    expect(textoContador(container)).toBe('1 carona encontradas');
+    expect(textoContador(container)).toBe('1 carona encontrada');
   });
 
 });

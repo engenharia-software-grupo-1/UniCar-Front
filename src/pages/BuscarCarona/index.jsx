@@ -13,6 +13,7 @@ import {
   Star,
 } from 'lucide-react';
 import { buscarCaronas } from '../../services/caronaService.js';
+import { getSession } from '../../services/authService.js';
 import { buscarSugestoesEndereco } from '../../services/geocodingService.js';
 import './style.css';
 
@@ -81,6 +82,7 @@ function BuscarCarona() {
 
   const sugestoesOrigem = useSugestoesEndereco(origem, campoEnderecoAtivo === 'origem');
   const sugestoesDestino = useSugestoesEndereco(destino, campoEnderecoAtivo === 'destino');
+  const usuarioAtualId = identificarUsuario(getSession()?.usuario);
 
 
 
@@ -112,11 +114,13 @@ function BuscarCarona() {
   }, [location.search]);
 
   const caronasFiltradas = useMemo(() => caronas.filter((carona) => {
+    const motoristaId = identificarMotorista(carona);
     const vagas = Number(carona.vagasDisponiveis ?? carona.quantidadeVagas ?? 0);
     const preco = Number(carona.valorContribuicao ?? 0);
+    if (usuarioAtualId && motoristaId && motoristaId === usuarioAtualId) return false;
     if (vagas < vagasMinimas || preco > precoMaximo) return false;
     return true;
-  }), [caronas, vagasMinimas, precoMaximo]);
+  }), [caronas, precoMaximo, usuarioAtualId, vagasMinimas]);
 
   async function realizarBusca() {
     try {
@@ -223,7 +227,8 @@ function BuscarCarona() {
           <div className="buscar-resultado-topo">
             <p>
               {caronasFiltradas.length} carona
-              {caronasFiltradas.length !== 1 && 's'} encontradas
+              {caronasFiltradas.length !== 1 && 's'} encontrada
+              {caronasFiltradas.length !== 1 && 's'}
             </p>
           </div>
         )}
@@ -261,6 +266,20 @@ function BuscarCarona() {
       </section>
     </main>
   );
+}
+
+function identificarUsuario(usuario = {}) {
+  const id = usuario.id ?? usuario.usuarioId ?? usuario.userId;
+
+  return id == null ? '' : String(id);
+}
+
+function identificarMotorista(carona = {}) {
+  const motorista = carona.motorista ?? carona.driver ?? carona.usuario ?? {};
+
+  return identificarUsuario({
+    id: motorista.id ?? motorista.usuarioId ?? motorista.userId ?? carona.motoristaId,
+  });
 }
 
 function Field({

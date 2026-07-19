@@ -489,9 +489,9 @@ function CaronaCard({ carona, onCancelar, onIniciar, onFinalizar }) {
       </div>
 
       <p className="carona-card__rota">
-        <strong title={origem}>{limitarTexto(origem)}</strong>
+        <strong title={origem}>{origem}</strong>
         <ArrowRight size={18} aria-hidden="true" />
-        <span title={destino}>{limitarTexto(destino)}</span>
+        <span title={destino}>{destino}</span>
       </p>
 
       {mostrarPassageiros && (
@@ -564,10 +564,6 @@ function montarDestino(carona) {
   const destino = carona.destino || 'Destino';
 
   return carona.pontoEncontro ? `${destino} • ${carona.pontoEncontro}` : destino;
-}
-
-function limitarTexto(texto, limite = 25) {
-  return texto.length > limite ? `${texto.slice(0, limite).trimEnd()}...` : texto;
 }
 
 function formatarQuando(valor) {

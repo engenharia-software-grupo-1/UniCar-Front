@@ -115,7 +115,7 @@ describe('carregamento e listagem', () => {
     expect(screen.getByText('2 de 3 passageiros confirmados')).toBeInTheDocument();
   });
 
-  it('limita origem e destino a 25 caracteres, indicando a continuação com reticências', async () => {
+  it('mantém o texto completo da rota para o truncamento visual responsivo', async () => {
     listarMinhasCaronas.mockResolvedValue([{
       ...CARONAS[0],
       origem: 'Hospital da Criança e do Adolescente',
@@ -124,11 +124,11 @@ describe('carregamento e listagem', () => {
 
     renderPagina();
 
-    expect(await screen.findByText('Hospital da Criança e do...')).toHaveAttribute(
+    expect(await screen.findByText('Hospital da Criança e do Adolescente')).toHaveAttribute(
       'title',
       'Hospital da Criança e do Adolescente',
     );
-    expect(screen.getByText('Avenida Marechal Floriano...')).toHaveAttribute(
+    expect(screen.getByText('Avenida Marechal Floriano Peixoto • Campus Sede')).toHaveAttribute(
       'title',
       'Avenida Marechal Floriano Peixoto • Campus Sede',
     );

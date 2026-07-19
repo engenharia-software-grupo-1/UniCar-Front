@@ -119,7 +119,7 @@
 
 .carona-card__rota strong,
 .carona-card__rota span {
-  flex: 1 1 0;
+  flex: 0 1 auto;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;

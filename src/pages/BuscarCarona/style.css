@@ -40,13 +40,6 @@
 .buscar-select label, .buscar-label { display: block; margin-bottom: 5px; }
 .buscar-select select { width: 100%; min-height: 38px; padding: 0 9px; border: 1px solid #d8e0ea; border-radius: 8px; outline: 0; background: #fff; color: #28354b; font-size: 14px; }
 .buscar-select select:focus { border-color: #16284c; }
-.buscar-veiculos { display: flex; gap: 6px; }
-.buscar-veiculo { flex: 1; min-height: 36px; border: 1px solid #d8e0ea; border-radius: 8px; background: #fff; color: #667085; display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 12px; font-weight: 700; cursor: pointer; transition: background .18s, border-color .18s; }
-.buscar-veiculo.ativo { border-color: #16284c; background: #eef3fb; color: #16284c; }
-.buscar-checkbox { display: flex; align-items: center; gap: 7px; color: #354158; font-size: 14px; cursor: pointer; }
-.buscar-checkbox input { accent-color: #16284c; }
-.buscar-checkbox svg { color: #25865e; }
-
 .buscar-erro { margin-bottom: 16px; padding: 10px 13px; border-radius: 9px; background: #feeceb; color: #ae2922; font-size: .8rem; }
 .buscar-resultado-topo { margin: 0 0 12px; }
 .buscar-resultado-topo p { color: #6f7887; font-size: 14px; }

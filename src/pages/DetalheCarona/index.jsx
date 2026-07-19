@@ -502,13 +502,18 @@ function DetalheCarona() {
                     >
                       {getInitial(passageiro.nome)}
                     </Link>
-                    <div>
+                    <div className="detalhe-passenger__info">
                       <strong>{passageiro.nome}</strong>
                       <p>{passageiro.curso}</p>
-                      <span>
-                        <Star size={13} fill="currentColor" />
-                        {formatarAvaliacao(passageiro.avaliacao)}
-                      </span>
+                      <div className="detalhe-passenger__meta">
+                        <span>
+                          <Star size={13} fill="currentColor" />
+                          {formatarAvaliacao(passageiro.avaliacao)}
+                        </span>
+                        <em className={passageiro.status === 'Confirmado' ? 'is-confirmed' : ''}>
+                          {passageiro.status}
+                        </em>
+                      </div>
                       {passageiro.status === 'Pendente' && (
                         <div className="detalhe-passenger-request-info">
                           <span><Users size={14} /> {formatarQuantidadePassageiros(passageiro.quantidadePassageiros)}</span>
@@ -516,40 +521,39 @@ function DetalheCarona() {
                         </div>
                       )}
                     </div>
-                    <em className={passageiro.status === 'Confirmado' ? 'is-confirmed' : ''}>
-                      {passageiro.status}
-                    </em>
                     {isMinhaCarona && (
-                      <button
-                        type="button"
-                        className="detalhe-passenger-chat"
-                        aria-label={`Conversar com ${passageiro.nome}`}
-                        onClick={() => navigate(
-                          `/minhas-caronas/${carona.id}/chat/${passageiro.id}`,
-                          { state: { passageiro, status: carona.status } },
+                      <div className="detalhe-passenger__actions">
+                        <button
+                          type="button"
+                          className="detalhe-passenger-chat"
+                          aria-label={`Conversar com ${passageiro.nome}`}
+                          onClick={() => navigate(
+                            `/minhas-caronas/${carona.id}/chat/${passageiro.id}`,
+                            { state: { passageiro, status: carona.status } },
+                          )}
+                        >
+                          <MessageCircle size={17} aria-hidden="true" />
+                        </button>
+                        {passageiro.status === 'Confirmado' && (
+                          <button
+                            type="button"
+                            className="detalhe-remove-reservation"
+                            onClick={() => setReservaParaRemover(passageiro)}
+                          >
+                            <UserMinus size={16} />
+                            Remover reserva
+                          </button>
                         )}
-                      >
-                        <MessageCircle size={17} aria-hidden="true" />
-                      </button>
-                    )}
-                    {isMinhaCarona && passageiro.status === 'Confirmado' && (
-                      <button
-                        type="button"
-                        className="detalhe-remove-reservation"
-                        onClick={() => setReservaParaRemover(passageiro)}
-                      >
-                        <UserMinus size={16} />
-                        Remover Reserva
-                      </button>
-                    )}
-                    {isMinhaCarona && passageiro.status === 'Pendente' && (
-                      <div className="detalhe-solicitacao__acoes">
-                        <button type="button" className="is-accept" disabled={processandoSolicitacao === passageiro.reservaId} onClick={() => responderSolicitacao(passageiro, 'aceitar')}>
-                          <UserCheck size={16} /> Aceitar
-                        </button>
-                        <button type="button" className="is-reject" disabled={processandoSolicitacao === passageiro.reservaId} onClick={() => responderSolicitacao(passageiro, 'recusar')}>
-                          <XCircle size={16} /> Recusar
-                        </button>
+                        {passageiro.status === 'Pendente' && (
+                          <div className="detalhe-solicitacao__acoes">
+                            <button type="button" className="is-accept" disabled={processandoSolicitacao === passageiro.reservaId} onClick={() => responderSolicitacao(passageiro, 'aceitar')}>
+                              <UserCheck size={16} /> Aceitar
+                            </button>
+                            <button type="button" className="is-reject" disabled={processandoSolicitacao === passageiro.reservaId} onClick={() => responderSolicitacao(passageiro, 'recusar')}>
+                              <XCircle size={16} /> Recusar
+                            </button>
+                          </div>
+                        )}
                       </div>
                     )}
                       </article>

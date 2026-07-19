@@ -494,7 +494,7 @@ a.detalhe-avatar:focus-visible {
 .detalhe-passenger {
   padding: 14px;
   display: grid;
-  grid-template-columns: auto 1fr auto auto auto;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 11px;
 }
@@ -513,6 +513,13 @@ a.detalhe-avatar:focus-visible {
   font-weight: 800;
 }
 
+.detalhe-passenger__meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
 .detalhe-passenger em {
   min-height: 26px;
   border-radius: 999px;
@@ -527,6 +534,13 @@ a.detalhe-avatar:focus-visible {
 .detalhe-passenger em.is-confirmed {
   background: #dcfce7;
   color: #166534;
+}
+
+.detalhe-passenger__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
 }
 
 .detalhe-passenger-chat {
@@ -871,12 +885,16 @@ a.detalhe-avatar:focus-visible {
     grid-template-columns: auto 1fr auto;
   }
 
+  .detalhe-passenger__actions {
+    grid-column: 1 / -1;
+    justify-content: flex-end;
+  }
+
   .detalhe-solicitacao__acoes { grid-column:1 / -1; display:grid; grid-template-columns:1fr 1fr; }
   .detalhe-solicitacao__acoes button { justify-content:center; }
 
   .detalhe-remove-reservation {
-    grid-column: 1 / -1;
-    width: 100%;
+    min-height: 38px;
   }
 
   .detalhe-remove-modal div {

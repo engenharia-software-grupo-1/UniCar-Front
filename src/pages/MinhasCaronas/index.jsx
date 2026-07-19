@@ -487,9 +487,9 @@ function CaronaCard({ carona, onCancelar, onIniciar, onFinalizar }) {
       </div>
 
       <p className="carona-card__rota">
-        <strong title={carona.origem || 'Origem'}>{carona.origem || 'Origem'}</strong>
+        <strong title={carona.origem || 'Origem'}>{truncarTexto(carona.origem || 'Origem')}</strong>
         <ArrowRight size={18} aria-hidden="true" />
-        <span title={montarDestino(carona)}>{montarDestino(carona)}</span>
+        <span title={montarDestino(carona)}>{truncarTexto(montarDestino(carona))}</span>
       </p>
 
       {mostrarPassageiros && (
@@ -562,6 +562,12 @@ function montarDestino(carona) {
   const destino = carona.destino || 'Destino';
 
   return carona.pontoEncontro ? `${destino} • ${carona.pontoEncontro}` : destino;
+}
+
+function truncarTexto(texto, limite = 30) {
+  const valor = String(texto).trim();
+
+  return valor.length > limite ? `${valor.slice(0, limite - 1).trimEnd()}…` : valor;
 }
 
 function formatarQuando(valor) {

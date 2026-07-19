@@ -7,13 +7,6 @@ export async function listarHistoricoComoMotorista() {
   return extrairLista(resposta).map(normalizarCaronaMotorista);
 }
 
-export async function obterResumoHistoricoMotorista() {
-  return {
-    avaliacaoMedia: 4.8,
-    caronasConcluidas: 42,
-  };
-}
-
 function normalizarCaronaMotorista(carona = {}) {
   const passageiros = extrairPassageiros(carona).map(normalizarPassageiro).filter((passageiro) => passageiro.nome);
   const vagasOcupadas = obterNumero(

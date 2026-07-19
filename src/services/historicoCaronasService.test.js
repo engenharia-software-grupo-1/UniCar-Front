@@ -4,7 +4,6 @@ const BASE_URL = 'http://localhost:8080';
 const TOKEN = 'token-simulado';
 
 let listarHistoricoComoMotorista;
-let obterResumoHistoricoMotorista;
 
 // Resposta fake no formato que o apiRequest consome: ele checa o content-type
 // antes de tentar o json(), então o header é obrigatório aqui.
@@ -51,8 +50,7 @@ beforeEach(async () => {
   vi.stubEnv('VITE_API_URL', BASE_URL);
   vi.stubEnv('VITE_ENABLE_MOCKS', 'false');
 
-  ({ listarHistoricoComoMotorista, obterResumoHistoricoMotorista } =
-    await import('./historicoCaronasService.js'));
+  ({ listarHistoricoComoMotorista } = await import('./historicoCaronasService.js'));
 });
 
 afterEach(() => {
@@ -539,34 +537,5 @@ describe('listarHistoricoComoMotorista — normalização de campos', () => {
       'vagasOcupadas',
       'vagasTotal',
     ]);
-  });
-});
-
-describe('obterResumoHistoricoMotorista', () => {
-  // O resumo é hardcoded: não existe endpoint de resumo no backend.
-  it('devolve o resumo fixo sem tocar na rede', async () => {
-    comSessao();
-
-    const resumo = await obterResumoHistoricoMotorista();
-
-    expect(resumo).toEqual({ avaliacaoMedia: 4.8, caronasConcluidas: 42 });
-    expect(fetch).not.toHaveBeenCalled();
-  });
-
-  it('devolve o mesmo resumo sem sessão nenhuma', async () => {
-    const resumo = await obterResumoHistoricoMotorista();
-
-    expect(resumo).toEqual({ avaliacaoMedia: 4.8, caronasConcluidas: 42 });
-    expect(fetch).not.toHaveBeenCalled();
-  });
-
-  it('ignora completamente o que o backend responderia', async () => {
-    comSessao();
-    fetch.mockRejectedValue(new TypeError('Failed to fetch'));
-
-    await expect(obterResumoHistoricoMotorista()).resolves.toEqual({
-      avaliacaoMedia: 4.8,
-      caronasConcluidas: 42,
-    });
   });
 });

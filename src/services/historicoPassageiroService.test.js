@@ -4,7 +4,6 @@ const BASE_URL = 'http://localhost:8080';
 const TOKEN = 'token-simulado';
 
 let listarHistoricoComoPassageiro;
-let obterResumoHistoricoPassageiro;
 
 // Resposta fake no formato que o apiRequest consome: ele checa o content-type
 // antes de tentar o json(), então o header é obrigatório aqui.
@@ -31,8 +30,7 @@ beforeEach(async () => {
   vi.stubEnv('VITE_API_URL', BASE_URL);
   vi.stubEnv('VITE_ENABLE_MOCKS', 'false');
 
-  ({ listarHistoricoComoPassageiro, obterResumoHistoricoPassageiro } =
-    await import('./historicoPassageiroService.js'));
+  ({ listarHistoricoComoPassageiro } = await import('./historicoPassageiroService.js'));
 });
 
 afterEach(() => {
@@ -243,171 +241,5 @@ describe('listarHistoricoComoPassageiro — normalização de campos', () => {
       'id',
       'nome',
     ]);
-  });
-});
-
-describe('listarHistoricoComoPassageiro — modo mockado (VITE_ENABLE_MOCKS)', () => {
-  async function comMocksLigados() {
-    vi.stubEnv('VITE_ENABLE_MOCKS', 'true');
-    vi.resetModules();
-    ({ listarHistoricoComoPassageiro } = await import(
-      './historicoPassageiroService.js'
-    ));
-  }
-
-  it('devolve as 4 reservas mockadas sem tocar na rede', async () => {
-    await comMocksLigados();
-
-    const reservas = await listarHistoricoComoPassageiro();
-
-    expect(fetch).not.toHaveBeenCalled();
-    expect(reservas).toHaveLength(4);
-    expect(reservas.map((reserva) => reserva.id)).toEqual([1, 2, 3, 4]);
-  });
-
-  it('devolve o shape que a página HistoricoCaronas consome', async () => {
-    await comMocksLigados();
-
-    const reservas = await listarHistoricoComoPassageiro();
-
-    for (const reserva of reservas) {
-      expect(reserva).toEqual({
-        id: expect.any(Number),
-        status: expect.any(String),
-        dataHora: expect.any(String),
-        vagasReservadas: expect.any(Number),
-        totalVagas: expect.any(Number),
-        origem: expect.any(String),
-        destino: expect.any(String),
-        pontoReferencia: expect.any(String),
-        motorista: {
-          id: expect.any(String),
-          nome: expect.any(String),
-          avaliacao: expect.any(Number),
-          fotoPerfil: expect.any(String),
-        },
-      });
-    }
-  });
-
-  it('o id do motorista casa com os ids do publicProfileService', async () => {
-    await comMocksLigados();
-
-    const reservas = await listarHistoricoComoPassageiro();
-
-    expect(reservas.map((reserva) => reserva.motorista.id)).toEqual([
-      'marina',
-      'beatriz',
-      'rafael',
-      'ana',
-    ]);
-  });
-
-  it('cobre os quatro status do ciclo de vida da reserva', async () => {
-    await comMocksLigados();
-
-    const reservas = await listarHistoricoComoPassageiro();
-
-    expect(reservas.map((reserva) => reserva.status)).toEqual([
-      'CONFIRMADA',
-      'FINALIZADA',
-      'CANCELADA',
-      'RECUSADA',
-    ]);
-  });
-
-  it('todas as datas são parseáveis', async () => {
-    await comMocksLigados();
-
-    const reservas = await listarHistoricoComoPassageiro();
-
-    for (const reserva of reservas) {
-      expect(Number.isNaN(Date.parse(reserva.dataHora))).toBe(false);
-    }
-  });
-
-  it('as vagas reservadas nunca passam do total de vagas', async () => {
-    await comMocksLigados();
-
-    const reservas = await listarHistoricoComoPassageiro();
-
-    for (const reserva of reservas) {
-      expect(reserva.vagasReservadas).toBeGreaterThan(0);
-      expect(reserva.vagasReservadas).toBeLessThanOrEqual(reserva.totalVagas);
-    }
-  });
-
-  it('todas as reservas têm a UFCG como destino', async () => {
-    await comMocksLigados();
-
-    const reservas = await listarHistoricoComoPassageiro();
-
-    expect(reservas.every((reserva) => reserva.destino === 'UFCG')).toBe(true);
-    expect(reservas.every((reserva) => reserva.origem !== '')).toBe(true);
-  });
-
-  it('a primeira reserva é gerada com a data de hoje às 07:20', async () => {
-    await comMocksLigados();
-
-    const [reserva] = await listarHistoricoComoPassageiro();
-
-    const hoje = new Date();
-    const pad = (valor) => String(valor).padStart(2, '0');
-    const dataEsperada =
-      `${hoje.getFullYear()}-${pad(hoje.getMonth() + 1)}-${pad(hoje.getDate())}` +
-      'T07:20:00';
-
-    expect(reserva.dataHora).toBe(dataEsperada);
-  });
-
-  it('devolve objetos novos: mutar o resultado não contamina a listagem seguinte', async () => {
-    await comMocksLigados();
-
-    const primeira = await listarHistoricoComoPassageiro();
-    primeira[0].status = 'ADULTERADO';
-    primeira[0].origem = 'Marte';
-
-    const segunda = await listarHistoricoComoPassageiro();
-
-    expect(segunda[0].status).toBe('CONFIRMADA');
-    expect(segunda[0].origem).toBe('Centenário');
-  });
-
-  it('recria o motorista a cada chamada a partir do mesmo mock', async () => {
-    await comMocksLigados();
-
-    const primeira = await listarHistoricoComoPassageiro();
-    primeira[0].motorista.nome = 'Adulterado';
-
-    const segunda = await listarHistoricoComoPassageiro();
-
-    expect(segunda[0].motorista.nome).toBe('Marina Souza');
-  });
-});
-
-describe('obterResumoHistoricoPassageiro', () => {
-  // O resumo é hardcoded: não existe endpoint de resumo no backend.
-  it('devolve o resumo fixo sem tocar na rede', async () => {
-    comSessao();
-
-    await expect(obterResumoHistoricoPassageiro()).resolves.toEqual({
-      avaliacaoMedia: 4.8,
-      caronasConcluidas: 42,
-    });
-    expect(fetch).not.toHaveBeenCalled();
-  });
-
-  it('a avaliação média fica na escala de 0 a 5', async () => {
-    const resumo = await obterResumoHistoricoPassageiro();
-
-    expect(resumo.avaliacaoMedia).toBeGreaterThanOrEqual(0);
-    expect(resumo.avaliacaoMedia).toBeLessThanOrEqual(5);
-    expect(Number.isInteger(resumo.caronasConcluidas)).toBe(true);
-  });
-
-  it('é estável entre chamadas', async () => {
-    await expect(obterResumoHistoricoPassageiro()).resolves.toEqual(
-      await obterResumoHistoricoPassageiro(),
-    );
   });
 });

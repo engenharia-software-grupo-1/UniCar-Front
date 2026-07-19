@@ -4,12 +4,11 @@ import { ArrowRight, Inbox, Star, Users, X } from 'lucide-react';
 import AvaliarUsuarioModal from '../Perfil/AvaliarUsuarioModal.jsx';
 import {
   listarHistoricoComoPassageiro,
-  obterResumoHistoricoPassageiro,
 } from '../../services/historicoPassageiroService.js';
 import {
   listarHistoricoComoMotorista,
-  obterResumoHistoricoMotorista,
 } from '../../services/historicoCaronasService.js';
+import { getPerfilUsuarioAutenticado } from '../../services/profileService.js';
 import './style.css';
 
 const STATUS_RESERVA = {
@@ -55,11 +54,10 @@ function HistoricoCaronas() {
         setCarregando(true);
         setErro('');
 
-        const [reservasPassageiro, caronasMotorista, resumoPassageiro, resumoMotorista] = await Promise.all([
+        const [reservasPassageiro, caronasMotorista, perfil] = await Promise.all([
           listarHistoricoComoPassageiro(),
           listarHistoricoComoMotorista(),
-          obterResumoHistoricoPassageiro(),
-          obterResumoHistoricoMotorista(),
+          getPerfilUsuarioAutenticado(),
         ]);
 
         if (!ativo) {
@@ -69,8 +67,8 @@ function HistoricoCaronas() {
         setReservas(reservasPassageiro);
         setCaronas(caronasMotorista);
         setResumo({
-          avaliacaoMedia: resumoMotorista.avaliacaoMedia || resumoPassageiro.avaliacaoMedia,
-          caronasConcluidas: resumoMotorista.caronasConcluidas || resumoPassageiro.caronasConcluidas,
+          avaliacaoMedia: Number(perfil.avaliacao) || 0,
+          caronasConcluidas: contarCaronasConcluidas(reservasPassageiro, caronasMotorista),
         });
       } catch (error) {
         if (ativo) {
@@ -248,6 +246,13 @@ function HistoricoCaronas() {
       )}
     </main>
   );
+}
+
+function contarCaronasConcluidas(reservas = [], caronas = []) {
+  const reservasConcluidas = reservas.filter((reserva) => reserva.status === 'FINALIZADA').length;
+  const caronasConcluidas = caronas.filter((carona) => carona.status === 'FINALIZADA').length;
+
+  return reservasConcluidas + caronasConcluidas;
 }
 
 function HistoricoMotorista({ carregando, erro, caronas, onAvaliar }) {

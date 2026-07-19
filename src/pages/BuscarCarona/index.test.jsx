@@ -151,47 +151,6 @@ describe('caronasFiltradas — filtros padrão e aliases', () => {
     expect(textoContador(container)).toBe('1 carona encontradas');
   });
 
-  it('filtra por tipo de veículo cobrindo os aliases veiculo.tipo e tipoVeiculo', async () => {
-    buscarCaronas.mockResolvedValue([
-      carona({ id: 1, motoristaNome: 'MotoNested', veiculo: { tipo: 'moto' } }),
-      carona({ id: 2, motoristaNome: 'MotoFlat', tipoVeiculo: 'MOTO' }),
-      carona({ id: 3, motoristaNome: 'CarroNested', veiculo: { tipo: 'carro' } }),
-      // Só é excluída sob o filtro "Moto" se o alias `tipoVeiculo` for lido; sem
-      // o alias o tipo cairia para '' e a carona passaria (tipo vazio = manter).
-      carona({ id: 4, motoristaNome: 'CarroFlat', tipoVeiculo: 'CARRO' }),
-    ]);
-
-    renderPagina();
-
-    await screen.findByText('MotoNested');
-
-    await userEvent.click(screen.getByRole('button', { name: 'Filtros' }));
-    await userEvent.click(screen.getByRole('button', { name: 'Moto' }));
-
-    expect(screen.getByText('MotoNested')).toBeInTheDocument();
-    expect(screen.getByText('MotoFlat')).toBeInTheDocument();
-    expect(screen.queryByText('CarroNested')).not.toBeInTheDocument();
-    expect(screen.queryByText('CarroFlat')).not.toBeInTheDocument();
-  });
-
-  it('filtra por "apenas verificados" cobrindo os aliases motorista.verificado e motoristaVerificado', async () => {
-    buscarCaronas.mockResolvedValue([
-      carona({ id: 1, motoristaNome: 'VerifNested', motorista: { nome: 'X', verificado: true } }),
-      carona({ id: 2, motoristaNome: 'VerifFlat', motoristaVerificado: true }),
-      carona({ id: 3, motoristaNome: 'NaoVerif', motorista: { nome: 'Y', verificado: false } }),
-    ]);
-
-    renderPagina();
-
-    await screen.findByText('VerifNested');
-
-    await userEvent.click(screen.getByRole('button', { name: 'Filtros' }));
-    await userEvent.click(screen.getByRole('checkbox'));
-
-    expect(screen.getByText('VerifNested')).toBeInTheDocument();
-    expect(screen.getByText('VerifFlat')).toBeInTheDocument();
-    expect(screen.queryByText('NaoVerif')).not.toBeInTheDocument();
-  });
 });
 
 describe('realizarBusca', () => {

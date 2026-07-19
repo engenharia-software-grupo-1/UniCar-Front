@@ -15,7 +15,6 @@ import {
 import { buscarCaronas } from '../../services/caronaService.js';
 import './style.css';
 
-const VEICULOS = ['Qualquer', 'Carro', 'Moto'];
 const CURSOS = [
   'Qualquer',
   'Ciência da Computação',
@@ -43,8 +42,6 @@ function BuscarCarona() {
   const [mostrarFiltros, setMostrarFiltros] = useState(false);
   const [vagasMinimas, setVagasMinimas] = useState(1);
   const [precoMaximo, setPrecoMaximo] = useState(20);
-  const [veiculo, setVeiculo] = useState('Qualquer');
-  const [apenasVerificados, setApenasVerificados] = useState(false);
 
 
 
@@ -78,14 +75,9 @@ function BuscarCarona() {
   const caronasFiltradas = useMemo(() => caronas.filter((carona) => {
     const vagas = Number(carona.vagasDisponiveis ?? carona.quantidadeVagas ?? 0);
     const preco = Number(carona.valorContribuicao ?? 0);
-    const tipo = String(carona.veiculo?.tipo ?? carona.tipoVeiculo ?? '').toLowerCase();
-    const verificado = Boolean(carona.motorista?.verificado ?? carona.motoristaVerificado);
-
     if (vagas < vagasMinimas || preco > precoMaximo) return false;
-    if (veiculo !== 'Qualquer' && tipo && !tipo.includes(veiculo.toLowerCase())) return false;
-    if (apenasVerificados && !verificado) return false;
     return true;
-  }), [caronas, vagasMinimas, precoMaximo, veiculo, apenasVerificados]);
+  }), [caronas, vagasMinimas, precoMaximo]);
 
   async function realizarBusca() {
     try {
@@ -148,23 +140,6 @@ function BuscarCarona() {
                 <SelectField label="Curso" value={curso} options={CURSOS} onChange={setCurso} />
                 <SelectField label="Gênero" value={genero} options={GENEROS} onChange={setGenero} />
               </div>
-              <div>
-                <label className="buscar-label">Veículo</label>
-                <div className="buscar-veiculos">
-                  {VEICULOS.map((tipo) => (
-                    <button key={tipo} type="button" className={`buscar-veiculo${veiculo === tipo ? ' ativo' : ''}`} onClick={() => setVeiculo(tipo)}>
-                      {tipo === 'Carro' && <Car size={14} />}
-                      {tipo === 'Moto' && <Bike size={14} />}
-                      {tipo}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <label className="buscar-checkbox">
-                <input type="checkbox" checked={apenasVerificados} onChange={(evento) => setApenasVerificados(evento.target.checked)} />
-                <ShieldCheck size={15} />
-                Apenas motoristas verificados
-              </label>
             </div>
           )}
         </div>

@@ -12,6 +12,10 @@ vi.mock('../../services/profileService.js', () => ({
   getPerfilUsuarioAutenticado: vi.fn(),
 }));
 
+vi.mock('../../services/publicProfileService.js', () => ({
+  obterPerfilPublicoUsuario: vi.fn(),
+}));
+
 vi.mock('../../services/reservaService.js', () => ({
   aceitarReserva: vi.fn(),
   criarReserva: vi.fn(),
@@ -22,6 +26,7 @@ vi.mock('../../services/reservaService.js', () => ({
 import DetalheCarona from './index.jsx';
 import { obterCarona, removerReservaCarona } from '../../services/caronaService.js';
 import { getPerfilUsuarioAutenticado } from '../../services/profileService.js';
+import { obterPerfilPublicoUsuario } from '../../services/publicProfileService.js';
 import {
   aceitarReserva,
   criarReserva,
@@ -61,6 +66,7 @@ beforeEach(() => {
   // mockResolvedValue/mockRejectedValue de um teste para o seguinte.
   vi.clearAllMocks();
   getPerfilUsuarioAutenticado.mockResolvedValue(null);
+  obterPerfilPublicoUsuario.mockResolvedValue(null);
   listarReservasPendentesDaCarona.mockResolvedValue([]);
   aceitarReserva.mockResolvedValue({});
   recusarReserva.mockResolvedValue({});
@@ -74,6 +80,20 @@ describe('DetalheCarona — observações do motorista', () => {
     renderPagina();
 
     expect(await screen.findByText('Engenharia • UFCG')).toBeInTheDocument();
+  });
+
+  it('busca o curso no perfil público quando o detalhe da carona não o traz', async () => {
+    obterCarona.mockResolvedValue({
+      ...CARONA_BASE,
+      motorista: { ...CARONA_BASE.motorista, curso: '' },
+    });
+    obterPerfilPublicoUsuario.mockResolvedValue({ curso: 'Sistemas de Informação' });
+
+    renderPagina();
+
+    expect(await screen.findByText('Sistemas de Informação • UFCG')).toBeInTheDocument();
+    expect(obterPerfilPublicoUsuario).toHaveBeenCalledWith(1);
+    expect(screen.queryByText(/Curso não informado/)).not.toBeInTheDocument();
   });
 
   it('mostra a observação quando a carona tem uma', async () => {

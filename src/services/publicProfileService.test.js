@@ -57,6 +57,18 @@ describe('obterPerfilPublicoUsuario', () => {
     });
   });
 
+  it('normaliza a URL pública da foto retornada pela API', async () => {
+    fetch.mockResolvedValue(respostaJson({
+      id: 42,
+      nome: 'Ana Silva',
+      fotoPerfil: 'https://cdn.exemplo.com/ana.jpg',
+    }));
+
+    await expect(obterPerfilPublicoUsuario(42)).resolves.toMatchObject({
+      fotoUrl: 'https://cdn.exemplo.com/ana.jpg',
+    });
+  });
+
   it('codifica o identificador antes de montar a URL', async () => {
     fetch.mockResolvedValue(respostaJson({ id: 1, nome: 'Ana' }));
 

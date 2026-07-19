@@ -62,15 +62,21 @@ export async function atualizarPerfilUsuarioAutenticado(dadosAtualizados) {
     throw new Error('Usuário não autenticado.');
   }
 
+  const fotoFoiInformada = Object.hasOwn(dadosAtualizados, 'fotoUrl');
+  const payload = {
+    genero: toGeneroApiValue(dadosAtualizados.genero),
+    receberEmail: dadosAtualizados.recebeEmails,
+    curso: dadosAtualizados.curso,
+  };
+
+  if (fotoFoiInformada) {
+    payload.fotoUrl = dadosAtualizados.fotoUrl || '';
+  }
+
   const usuarioApi = normalizeUsuario(await apiRequest('/usuarios/me', {
     method: 'PATCH',
-    body: JSON.stringify({
-      genero: toGeneroApiValue(dadosAtualizados.genero),
-      receberEmail: dadosAtualizados.recebeEmails,
-      curso: dadosAtualizados.curso,
-    }),
+    body: JSON.stringify(payload),
   }));
-  const fotoFoiInformada = Object.hasOwn(dadosAtualizados, 'fotoUrl');
   const usuarioAtualizado = {
     ...usuarioApi,
     curso: usuarioApi.curso || dadosAtualizados.curso || session.usuario?.curso || '',

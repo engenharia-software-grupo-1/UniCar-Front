@@ -480,9 +480,7 @@ describe('atualizarPerfilUsuarioAutenticado — request', () => {
     });
   });
 
-  // O backend usa @JsonIgnoreProperties(ignoreUnknown = false): qualquer campo
-  // fora do DTO derruba o PATCH com 400.
-  it('não envia campos fora do DTO, mesmo que venham no objeto', async () => {
+  it('envia fotoUrl quando uma nova foto é informada', async () => {
     fetch.mockResolvedValue(respostaJson({ id: 1 }));
 
     await atualizarPerfilUsuarioAutenticado({
@@ -498,11 +496,9 @@ describe('atualizarPerfilUsuarioAutenticado — request', () => {
       id: 1,
     });
 
-    expect(Object.keys(JSON.parse(fetch.mock.calls[0][1].body)).sort()).toEqual([
-      'curso',
-      'genero',
-      'receberEmail',
-    ]);
+    expect(JSON.parse(fetch.mock.calls[0][1].body)).toMatchObject({
+      fotoUrl: FOTO,
+    });
   });
 
   it.each([

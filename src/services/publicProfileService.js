@@ -17,8 +17,21 @@ function normalizarPerfil(perfil = {}) {
     verificado: Boolean(perfil.verificado ?? perfil.motoristaVerificado),
     avaliacao: Number(perfil.reputacao ?? perfil.avaliacao ?? perfil.rating ?? 0),
     totalCaronas: Number(perfil.totalCaronas ?? 0),
+    fotoUrl: obterFotoPerfil(perfil),
     membroDesde: perfil.membroDesde ?? new Date().getFullYear(),
     biografia: perfil.biografia ?? 'Membro da comunidade UniCar.',
     avaliacoes: Array.isArray(perfil.avaliacoes) ? perfil.avaliacoes : [],
   };
+}
+
+function obterFotoPerfil(perfil) {
+  const foto =
+    perfil.fotoUrl ??
+    perfil.fotoPerfil ??
+    perfil.fotoPerfilUrl ??
+    perfil.avatarUrl ??
+    perfil.urlImagem ??
+    '';
+
+  return /^https?:\/\/\S+$/i.test(String(foto)) ? foto : '';
 }

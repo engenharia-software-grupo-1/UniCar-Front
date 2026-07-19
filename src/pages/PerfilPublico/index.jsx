@@ -99,7 +99,7 @@ function PerfilPublico() {
           <>
             <section className="perfil-publico-card" aria-label={`Perfil de ${perfil.nome}`}>
               <div className="perfil-publico-header">
-                <Avatar nome={perfil.nome} verificado={perfil.verificado} />
+                <Avatar fotoUrl={perfil.fotoUrl} nome={perfil.nome} verificado={perfil.verificado} />
 
                 <div className="perfil-publico-identidade">
                   <h1>
@@ -180,10 +180,10 @@ function mensagemErroBloqueio(error) {
   return error?.message || 'Não foi possível bloquear o usuário.';
 }
 
-function Avatar({ nome, verificado }) {
+function Avatar({ fotoUrl, nome, verificado }) {
   return (
     <div className="perfil-publico-avatar">
-      {nome.trim()[0]?.toUpperCase() || 'U'}
+      {fotoUrl ? <img src={fotoUrl} alt={`Foto de ${nome}`} /> : nome.trim()[0]?.toUpperCase() || 'U'}
       {verificado && <span aria-label="Usuário verificado">
         <ShieldCheck size={16} />
       </span>}

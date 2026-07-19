@@ -162,7 +162,7 @@
   color: #ffffff;
   font-size: 16px;
   font-weight: 800;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
@@ -232,10 +232,14 @@
   opacity: 0.85;
 }
 
+.carona-card__detalhes-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-top: 14px;
+}
+
 .carona-card__detalhes {
   width: fit-content;
-  margin-top: 14px;
-  margin-inline: auto;
   padding: 9px 14px;
   border: 1px solid #dbe6f4;
   border-radius: 10px;

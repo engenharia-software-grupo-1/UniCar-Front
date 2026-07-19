@@ -553,10 +553,12 @@ function CaronaCard({ carona, onCancelar, onIniciar, onFinalizar }) {
       )}
       </div>
 
-      <Link to={`/minhas-caronas/${carona.id}`} state={{ minhaCarona: true, carona }} className="carona-card__detalhes">
-        <Eye size={17} aria-hidden="true" />
-        Ver detalhes da carona
-      </Link>
+      <div className="carona-card__detalhes-wrapper">
+        <Link to={`/minhas-caronas/${carona.id}`} state={{ minhaCarona: true, carona }} className="carona-card__detalhes">
+          <Eye size={17} aria-hidden="true" />
+          Ver detalhes da carona
+        </Link>
+      </div>
     </article>
   );
 }

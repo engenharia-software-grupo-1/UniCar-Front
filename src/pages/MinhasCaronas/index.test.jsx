@@ -115,6 +115,25 @@ describe('carregamento e listagem', () => {
     expect(screen.getByText('2 de 3 passageiros confirmados')).toBeInTheDocument();
   });
 
+  it('limita origem e destino a 25 caracteres, indicando a continuação com reticências', async () => {
+    listarMinhasCaronas.mockResolvedValue([{
+      ...CARONAS[0],
+      origem: 'Hospital da Criança e do Adolescente',
+      destino: 'Avenida Marechal Floriano Peixoto',
+    }]);
+
+    renderPagina();
+
+    expect(await screen.findByText('Hospital da Criança e do...')).toHaveAttribute(
+      'title',
+      'Hospital da Criança e do Adolescente',
+    );
+    expect(screen.getByText('Avenida Marechal Floriano...')).toHaveAttribute(
+      'title',
+      'Avenida Marechal Floriano Peixoto • Campus Sede',
+    );
+  });
+
   it('habilita "Iniciar", "Editar", "Cancelar" e "Ver detalhes" para caronas CRIADA', async () => {
     listarMinhasCaronas.mockResolvedValue(CARONAS);
 

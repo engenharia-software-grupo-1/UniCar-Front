@@ -35,7 +35,7 @@ function normalizarReservaPassageiro(reserva = {}) {
   return {
     id: reserva.id,
     status: reserva.status || 'PENDENTE',
-    dataHora: reserva.dataCarona || reserva.dataHora || reserva.carona?.dataHoraSaida || '',
+    dataHora: reserva.dataHora || reserva.carona?.dataHoraSaida || '',
     vagasReservadas: reserva.vagasReservadas ?? reserva.quantidadePassageiros ?? 1,
     totalVagas:
       reserva.totalVagas ?? reserva.carona?.quantidadeVagas ?? reserva.carona?.vagasTotais ?? null,

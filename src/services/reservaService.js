@@ -278,6 +278,12 @@ function normalizarResumoReserva(reserva = {}) {
     status: String(reserva.status || '').toUpperCase(),
     quantidadePassageiros: Number(reserva.quantidadePassageiros ?? 1),
     valorContribuicao: reserva.valorContribuicao ?? null,
+    dataViagem:
+      reserva.dataCarona ||
+      carona.dataCarona ||
+      reserva.dataHoraSaida ||
+      carona.dataHoraSaida ||
+      '',
     carona: {
       id: carona.id ?? reserva.caronaId,
       origem: descricao(carona.origem ?? reserva.origem),

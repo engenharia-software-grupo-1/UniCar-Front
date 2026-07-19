@@ -78,8 +78,18 @@ describe('listarReservasEnviadas', () => {
       status: 'ACEITA',
       quantidadePassageiros: 2,
       valorContribuicao: 8,
+      dataViagem: '',
       carona: { id: 10, origem: 'Bodocongó', destino: 'UFCG' },
     });
+  });
+
+  it('usa dataCarona para preencher a data exibida no card da reserva', async () => {
+    fetch.mockResolvedValue(respostaJson([{ ...ENVIADAS[0], dataCarona: '2026-07-20T07:30:00' }]));
+
+    const { listarReservasEnviadas } = await importarService();
+    const [reserva] = await listarReservasEnviadas();
+
+    expect(reserva.dataViagem).toBe('2026-07-20T07:30:00');
   });
 
   it('aceita origem/destino como objeto, como no resto da API', async () => {

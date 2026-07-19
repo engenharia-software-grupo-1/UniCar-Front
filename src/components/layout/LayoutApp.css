@@ -2,6 +2,7 @@
    página repetia o próprio padding-bottom, com valores divergentes. A topbar é
    sticky (ocupa espaço no fluxo), então não precisa de padding-top. */
 .app-conteudo {
+  background: var(--app-page-background);
   padding-bottom: calc(88px + env(safe-area-inset-bottom));
   min-width: 0;
 }

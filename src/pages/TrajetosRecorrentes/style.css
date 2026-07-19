@@ -1,12 +1,14 @@
 body {
   margin: 0;
   font-family: "Nunito", ui-sans-serif, system-ui, sans-serif;
-  background: oklch(0.985 0.005 250);
+  background: #eef6ff;
   color: oklch(0.18 0.06 265);
 }
 
 .trajetos-page {
   min-height: 100vh;
+  width: 100%;
+  background: var(--app-page-background);
   padding: 20px 16px 90px;
   display: flex;
   flex-direction: column;

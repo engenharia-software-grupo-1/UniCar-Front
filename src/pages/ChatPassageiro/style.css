@@ -1,6 +1,6 @@
 .chat-passageiro-page {
   min-height: calc(100vh - 154px);
-  background: #eef6ff;
+  background: var(--app-page-background);
   color: #07132b;
 }
 
@@ -17,7 +17,7 @@
 }
 
 .chat-passageiro-shell {
-  width: min(100%, 960px);
+  width: min(var(--app-content-width), calc(100% - var(--app-content-gutter)));
   min-height: calc(100vh - 154px);
   margin: 0 auto;
   padding: 20px 18px 16px;
@@ -132,7 +132,10 @@
 .chat-passageiro-composer button:disabled { background: #98a5b8; cursor: default; }
 
 @media (max-width: 600px) {
-  .chat-passageiro-shell { padding-inline: 14px; }
+  .chat-passageiro-shell {
+    width: min(var(--app-content-width), calc(100% - var(--app-content-gutter-mobile)));
+    padding-inline: 14px;
+  }
   .chat-passageiro-header { gap: 10px; }
   .chat-passageiro-avatar { width: 46px; height: 46px; }
   .chat-passageiro-identidade strong { font-size: 15px; }

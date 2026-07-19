@@ -1,6 +1,6 @@
 .veiculos-page {
   min-height: 100vh;
-  background-color: #f4f7fb;
+  background-color: var(--app-page-background);
   padding: 40px 20px;
   display: flex;
   justify-content: center;

@@ -1,4 +1,4 @@
-.perfil-publico-page { min-height:100vh; background:#f8fafc; color:#0f172a; font-family:"Nunito",ui-sans-serif,system-ui,sans-serif; }
+.perfil-publico-page { min-height:100vh; background:var(--app-page-background); color:#0f172a; font-family:"Nunito",ui-sans-serif,system-ui,sans-serif; }
 .perfil-publico-shell { width:min(var(--app-content-width),calc(100% - var(--app-content-gutter))); margin:auto; padding-top:20px; }
 .perfil-publico-card,.perfil-publico-avaliacoes,.perfil-publico-state { border:1px solid #e2e8f0; border-radius:16px; background:#fff; }
 .perfil-publico-card { padding:20px; }

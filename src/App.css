@@ -1,9 +1,14 @@
 @import url("https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap");
 
+body {
+  background: #eef6ff;
+}
+
 #root {
   --app-content-width: 760px;
   --app-content-gutter: 40px;
   --app-content-gutter-mobile: 28px;
+  --app-page-background: #eef6ff;
   --app-font-page-title: clamp(1.625rem, 1.45rem + 0.5vw, 1.875rem);
   --app-font-hero-title: 1.5rem;
   --app-font-section-title: 1.25rem;

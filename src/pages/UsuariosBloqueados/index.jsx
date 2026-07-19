@@ -40,7 +40,7 @@ function UsuariosBloqueados() {
 
         if (isErroDeAutenticacao(error)) {
           await logout();
-          navigate('/login', { replace: true });
+          navigate('/', { replace: true });
           return;
         }
 

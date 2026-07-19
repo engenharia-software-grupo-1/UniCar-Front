@@ -87,7 +87,7 @@ function Perfil() {
         if (ativo) {
           if (isErroDeAutenticacao(error)) {
             await logout();
-            navigate('/login', { replace: true });
+            navigate('/', { replace: true });
             return;
           }
 
@@ -170,7 +170,7 @@ function Perfil() {
 
   async function sairDaConta() {
     await logout();
-    navigate('/login', { replace: true });
+    navigate('/', { replace: true });
   }
 
   function fecharEdicaoPerfil() {
@@ -182,7 +182,7 @@ function Perfil() {
     try {
       setExcluindoConta(true);
       await excluirContaUsuarioAutenticado();
-      navigate('/login', { replace: true });
+      navigate('/', { replace: true });
     } catch (error) {
       setErro(error.message || 'Não foi possível excluir a conta.');
       setModalExcluirAberto(false);

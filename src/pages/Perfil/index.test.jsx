@@ -135,13 +135,13 @@ describe('carregamento', () => {
     expect(navigateMock).not.toHaveBeenCalled();
   });
 
-  it('desloga e navega para /login quando o erro é de autenticação', async () => {
+  it('desloga e navega para a tela inicial quando o erro é de autenticação', async () => {
     getPerfilUsuarioAutenticado.mockRejectedValue(new Error('Acesso negado.'));
 
     renderPerfil();
 
     await waitFor(() => expect(logout).toHaveBeenCalledTimes(1));
-    expect(navigateMock).toHaveBeenCalledWith('/login', { replace: true });
+    expect(navigateMock).toHaveBeenCalledWith('/', { replace: true });
   });
 });
 
@@ -301,7 +301,7 @@ describe('foto de perfil', () => {
 });
 
 describe('sair da conta', () => {
-  it('confirma, desloga e navega para /login', async () => {
+  it('confirma, desloga e navega para a tela inicial', async () => {
     const user = userEvent.setup();
     renderPerfil();
 
@@ -312,12 +312,12 @@ describe('sair da conta', () => {
     await user.click(within(dialog).getByRole('button', { name: 'Confirmar' }));
 
     await waitFor(() => expect(logout).toHaveBeenCalledTimes(1));
-    expect(navigateMock).toHaveBeenCalledWith('/login', { replace: true });
+    expect(navigateMock).toHaveBeenCalledWith('/', { replace: true });
   });
 });
 
 describe('excluir conta', () => {
-  it('confirma a exclusão e navega para /login', async () => {
+  it('confirma a exclusão e navega para a tela inicial', async () => {
     const user = userEvent.setup();
     renderPerfil();
 
@@ -330,7 +330,7 @@ describe('excluir conta', () => {
     await waitFor(() =>
       expect(excluirContaUsuarioAutenticado).toHaveBeenCalledTimes(1),
     );
-    expect(navigateMock).toHaveBeenCalledWith('/login', { replace: true });
+    expect(navigateMock).toHaveBeenCalledWith('/', { replace: true });
   });
 
   it('exibe erro e fecha o modal quando a exclusão falha', async () => {

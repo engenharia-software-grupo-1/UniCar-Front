@@ -175,8 +175,8 @@ describe('obterDetalhesReserva', () => {
       if (url.endsWith('/caronas/10')) {
         return Promise.resolve(respostaJson({
           id: 10,
-          origem: 'Prata',
-          destino: 'UFCG — Campus Sede',
+          origem: { descricao: 'Prata', latitude: -7.2349, longitude: -35.8692 },
+          destino: { descricao: 'UFCG — Campus Sede', latitude: -7.2145, longitude: -35.9087 },
           dataCarona: '2026-07-20T07:30:00',
           valorContribuicao: 6,
           quantidadeVagas: 4,
@@ -199,6 +199,8 @@ describe('obterDetalhesReserva', () => {
     expect(reserva.carona).toMatchObject({
       origem: 'Prata',
       destino: 'UFCG — Campus Sede',
+      origemCoordenadas: { latitude: -7.2349, longitude: -35.8692 },
+      destinoCoordenadas: { latitude: -7.2145, longitude: -35.9087 },
       dataViagem: '2026-07-20T07:30:00',
       valor: 6,
       vagasTotais: 4,

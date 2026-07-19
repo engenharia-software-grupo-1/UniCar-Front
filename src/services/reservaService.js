@@ -360,6 +360,8 @@ export function normalizarDetalhesReserva(resposta = {}) {
       id: carona.id ?? reserva.caronaId,
       origem: descricao(carona.origem ?? reserva.origem),
       destino: descricao(carona.destino ?? reserva.destino),
+      origemCoordenadas: coordenadas(carona.origem ?? reserva.origem),
+      destinoCoordenadas: coordenadas(carona.destino ?? reserva.destino),
       dataViagem:
         carona.dataCarona ||
         reserva.dataCarona ||

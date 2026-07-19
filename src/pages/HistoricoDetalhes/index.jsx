@@ -16,7 +16,6 @@ import {
 } from 'lucide-react';
 import { getSession } from '../../services/authService.js';
 import { obterDetalhesHistorico } from '../../services/historicoDetalhesService.js';
-import { listarReservasDaCarona } from '../../services/reservaService.js';
 import './style.css';
 
 const STATUS = {
@@ -43,19 +42,6 @@ function HistoricoDetalhes() {
         setErro(null);
 
         const dados = await obterDetalhesHistorico(id);
-
-        // O detalhe de /caronas/{id} não inclui passageiros. Para o motorista,
-        // a rota específica devolve as reservas aceitas da carona.
-        if (location.state?.papel === 'motorista') {
-          const reservas = await listarReservasDaCarona(id).catch(() => []);
-          dados.reservas = reservas.map((reserva) => ({
-            id: reserva.id,
-            usuarioId: reserva.solicitante?.id,
-            nome: reserva.solicitante?.nome || 'Passageiro',
-            vagas: reserva.quantidadePassageiros || 1,
-            status: reserva.status || 'FINALIZADA',
-          }));
-        }
 
         if (ativo) {
           setDetalhe(dados);

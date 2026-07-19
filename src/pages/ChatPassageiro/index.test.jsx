@@ -1,48 +1,81 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  enviarMensagemChat,
+  listarMensagensChat,
+  marcarMensagensComoLidas,
+  obterChatDaReserva,
+} from '../../services/chatService.js';
 import ChatPassageiro from './index.jsx';
+
+vi.mock('../../services/authService.js', () => ({
+  getSession: () => ({ usuario: { id: 1 } }),
+}));
+
+vi.mock('../../services/chatService.js', () => ({
+  obterChatDaReserva: vi.fn(),
+  listarMensagensChat: vi.fn(),
+  enviarMensagemChat: vi.fn(),
+  marcarMensagensComoLidas: vi.fn(),
+}));
 
 function renderPagina() {
   return render(
     <MemoryRouter initialEntries={[{
-      pathname: '/minhas-caronas/10/chat/5',
+      pathname: '/reservas/77/chat/5',
       state: { passageiro: { id: 5, nome: 'João Mendes', curso: 'Eng. Civil' }, status: 'ACEITA' },
     }]}>
       <Routes>
-        <Route path="/minhas-caronas/:caronaId/chat/:usuarioId" element={<ChatPassageiro />} />
+        <Route path="/reservas/:reservaId/chat/:usuarioId" element={<ChatPassageiro />} />
       </Routes>
     </MemoryRouter>,
   );
 }
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  obterChatDaReserva.mockResolvedValue({ id: 9, reservaId: 77, nomeParticipante: 'João Mendes' });
+  listarMensagensChat.mockResolvedValue([]);
+  enviarMensagemChat.mockResolvedValue({
+    id: 10,
+    remetenteId: 1,
+    texto: 'Estou chegando.',
+    dataEnvio: '2026-07-19T16:00:00',
+  });
+  marcarMensagensComoLidas.mockResolvedValue(undefined);
+});
 
 describe('ChatPassageiro', () => {
   it('exibe o passageiro e envia uma nova mensagem', async () => {
     renderPagina();
 
     expect(screen.getByText('João Mendes')).toBeInTheDocument();
-    const campo = screen.getByPlaceholderText('Escreva uma mensagem...');
+    const campo = await screen.findByPlaceholderText('Escreva uma mensagem...');
     await userEvent.type(campo, 'Estou chegando.');
     await userEvent.click(screen.getByRole('button', { name: 'Enviar mensagem' }));
 
     expect(screen.getByText('Estou chegando.')).toBeInTheDocument();
     expect(campo).toHaveValue('');
+    expect(obterChatDaReserva).toHaveBeenCalledWith('77');
+    expect(enviarMensagemChat).toHaveBeenCalledWith(9, 'Estou chegando.');
   });
 
-  it('fica somente leitura quando o status não permite conversa', () => {
+  it('fica somente leitura quando o status não permite conversa', async () => {
     render(
       <MemoryRouter initialEntries={[{
-        pathname: '/minhas-caronas/10/chat/5',
+        pathname: '/reservas/77/chat/5',
         state: { passageiro: { id: 5, nome: 'João Mendes' }, status: 'FINALIZADA' },
       }]}>
         <Routes>
-          <Route path="/minhas-caronas/:caronaId/chat/:usuarioId" element={<ChatPassageiro />} />
+          <Route path="/reservas/:reservaId/chat/:usuarioId" element={<ChatPassageiro />} />
         </Routes>
       </MemoryRouter>,
     );
 
     expect(screen.getByPlaceholderText('Conversa disponível somente para leitura')).toHaveAttribute('readonly');
     expect(screen.getByRole('button', { name: 'Enviar mensagem' })).toBeDisabled();
+    await waitFor(() => expect(listarMensagensChat).toHaveBeenCalledWith(9));
   });
 });

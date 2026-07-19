@@ -52,15 +52,7 @@ const CONTRATO = pathsDoContrato();
 // (path já normalizado) para o teste vigiar divergências NOVAS sem travar na
 // dívida conhecida. Ao resolver uma, remova-a daqui — o teste avisa se sobrar
 // entrada obsoleta.
-const DIVERGENCIAS_CONHECIDAS = {
-  // listarReservasPendentesDaCarona faz GET /caronas/{id}/reservas (pendentes de
-  // uma carona), ausente do contrato. Investigado 18/07: nenhum endpoint atual
-  // serve — /caronas/{id}/passageiros filtra hard por ACEITA (CaronaService:237),
-  // e /reservas/recebidas não escopa por carona nem expõe caronaId. É LACUNA DE
-  // BACKEND: precisa implementar GET /caronas/{id}/reservas (o path já esperado)
-  // ou expor caronaId em ReservaRecebida. Não corrigir no front. Ver memória.
-  'reservaService.js': ['/caronas/{}/reservas'],
-};
+const DIVERGENCIAS_CONHECIDAS = {};
 
 const SERVICES = readdirSync(SERVICES_DIR)
   .filter((f) => f.endsWith('.js') && !f.endsWith('.test.js'))

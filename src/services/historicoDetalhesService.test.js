@@ -53,7 +53,7 @@ afterEach(() => {
 });
 
 describe('obterDetalhesHistorico — chamada à API', () => {
-  it('faz GET /caronas/{id}, disponível no backend atual', async () => {
+  it('faz GET /historico/{id}', async () => {
     comSessao();
     fetch.mockResolvedValue(respostaJson({ id: 42 }));
 
@@ -63,7 +63,7 @@ describe('obterDetalhesHistorico — chamada à API', () => {
 
     const [url, options] = fetch.mock.calls[0];
 
-    expect(url).toBe(`${BASE_URL}/caronas/42`);
+    expect(url).toBe(`${BASE_URL}/historico/42`);
     // O apiRequest não passa `method`, então o fetch usa o GET padrão.
     expect(options.method).toBeUndefined();
     expect(options.body).toBeUndefined();
@@ -75,7 +75,7 @@ describe('obterDetalhesHistorico — chamada à API', () => {
 
     await obterDetalhesHistorico('abc');
 
-    expect(fetch.mock.calls[0][0]).toBe(`${BASE_URL}/caronas/abc`);
+    expect(fetch.mock.calls[0][0]).toBe(`${BASE_URL}/historico/abc`);
   });
 
   it('envia Authorization: Bearer <token> quando há sessão', async () => {
@@ -162,6 +162,29 @@ describe('obterDetalhesHistorico — chamada à API', () => {
           fotoPerfil: '',
         },
       ],
+    });
+  });
+
+  it('normaliza o DTO do endpoint de histórico', async () => {
+    comSessao();
+    fetch.mockResolvedValue(respostaJson({
+      caronaId: 42,
+      origem: 'Bodocongó',
+      destino: 'UFCG',
+      motorista: { id: 9, nome: 'Marina Souza' },
+      status: 'FINALIZADA',
+      dataViagem: '2026-06-01T07:00:00',
+      passageiros: [{ id: 5, nome: 'Lucas' }],
+    }));
+
+    await expect(obterDetalhesHistorico(42)).resolves.toMatchObject({
+      id: 42,
+      origem: 'Bodocongó',
+      destino: 'UFCG',
+      status: 'FINALIZADA',
+      dataHoraSaida: '2026-06-01T07:00:00',
+      motorista: { id: 9, nome: 'Marina Souza' },
+      reservas: [{ usuarioId: 5, nome: 'Lucas', status: 'CONFIRMADA' }],
     });
   });
 

@@ -1,9 +1,7 @@
 import { apiRequest } from './api.js';
 
 export async function listarHistoricoComoMotorista() {
-  // O backend atual ainda não expõe /historico/motorista. A listagem de
-  // caronas do próprio motorista já permite montar o histórico no front.
-  const resposta = await apiRequest('/caronas/minhas');
+  const resposta = await apiRequest('/historico/motorista?size=100');
   return extrairLista(resposta).map(normalizarCaronaMotorista);
 }
 
@@ -26,9 +24,9 @@ function normalizarCaronaMotorista(carona = {}) {
   );
 
   return {
-    id: carona.id ?? carona.caronaId,
+    id: carona.caronaId ?? carona.id,
     status: carona.status || 'ATIVA',
-    dataHoraSaida: carona.dataHoraSaida || carona.dataHora || carona.dataViagem || '',
+    dataHoraSaida: carona.dataViagem || carona.dataHoraSaida || carona.dataHora || '',
     origem: descricaoLocal(carona.origem),
     destino: descricaoLocal(carona.destino),
     pontoEncontro: carona.pontoEncontro || carona.pontoReferencia || '',

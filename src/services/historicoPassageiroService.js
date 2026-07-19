@@ -1,41 +1,25 @@
 import { apiRequest } from './api.js';
 
 export async function listarHistoricoComoPassageiro() {
-  // O backend atual não implementa /historico/passageiro. As reservas
-  // enviadas permanecem disponíveis depois da viagem com status FINALIZADA.
-  const resposta = await apiRequest('/reservas/enviadas');
+  const resposta = await apiRequest('/historico/passageiro?size=100');
   const reservas = Array.isArray(resposta)
     ? resposta
     : resposta?.content || resposta?.items || resposta?.reservas || [];
 
-  const reservasComDetalhe = await Promise.all(
-    reservas.map(async (reserva) => {
-      const caronaId = reserva?.carona?.id ?? reserva?.caronaId;
-      if (caronaId == null) return reserva;
-
-      try {
-        const carona = await apiRequest(`/caronas/${encodeURIComponent(caronaId)}`);
-        return {
-          ...reserva,
-          carona: { ...reserva.carona, ...carona },
-          motorista: carona?.motorista || reserva.motorista,
-        };
-      } catch {
-        return reserva;
-      }
-    }),
-  );
-
-  return reservasComDetalhe.map(normalizarReservaPassageiro);
+  return reservas.map(normalizarReservaPassageiro);
 }
 
 function normalizarReservaPassageiro(reserva = {}) {
-  const motorista = reserva.motorista || reserva.carona?.motorista || {};
+  const motoristaRecebido = reserva.motorista || reserva.carona?.motorista || {};
+  const motorista = typeof motoristaRecebido === 'string'
+    ? { nome: motoristaRecebido }
+    : motoristaRecebido;
 
   return {
-    id: reserva.id,
+    id: reserva.reservaId ?? reserva.id,
+    caronaId: reserva.caronaId ?? reserva.carona?.id,
     status: reserva.status || 'PENDENTE',
-    dataHora: reserva.dataHora || reserva.carona?.dataHoraSaida || '',
+    dataHora: reserva.dataViagem || reserva.dataHora || reserva.carona?.dataHoraSaida || '',
     vagasReservadas: reserva.vagasReservadas ?? reserva.quantidadePassageiros ?? 1,
     totalVagas:
       reserva.totalVagas ?? reserva.carona?.quantidadeVagas ?? reserva.carona?.vagasTotais ?? null,

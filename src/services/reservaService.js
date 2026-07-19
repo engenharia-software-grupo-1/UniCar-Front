@@ -288,6 +288,8 @@ function normalizarResumoReserva(reserva = {}) {
       id: carona.id ?? reserva.caronaId,
       origem: descricao(carona.origem ?? reserva.origem),
       destino: descricao(carona.destino ?? reserva.destino),
+      origemCoordenadas: coordenadas(carona.origem ?? reserva.origem),
+      destinoCoordenadas: coordenadas(carona.destino ?? reserva.destino),
     },
   };
 }
@@ -413,6 +415,15 @@ function combinarReservaComCarona(resposta = {}, carona = {}) {
     ...resposta,
     carona: { ...resposta.carona, ...carona },
   };
+}
+
+function coordenadas(local) {
+  const latitude = Number(local?.latitude);
+  const longitude = Number(local?.longitude);
+
+  return Number.isFinite(latitude) && Number.isFinite(longitude)
+    ? { latitude, longitude }
+    : null;
 }
 
 function ajustarReserva(reserva = {}) {

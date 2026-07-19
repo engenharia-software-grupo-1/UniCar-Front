@@ -79,7 +79,13 @@ describe('listarReservasEnviadas', () => {
       quantidadePassageiros: 2,
       valorContribuicao: 8,
       dataViagem: '',
-      carona: { id: 10, origem: 'Bodocongó', destino: 'UFCG' },
+      carona: {
+        id: 10,
+        origem: 'Bodocongó',
+        destino: 'UFCG',
+        origemCoordenadas: null,
+        destinoCoordenadas: null,
+      },
     });
   });
 

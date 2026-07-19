@@ -3,6 +3,7 @@ import { ArrowRight, CalendarDays, CheckCircle2, Clock, MapPin, MessageCircle, S
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import NavegacaoInferior from '../../components/layout/NavegacaoInferior.jsx';
 import StatusReservaBadge from '../../components/common/StatusReservaBadge.jsx';
+import MapaTrajeto from '../../components/common/MapaTrajeto.jsx';
 import { cancelarReserva, normalizarDetalhesReserva, obterDetalhesReserva } from '../../services/reservaService.js';
 import './style.css';
 
@@ -109,10 +110,10 @@ function DetalheReserva() {
             <section className="detalhe-reserva-card detalhe-reserva-trajeto">
               <div className="detalhe-reserva-mapa">
                 <span><MapPin size={16} strokeWidth={2} aria-hidden="true" /> Trajeto</span>
-                <svg viewBox="0 0 800 180" preserveAspectRatio="none" aria-hidden="true">
-                  <path d="M40 140 C 190 35, 430 145, 760 45" />
-                  <circle cx="40" cy="140" r="9" /><circle cx="760" cy="45" r="9" />
-                </svg>
+                <MapaTrajeto
+                  origem={{ ...reserva.carona.origemCoordenadas, descricao: reserva.carona.origem }}
+                  destino={{ ...reserva.carona.destinoCoordenadas, descricao: reserva.carona.destino }}
+                />
               </div>
               <div className="detalhe-reserva-trajeto-corpo">
                 <h2>{reserva.carona.origem || 'Origem'} <ArrowRight size={18} /> {reserva.carona.destino || 'Destino'}</h2>

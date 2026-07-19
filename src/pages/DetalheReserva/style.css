@@ -19,9 +19,9 @@
 .detalhe-reserva-trajeto { padding:0; overflow:hidden; }
 .detalhe-reserva-mapa { height:200px; position:relative; background:#f3f4f6; color:#6b7280; }
 .detalhe-reserva-mapa > span { position:absolute; top:15px; left:15px; z-index:1; padding:7px 12px; border-radius:999px; background:#fff; color:#0b1531; display:flex; align-items:center; gap:5px; font-size:12px; font-weight:800; }
-.detalhe-reserva-mapa > svg { width:100%; height:100%; }
-.detalhe-reserva-mapa > svg path { fill:none; stroke:currentColor; stroke-width:4; stroke-dasharray:12 12; }
-.detalhe-reserva-mapa > svg circle { fill:currentColor; }
+.mapa-trajeto { width:100%; height:100%; z-index:0; }
+.mapa-trajeto-indisponivel { height:100%; display:grid; place-items:center; color:#64748b; font-size:13px; }
+.detalhe-reserva-mapa .leaflet-control-attribution { font-size:9px; }
 .detalhe-reserva-trajeto-corpo { padding:20px; }
 .detalhe-reserva-trajeto-corpo > h2 { display:flex; align-items:center; gap:9px; font-size:20px; }
 .detalhe-reserva-metricas { margin:16px 0; display:grid; grid-template-columns:repeat(2,minmax(0,232px)); justify-content:center; gap:10px; }

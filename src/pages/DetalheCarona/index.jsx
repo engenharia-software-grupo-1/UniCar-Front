@@ -527,6 +527,12 @@ function DetalheCarona() {
                           {passageiro.status}
                         </em>
                       </div>
+                      {isMinhaCarona && (
+                        <p className="detalhe-passenger-embarque">
+                          <MapPin size={14} aria-hidden="true" />
+                          <span>{passageiro.embarque || 'Embarque não informado'}</span>
+                        </p>
+                      )}
                       {passageiro.status === 'Pendente' && (
                         <div className="detalhe-passenger-request-info">
                           <span><Users size={14} /> {formatarQuantidadePassageiros(passageiro.quantidadePassageiros)}</span>
@@ -756,6 +762,7 @@ function montarPassageiros(carona) {
     status: normalizarStatusPassageiro(passageiro.status),
     quantidadePassageiros: passageiro.quantidadePassageiros || passageiro.quantidade || 1,
     dataSolicitacao: passageiro.dataSolicitacao || passageiro.createdAt || '',
+    embarque: extrairEmbarque(passageiro.embarque ?? passageiro.origemEmbarque),
   }));
 }
 
@@ -769,7 +776,15 @@ function normalizarSolicitacaoComoPassageiro(solicitacao) {
     status: 'Pendente',
     quantidadePassageiros: solicitacao.quantidadePassageiros || 1,
     dataSolicitacao: solicitacao.dataSolicitacao || '',
+    embarque: extrairEmbarque(solicitacao.origemEmbarque ?? solicitacao.embarque),
   };
+}
+
+// O endereço de embarque pode chegar como texto (já normalizado nos serviços) ou
+// como EnderecoDTO cru { descricao, ... }; aceita os dois.
+function extrairEmbarque(embarque) {
+  if (!embarque) return '';
+  return typeof embarque === 'string' ? embarque : embarque.descricao || '';
 }
 
 function normalizarStatusPassageiro(status) {

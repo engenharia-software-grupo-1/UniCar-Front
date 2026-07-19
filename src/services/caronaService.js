@@ -800,6 +800,9 @@ function normalizarPassageiros(passageiros) {
     curso: passageiro.curso || passageiro.nomeCurso || passageiro.course || 'Comunidade UFCG',
     avaliacao: passageiro.avaliacao ?? passageiro.rating ?? 4.8,
     status: normalizarStatusReserva(passageiro.status || passageiro.situacao),
+    // Onde o passageiro embarca (endereço que ele informou na reserva). O
+    // PassageiroResponseDTO expõe como `embarque`; toleramos `origemEmbarque`.
+    embarque: descricaoLocal(passageiro.embarque ?? passageiro.origemEmbarque),
   }));
 }
 

@@ -118,6 +118,9 @@ function normalizarSolicitacao(reserva = {}) {
     quantidadePassageiros: Number(reserva.quantidadePassageiros ?? reserva.vagasReservadas ?? 1),
     dataSolicitacao: reserva.dataSolicitacao || reserva.createdAt || reserva.solicitadoEm || '',
     caronaId: reserva.caronaId ?? reserva.carona?.id,
+    // Onde o passageiro embarca (endereço informado na reserva) — o motorista
+    // precisa saber onde buscá-lo. Vem no ReservaRecebidaResponseDTO.
+    origemEmbarque: descricao(reserva.origemEmbarque ?? reserva.embarque),
     solicitante: {
       id: solicitante.id ?? solicitante.usuarioId,
       nome: solicitante.nome || solicitante.nomeCompleto || 'Solicitante',

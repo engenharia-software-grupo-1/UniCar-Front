@@ -832,6 +832,20 @@ a.detalhe-avatar:focus-visible {
   font-weight: 800;
 }
 
+.detalhe-passenger-embarque {
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #587097;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.detalhe-passenger-embarque svg {
+  flex-shrink: 0;
+}
+
 .detalhe-main-card .detalhe-driver-title h1 {
   font-size: 18px;
   font-weight: 800;

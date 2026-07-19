@@ -1,12 +1,8 @@
-import { Link, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
-import Campo from '../../components/common/Campo.jsx';
+import { Link } from 'react-router-dom';
 import {
   ArrowRight,
   Car,
   GraduationCap,
-  MapPin,
-  Search,
 } from '../../components/common/Icone.jsx';
 import TituloSecao from '../../components/common/TituloSecao.jsx';
 import Rodape from '../../components/layout/Rodape.jsx';
@@ -27,7 +23,6 @@ export default function Home() {
       <Cabecalho />
       <Hero />
       <Features />
-      <SearchPreview />
       <HowItWorks />
       <Divulgacao />
       <CTA />
@@ -117,58 +112,6 @@ function Features() {
             </article>
           ))}
         </div>
-      </div>
-    </section>
-  );
-}
-
-function SearchPreview() {
-  const navigate = useNavigate();
-  const estaLogado = isAuthenticated();
-  const [origem, setOrigem] = useState('');
-  const [destino, setDestino] = useState('');
-  const [data, setData] = useState('');
-  const [horario, setHorario] = useState('');
-
-  function abrirBusca(evento, trajeto = {}) {
-    evento.preventDefault();
-
-    const parametros = new URLSearchParams();
-    const origemBusca = trajeto.origem ?? origem;
-    const destinoBusca = trajeto.destino ?? destino;
-
-    if (origemBusca.trim()) parametros.set('origem', origemBusca.trim());
-    if (destinoBusca.trim()) parametros.set('destino', destinoBusca.trim());
-    if (data) parametros.set('data', data);
-    if (horario) parametros.set('horario', horario);
-
-    const destinoRota = `/buscar-carona${parametros.size ? `?${parametros.toString()}` : ''}`;
-    navigate(estaLogado ? destinoRota : '/login');
-  }
-
-  return (
-    <section id="buscar" className="unicar-section">
-      <div className="unicar-container unicar-search-grid">
-        <div>
-          <TituloSecao title="Encontre a carona ideal" text="Filtre por campus, horário e disponibilidade de vagas." />
-          <form className="unicar-form" onSubmit={abrirBusca}>
-            <Campo label="De onde" placeholder="Catolé, Centro, Malvinas..." icon={MapPin} name="origem" value={origem} onChange={(evento) => setOrigem(evento.target.value)} />
-            <Campo label="Para onde" placeholder="Campus Sede, HU, CCBS..." icon={GraduationCap} name="destino" value={destino} onChange={(evento) => setDestino(evento.target.value)} />
-            <div className="unicar-form__row">
-              <Campo label="Data" placeholder="Hoje" name="data" value={data} onChange={(evento) => setData(evento.target.value)} />
-              <Campo label="Horário" placeholder="07:00" name="horario" value={horario} onChange={(evento) => setHorario(evento.target.value)} />
-            </div>
-            <button type="submit" className="unicar-button unicar-button--block">
-              <Search className="icone iconePequeno" />
-              Buscar caronas
-            </button>
-          </form>
-        </div>
-        <aside className="unicar-search-info">
-          <Search className="icone" aria-hidden="true" />
-          <h3>Busque caronas disponíveis</h3>
-          <p>Informe origem e destino para consultar os dados atualizados pela API.</p>
-        </aside>
       </div>
     </section>
   );

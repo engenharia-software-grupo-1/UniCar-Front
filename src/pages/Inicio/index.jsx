@@ -18,11 +18,14 @@ import {
 } from '../../services/caronaService.js';
 import './style.css';
 
+const SUGESTOES_POR_PAGINA = 3;
+
 function Inicio() {
   const navigate = useNavigate();
   const [usuario, setUsuario] = useState(() => getSession()?.usuario || {});
   const [proximaCarona, setProximaCarona] = useState(null);
   const [sugestoes, setSugestoes] = useState([]);
+  const [quantidadeSugestoesExibidas, setQuantidadeSugestoesExibidas] = useState(SUGESTOES_POR_PAGINA);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState('');
 
@@ -50,6 +53,7 @@ function Inicio() {
         setUsuario(perfil);
         setProximaCarona(proxima);
         setSugestoes(listaSugestoes);
+        setQuantidadeSugestoesExibidas(SUGESTOES_POR_PAGINA);
       } catch (error) {
         if (ativo) {
           setErro(error.message || 'Não foi possível carregar seus dados.');
@@ -193,7 +197,7 @@ function Inicio() {
 
           <div className="inicio-suggestions">
             {sugestoes.length > 0 ? (
-              sugestoes.map((sugestao) => (
+              sugestoes.slice(0, quantidadeSugestoesExibidas).map((sugestao) => (
                 <article key={sugestao.id || sugestao.rota} className="inicio-suggestion">
                   <Link
                     to={`/caronas/${sugestao.id}`}
@@ -220,6 +224,15 @@ function Inicio() {
               <div className="inicio-empty-list">
                 {carregando ? 'Carregando sugestões...' : 'Nenhuma sugestão encontrada.'}
               </div>
+            )}
+            {sugestoes.length > quantidadeSugestoesExibidas && (
+              <button
+                type="button"
+                className="inicio-mostrar-mais"
+                onClick={() => setQuantidadeSugestoesExibidas((quantidade) => quantidade + SUGESTOES_POR_PAGINA)}
+              >
+                Mostrar mais caronas
+              </button>
             )}
           </div>
         </section>

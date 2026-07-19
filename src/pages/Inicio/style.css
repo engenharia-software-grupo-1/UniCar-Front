@@ -52,6 +52,8 @@
 .inicio-shortcut span svg { width: 20px; height: 20px; }
 
 .inicio-suggestions { display: grid; gap: 12px; }
+.inicio-mostrar-mais { justify-self: center; margin-top: 4px; padding: 10px 16px; border: 1px solid #b9cbe4; border-radius: 10px; background: #f6faff; color: #244c7d; font: inherit; font-size: 14px; font-weight: 800; cursor: pointer; }
+.inicio-mostrar-mais:hover { border-color: #8eafd8; background: #eaf3ff; }
 .inicio-empty-list { padding: 24px; border: 1px dashed #d8e0ea; border-radius: 16px; background: #fff; color: #6f7887; font-size: 14px; font-weight: 600; text-align: center; }
 .inicio-suggestion { border: 1px solid #e2e8f0; border-radius: 16px; background: #fff; overflow: hidden; transition: border-color .18s, box-shadow .18s; }
 .inicio-suggestion:hover, .inicio-suggestion:focus-within { border-color: rgba(22, 40, 76, .4); box-shadow: 0 4px 12px rgba(15, 23, 42, .06); }

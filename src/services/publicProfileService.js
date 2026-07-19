@@ -1,22 +1,6 @@
 import { apiRequest } from './api.js';
-import { shouldUseLocalDataMocks } from './apiConfig.js';
-
-const PERFIS_PUBLICOS_MOCK = {
-  marina: { id: 'marina', nome: 'Marina Souza', curso: 'Eng. Computação', reputacao: 4.9 },
-  beatriz: { id: 'beatriz', nome: 'Beatriz Lima', curso: 'Design', reputacao: 4.9 },
-  rafael: { id: 'rafael', nome: 'Rafael Costa', curso: 'Administração', reputacao: 4.3 },
-  ana: { id: 'ana', nome: 'Ana Paula', curso: 'Ciência da Computação', reputacao: 4.5 },
-};
 
 export async function obterPerfilPublicoUsuario(usuarioId) {
-  if (shouldUseLocalDataMocks()) {
-    return normalizarPerfil(PERFIS_PUBLICOS_MOCK[String(usuarioId)] || {
-      id: usuarioId,
-      nome: 'Usuário UniCar',
-      curso: 'Comunidade UniCar',
-    });
-  }
-
   const perfil = await apiRequest(
     `/usuarios/${encodeURIComponent(usuarioId)}/perfil-publico`,
   );

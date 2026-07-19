@@ -1,56 +1,6 @@
 import { apiRequest } from './api.js';
-import { shouldUseLocalDataMocks } from './apiConfig.js';
-
-const HISTORICO_MOTORISTA_MOCK = [
-  {
-    id: 101,
-    status: 'FINALIZADA',
-    dataHoraSaida: '2026-05-28T07:20:00',
-    origem: 'Centenário',
-    destino: 'UFCG',
-    pontoEncontro: 'Campus Sede',
-    vagasOcupadas: 4,
-    vagasTotal: 4,
-    passageiros: [
-      { id: 5, nome: 'Marina Souza' },
-      { id: 8, nome: 'João Mendes' },
-      { id: 9, nome: 'Beatriz Lima' },
-      { id: 10, nome: 'Rafael Costa' },
-    ],
-  },
-  {
-    id: 102,
-    status: 'FINALIZADA',
-    dataHoraSaida: '2026-05-25T08:00:00',
-    origem: 'Liberdade',
-    destino: 'UFCG',
-    pontoEncontro: 'CCT',
-    vagasOcupadas: 3,
-    vagasTotal: 4,
-    passageiros: [
-      { id: 6, nome: 'Lucas Pereira' },
-      { id: 11, nome: 'Ana Paula' },
-      { id: 12, nome: 'Rafael Costa' },
-    ],
-  },
-  {
-    id: 103,
-    status: 'CANCELADA',
-    dataHoraSaida: '2026-05-20T06:45:00',
-    origem: 'Catolé',
-    destino: 'UFCG',
-    pontoEncontro: 'Campus Sede',
-    vagasOcupadas: 1,
-    vagasTotal: 3,
-    passageiros: [{ id: 7, nome: 'Ana Carolina' }],
-  },
-];
 
 export async function listarHistoricoComoMotorista() {
-  if (shouldUseLocalDataMocks()) {
-    return HISTORICO_MOTORISTA_MOCK.map(normalizarCaronaMotorista);
-  }
-
   // O backend atual ainda não expõe /historico/motorista. A listagem de
   // caronas do próprio motorista já permite montar o histórico no front.
   const resposta = await apiRequest('/caronas/minhas');

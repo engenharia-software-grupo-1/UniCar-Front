@@ -109,6 +109,26 @@ describe('carregamento inicial', () => {
 });
 
 describe('caronasFiltradas — filtros padrão e aliases', () => {
+  it('exibe cinco caronas por vez e mostra as demais sob demanda', async () => {
+    buscarCaronas.mockResolvedValue(
+      Array.from({ length: 6 }, (_, indice) => carona({
+        id: indice + 1,
+        motoristaNome: `Motorista ${indice + 1}`,
+      })),
+    );
+
+    const user = userEvent.setup();
+    renderPagina();
+
+    expect(await screen.findByText('Motorista 5')).toBeInTheDocument();
+    expect(screen.queryByText('Motorista 6')).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Mostrar mais caronas' }));
+
+    expect(screen.getByText('Motorista 6')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Mostrar mais caronas' })).not.toBeInTheDocument();
+  });
+
   it('não exibe caronas criadas pelo usuário autenticado', async () => {
     localStorage.setItem('unicar.session', JSON.stringify({
       token: 'token-de-teste',

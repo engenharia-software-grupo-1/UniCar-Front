@@ -27,6 +27,7 @@ const CURSOS = [
   'Letras',
 ];
 const GENEROS = ['Qualquer', 'Feminino', 'Masculino', 'Outro'];
+const CARONAS_POR_PAGINA = 5;
 
 function useSugestoesEndereco(consulta, ativa) {
   const [sugestoes, setSugestoes] = useState([]);
@@ -79,6 +80,7 @@ function BuscarCarona() {
   const [vagasMinimas, setVagasMinimas] = useState(1);
   const [precoMaximo, setPrecoMaximo] = useState(20);
   const [campoEnderecoAtivo, setCampoEnderecoAtivo] = useState(null);
+  const [quantidadeExibida, setQuantidadeExibida] = useState(CARONAS_POR_PAGINA);
 
   const sugestoesOrigem = useSugestoesEndereco(origem, campoEnderecoAtivo === 'origem');
   const sugestoesDestino = useSugestoesEndereco(destino, campoEnderecoAtivo === 'destino');
@@ -121,6 +123,12 @@ function BuscarCarona() {
     if (vagas < vagasMinimas || preco > precoMaximo) return false;
     return true;
   }), [caronas, precoMaximo, usuarioAtualId, vagasMinimas]);
+  const caronasExibidas = caronasFiltradas.slice(0, quantidadeExibida);
+  const temMaisCaronas = caronasFiltradas.length > quantidadeExibida;
+
+  useEffect(() => {
+    setQuantidadeExibida(CARONAS_POR_PAGINA);
+  }, [caronasFiltradas]);
 
   async function realizarBusca() {
     try {
@@ -258,9 +266,18 @@ function BuscarCarona() {
               </Link>
             </div>
           )}
-          {!carregando && caronasFiltradas.map((carona) => (
+          {!carregando && caronasExibidas.map((carona) => (
             <RideCard key={carona.id} carona={carona} enderecoEmbarque={origem} onOpenProfile={(id) => navigate(`/usuarios/${id}`)} />
           ))}
+          {!carregando && temMaisCaronas && (
+            <button
+              type="button"
+              className="buscar-mostrar-mais"
+              onClick={() => setQuantidadeExibida((quantidade) => quantidade + CARONAS_POR_PAGINA)}
+            >
+              Mostrar mais caronas
+            </button>
+          )}
         </div>
 
       </section>

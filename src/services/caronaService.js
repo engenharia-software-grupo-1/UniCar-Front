@@ -267,15 +267,37 @@ function mapearGeneroParaApi(genero) {
   return GENERO_UI_PARA_API[genero] ?? String(genero).toUpperCase();
 }
 
+// GET /caronas (US9) filtra por PROXIMIDADE da origem do passageiro: o backend
+// (BuscaCaronaService) devolve caronas cuja origem está dentro de `raioKm`
+// (default 5 km) das coordenadas `origemLatitude`/`origemLongitude` informadas.
+// Por isso é preciso enviar as COORDENADAS do passageiro — mandar origem/destino
+// como texto (nomes que o BuscaCaronaFiltroDTO nem declara) faz o filtro ser
+// ignorado e a "rota passa pelo endereço do passageiro" nunca acontece.
 export async function buscarCaronas(filtros = {}) {
-  const params = new URLSearchParams();
-
-  if (filtros.origem) {
-    params.append('origem', filtros.origem);
+  if (shouldUseLocalDataMocks()) {
+    return buscarCaronasMock(filtros);
   }
 
-  if (filtros.destino) {
-    params.append('destino', filtros.destino);
+  const params = new URLSearchParams();
+
+  const origem = coordenadaValida(filtros.origemCoordenadas);
+  if (origem) {
+    params.append('origemLatitude', String(origem.latitude));
+    params.append('origemLongitude', String(origem.longitude));
+  }
+
+  const destino = coordenadaValida(filtros.destinoCoordenadas);
+  if (destino) {
+    params.append('destinoLatitude', String(destino.latitude));
+    params.append('destinoLongitude', String(destino.longitude));
+  }
+
+  if (filtros.raioKm) {
+    params.append('raioKm', String(filtros.raioKm));
+  }
+
+  if (filtros.dataHoraSaida) {
+    params.append('dataHoraSaida', filtros.dataHoraSaida);
   }
 
   // O backend filtra por `generoMotorista` (comparação exata com o enum Genero:
@@ -290,24 +312,22 @@ export async function buscarCaronas(filtros = {}) {
     params.append('cursoMotorista', filtros.curso);
   }
 
-  if (shouldUseLocalDataMocks()) {
-    return buscarCaronasMock(filtros);
-  }
+  const resposta = await apiRequest(`/caronas?${params.toString()}`);
 
-  try {
-    const resposta = await apiRequest(
-      `/caronas?${params.toString()}`
-    );
+  return extrairLista(resposta).map(ajustarCarona);
+}
 
-    const lista = extrairLista(resposta);
+// Aceita coordenadas só se latitude e longitude forem números finitos; caso
+// contrário devolve null e o filtro correspondente não é enviado.
+function coordenadaValida(coordenada) {
+  if (!coordenada) return null;
 
-    // Temporário: enquanto a busca do backend ainda não possui dados,
-    // completa uma resposta vazia com as caronas simuladas.
-    return lista.length > 0 ? lista.map(ajustarCarona) : buscarCaronasMock(filtros);
-  } catch {
-    // Temporário enquanto a busca do backend estiver indisponível.
-    return buscarCaronasMock(filtros);
-  }
+  const latitude = Number(coordenada.latitude);
+  const longitude = Number(coordenada.longitude);
+
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
+
+  return { latitude, longitude };
 }
 
 function buscarCaronasMock(filtros = {}) {

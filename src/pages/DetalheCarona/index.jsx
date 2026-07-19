@@ -261,9 +261,10 @@ function DetalheCarona() {
   }
 
   async function confirmarSolicitacao() {
-    // O endereço de embarque é o que o passageiro digitou na busca; ele é
-    // carregado no location.state e geocodificado aqui para as coordenadas que
-    // o backend exige (origemEmbarque: EnderecoDTO com latitude/longitude).
+    // O endereço de embarque é o que o passageiro informou na busca, carregado
+    // no location.state. Quando já vem com coordenadas (EnderecoDTO resolvido na
+    // busca), usa direto; se vier só como texto (fallback), geocodifica aqui para
+    // as coordenadas que o backend exige (origemEmbarque com latitude/longitude).
     const enderecoEmbarque = location.state?.enderecoEmbarque;
 
     if (!enderecoEmbarque) {
@@ -276,7 +277,9 @@ function DetalheCarona() {
     try {
       setEnviandoSolicitacao(true);
       setErroSolicitacao('');
-      const origemEmbarque = await geocodificarEndereco(enderecoEmbarque);
+      const origemEmbarque = temCoordenadas(enderecoEmbarque)
+        ? enderecoEmbarque
+        : await geocodificarEndereco(enderecoEmbarque);
       await criarReserva(carona.id, Number(quantidadePassageiros), origemEmbarque);
       setSolicitada(true);
       setModalSolicitacaoAberto(false);
@@ -928,6 +931,15 @@ function formatarDestino(destino, pontoEncontro) {
 
 function getInitial(nome = '') {
   return nome.trim()[0]?.toUpperCase() || 'M';
+}
+
+// O endereço de embarque já é um EnderecoDTO utilizável quando tem latitude e
+// longitude numéricas; nesse caso não precisa (nem deve) re-geocodificar.
+function temCoordenadas(endereco) {
+  return Boolean(endereco)
+    && typeof endereco === 'object'
+    && Number.isFinite(Number(endereco.latitude))
+    && Number.isFinite(Number(endereco.longitude));
 }
 
 function formatarAvaliacao(valor) {

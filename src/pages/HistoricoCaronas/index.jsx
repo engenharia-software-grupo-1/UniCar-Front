@@ -151,7 +151,7 @@ function HistoricoCaronas() {
 
   function iniciarAvaliacaoMotorista(reserva) {
     setCaronaParaAvaliar({
-      caronaId: reserva.id,
+      caronaId: reserva.caronaId,
       avaliadoId: reserva.motorista.id,
       nome: reserva.motorista.nome,
     });

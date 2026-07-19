@@ -1,0 +1,47 @@
+import { apiRequest } from './api.js';
+
+export async function obterChatDaReserva(reservaId) {
+  const resposta = await apiRequest('/chats');
+  const chats = Array.isArray(resposta) ? resposta : resposta?.content || [];
+  const chat = chats.find((item) => String(item.reservaId) === String(reservaId));
+
+  if (!chat) {
+    const error = new Error('Chat não encontrado para esta reserva.');
+    error.status = 404;
+    throw error;
+  }
+
+  return chat;
+}
+
+export async function listarMensagensChat(chatId) {
+  const resposta = await apiRequest(`/chats/${encodeURIComponent(chatId)}/mensagens`);
+  const mensagens = Array.isArray(resposta) ? resposta : resposta?.content || [];
+
+  return mensagens.map(normalizarMensagem);
+}
+
+export async function enviarMensagemChat(chatId, conteudo) {
+  const mensagem = await apiRequest(`/chats/${encodeURIComponent(chatId)}/mensagens`, {
+    method: 'POST',
+    body: JSON.stringify({ conteudo }),
+  });
+
+  return normalizarMensagem(mensagem);
+}
+
+export async function marcarMensagensComoLidas(chatId) {
+  return apiRequest(`/chats/${encodeURIComponent(chatId)}/lidas`, {
+    method: 'PATCH',
+  });
+}
+
+function normalizarMensagem(mensagem = {}) {
+  return {
+    id: mensagem.id,
+    remetenteId: mensagem.remetenteId,
+    texto: mensagem.conteudo ?? mensagem.texto ?? '',
+    lida: Boolean(mensagem.lida),
+    dataEnvio: mensagem.dataEnvio ?? mensagem.dataHora ?? '',
+  };
+}

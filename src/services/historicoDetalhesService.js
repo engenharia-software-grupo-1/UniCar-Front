@@ -195,9 +195,7 @@ export async function obterDetalhesHistorico(id) {
   }
 
   try {
-    // A rota /historico/{id} consta no contrato, mas não existe no backend
-    // atual. O detalhe da própria carona contém os dados necessários à tela.
-    const detalhe = await apiRequest(`/caronas/${encodeURIComponent(id)}`);
+    const detalhe = await apiRequest(`/historico/${encodeURIComponent(id)}`);
 
     return normalizarDetalheHistorico(detalhe);
   } catch (error) {
@@ -247,9 +245,9 @@ function normalizarDetalheHistorico(detalhe = {}) {
   const reservas = extrairLista(detalhe.reservas || detalhe.passageiros || detalhe.participantesReserva);
 
   return {
-    id: detalhe.id,
+    id: detalhe.caronaId ?? detalhe.id,
     status: detalhe.status || detalhe.statusFinal || 'FINALIZADA',
-    dataHoraSaida: detalhe.dataHoraSaida || detalhe.dataHora || '',
+    dataHoraSaida: detalhe.dataViagem || detalhe.dataHoraSaida || detalhe.dataHora || '',
     dataHoraChegada: detalhe.dataHoraChegada || detalhe.chegadaPrevista || '',
     origem: descricaoLocal(detalhe.origem),
     destino: descricaoLocal(detalhe.destino),

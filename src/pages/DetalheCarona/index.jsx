@@ -547,8 +547,8 @@ function DetalheCarona() {
                           className="detalhe-passenger-chat"
                           aria-label={`Conversar com ${passageiro.nome}`}
                           onClick={() => navigate(
-                            `/minhas-caronas/${carona.id}/chat/${passageiro.id}`,
-                            { state: { passageiro, status: carona.status } },
+                            `/reservas/${passageiro.reservaId}/chat/${passageiro.id}`,
+                            { state: { passageiro, status: carona.status, reservaId: passageiro.reservaId } },
                           )}
                         >
                           <MessageCircle size={17} aria-hidden="true" />

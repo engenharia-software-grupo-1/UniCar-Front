@@ -55,6 +55,8 @@ export default defineConfig({
       '/veiculos': 'http://localhost:8080',
       '/avaliacoes': 'http://localhost:8080',
       '/interesses-trajeto': 'http://localhost:8080',
+      '/chats': 'http://localhost:8080',
+      '/historico': 'http://localhost:8080',
     },
   },
 })

@@ -60,7 +60,7 @@ afterEach(() => {
 });
 
 describe('listarHistoricoComoMotorista — chamada à API', () => {
-  it('faz GET /caronas/minhas, disponível no backend atual', async () => {
+  it('faz GET /historico/motorista', async () => {
     comSessao();
     fetch.mockResolvedValue(respostaJson([{ id: 1 }]));
 
@@ -70,7 +70,7 @@ describe('listarHistoricoComoMotorista — chamada à API', () => {
 
     const [url, options] = fetch.mock.calls[0];
 
-    expect(url).toBe(`${BASE_URL}/caronas/minhas`);
+    expect(url).toBe(`${BASE_URL}/historico/motorista?size=100`);
     // O apiRequest não passa `method`, então o fetch usa o GET padrão.
     expect(options.method).toBeUndefined();
     expect(options.body).toBeUndefined();
@@ -146,6 +146,32 @@ describe('listarHistoricoComoMotorista — chamada à API', () => {
       },
     ]);
     expect(ehDadoMockado(resultado)).toBe(false);
+  });
+
+  it('normaliza o DTO de histórico do motorista', async () => {
+    comSessao();
+    fetch.mockResolvedValue(respostaJson({
+      content: [{
+        caronaId: 55,
+        origem: 'Bodocongó',
+        destino: 'UFCG',
+        status: 'FINALIZADA',
+        dataViagem: '2026-06-01T07:00:00',
+        totalPassageiros: 2,
+      }],
+    }));
+
+    await expect(listarHistoricoComoMotorista()).resolves.toEqual([{
+      id: 55,
+      status: 'FINALIZADA',
+      dataHoraSaida: '2026-06-01T07:00:00',
+      origem: 'Bodocongó',
+      destino: 'UFCG',
+      pontoEncontro: '',
+      vagasOcupadas: 2,
+      vagasTotal: 3,
+      passageiros: [],
+    }]);
   });
 });
 

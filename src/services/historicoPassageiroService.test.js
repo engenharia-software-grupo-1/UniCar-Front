@@ -40,7 +40,7 @@ afterEach(() => {
 });
 
 describe('listarHistoricoComoPassageiro — chamada à API', () => {
-  it('faz GET /reservas/enviadas, disponível no backend atual', async () => {
+  it('faz GET /historico/passageiro', async () => {
     comSessao();
     fetch.mockResolvedValue(respostaJson([{ id: 1 }]));
 
@@ -50,7 +50,7 @@ describe('listarHistoricoComoPassageiro — chamada à API', () => {
 
     const [url, options] = fetch.mock.calls[0];
 
-    expect(url).toBe(`${BASE_URL}/reservas/enviadas`);
+    expect(url).toBe(`${BASE_URL}/historico/passageiro?size=100`);
     // O apiRequest não passa `method`, então o fetch usa o GET padrão.
     expect(options.method).toBeUndefined();
     expect(options.body).toBeUndefined();
@@ -181,6 +181,30 @@ describe('listarHistoricoComoPassageiro — normalização de campos', () => {
     });
   });
 
+  it('normaliza o DTO de histórico do passageiro', async () => {
+    const reserva = await normalizar({
+      reservaId: 42,
+      caronaId: 9,
+      origem: 'Prata',
+      destino: 'UFCG',
+      motorista: 'Marina Souza',
+      status: 'FINALIZADA',
+      dataViagem: '2026-06-01T07:00:00',
+      quantidadePassageiros: 2,
+    });
+
+    expect(reserva).toMatchObject({
+      id: 42,
+      caronaId: 9,
+      origem: 'Prata',
+      destino: 'UFCG',
+      status: 'FINALIZADA',
+      dataHora: '2026-06-01T07:00:00',
+      vagasReservadas: 2,
+      motorista: { nome: 'Marina Souza' },
+    });
+  });
+
   it('assume status PENDENTE quando o backend não manda status', async () => {
     expect((await normalizar({ id: 1 })).status).toBe('PENDENTE');
   });
@@ -225,6 +249,7 @@ describe('listarHistoricoComoPassageiro — normalização de campos', () => {
 
     expect(reserva).not.toHaveProperty('campoInesperado');
     expect(Object.keys(reserva).sort()).toEqual([
+      'caronaId',
       'dataHora',
       'destino',
       'id',

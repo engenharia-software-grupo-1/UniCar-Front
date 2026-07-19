@@ -490,9 +490,15 @@
 
 .perfil-photo-link input {
   width: 100%;
+  box-sizing: border-box;
   border: 1px solid #cddced;
   background: #ffffff;
   color: #07132b;
+}
+
+.perfil-photo-link input:focus {
+  outline: 2px solid rgba(54, 87, 127, 0.22);
+  outline-offset: 1px;
 }
 
 .perfil-photo-remove {

@@ -1049,6 +1049,8 @@ describe('buscarSugestoesDeCaronas', () => {
           origem: { descricao: 'Malvinas' },
           destino: { descricao: 'UFCG' },
           dataHoraSaida: '2026-08-01T07:00:00',
+          vagasDisponiveis: 2,
+          status: 'CRIADA',
           motorista: { id: 3, nome: 'Marina Souza' },
         },
       ]),
@@ -1063,5 +1065,28 @@ describe('buscarSugestoesDeCaronas', () => {
 
     expect(sugestoes).toHaveLength(1);
     expect(sugestoes[0].origem).toBe('Malvinas');
+  });
+
+  it('exclui carona própria e seleciona no máximo seis sugestões compatíveis', async () => {
+    fetch.mockResolvedValue(respostaJson(Array.from({ length: 8 }, (_, indice) => ({
+      id: indice + 1,
+      origem: { descricao: 'Bodocongó' },
+      destino: { descricao: 'UFCG' },
+      dataHoraSaida: `2030-08-${String(indice + 1).padStart(2, '0')}T07:00:00`,
+      vagasDisponiveis: 2,
+      status: 'CRIADA',
+      motorista: {
+        id: indice === 0 ? 99 : indice,
+        nome: `Motorista ${indice}`,
+        curso: indice === 7 ? 'Computação' : 'Outro curso',
+      },
+    }))));
+
+    const { buscarSugestoesDeCaronas } = await importarService();
+    const sugestoes = await buscarSugestoesDeCaronas({ id: 99, curso: 'Computação' });
+
+    expect(sugestoes).toHaveLength(6);
+    expect(sugestoes.some((carona) => carona.motorista.id === 99)).toBe(false);
+    expect(sugestoes[0].motorista.curso).toBe('Computação');
   });
 });

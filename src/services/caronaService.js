@@ -66,18 +66,58 @@ function maisProxima(caronas) {
 }
 
 // Sugestões da tela Início. Também não existe GET /caronas/sugestoes — mas o GET
-// /caronas da busca (US9) já devolve exatamente o que uma sugestão é: caronas
-// CRIADAS (RN-BUS-01), de outras pessoas (RN-BUS-02), futuras (RN-BUS-04), com
-// vaga (RN-BUS-05) e respeitando bloqueios (RN-BUS-03). Buscar sem filtro nenhum
-// é o mesmo que pedir sugestões.
-export async function buscarSugestoesDeCaronas() {
+// /caronas da busca (US9) já devolve exatamente o que uma sugestão é. A seleção
+// local é uma salvaguarda para não exibir a própria carona e para entregar uma
+// lista curta, ordenada para o perfil atual.
+export async function buscarSugestoesDeCaronas(perfilUsuario = {}) {
   if (shouldUseLocalDataMocks()) {
     // O store local só tem caronas do próprio usuário e sugestão é, por
     // definição, carona dos outros (RN-BUS-02) — não há o que sugerir.
     return [];
   }
 
-  return buscarCaronas();
+  const caronas = await buscarCaronas();
+
+  return selecionarSugestoesDeCaronas(caronas, perfilUsuario);
+}
+
+function selecionarSugestoesDeCaronas(caronas, perfilUsuario) {
+  const usuarioId = perfilUsuario?.id ?? perfilUsuario?.usuarioId ?? perfilUsuario?.userId;
+  const cursoUsuario = normalizarTextoBusca(perfilUsuario?.curso);
+  const agora = Date.now();
+
+  return caronas
+    .filter((carona) => usuarioId == null || String(carona.motorista?.id) !== String(usuarioId))
+    .filter((carona) => Number(carona.vagasDisponiveis) > 0)
+    .filter((carona) => String(carona.status).toUpperCase() === 'CRIADA')
+    .filter((carona) => {
+      const horario = new Date(carona.horario || carona.dataHoraSaida).getTime();
+      return Number.isNaN(horario) || horario >= agora;
+    })
+    .sort((primeira, segunda) => {
+      const primeiraCombinaCurso = Number(
+        Boolean(cursoUsuario) && normalizarTextoBusca(primeira.motorista?.curso) === cursoUsuario,
+      );
+      const segundaCombinaCurso = Number(
+        Boolean(cursoUsuario) && normalizarTextoBusca(segunda.motorista?.curso) === cursoUsuario,
+      );
+
+      if (primeiraCombinaCurso !== segundaCombinaCurso) {
+        return segundaCombinaCurso - primeiraCombinaCurso;
+      }
+
+      const horarioPrimeira = new Date(primeira.horario || primeira.dataHoraSaida).getTime();
+      const horarioSegunda = new Date(segunda.horario || segunda.dataHoraSaida).getTime();
+      if (horarioPrimeira !== horarioSegunda) {
+        return horarioPrimeira - horarioSegunda;
+      }
+
+      const vagas = Number(segunda.vagasDisponiveis) - Number(primeira.vagasDisponiveis);
+      if (vagas !== 0) return vagas;
+
+      return Number(primeira.preco) - Number(segunda.preco);
+    })
+    .slice(0, 6);
 }
 
 // Detalha uma carona (GET /caronas/{id}), trazendo ponto de encontro, vagas etc.

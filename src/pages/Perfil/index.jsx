@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Bell,
-  Camera,
   Car,
   ChevronRight,
   CircleHelp,
@@ -29,8 +28,6 @@ import { listarVeiculos } from '../../services/vehicleService.js';
 import { listarAvaliacoesRecebidas } from '../../services/avaliacaoService.js';
 import { bloquearUsuario } from '../../services/blockUserService.js';
 import './style.css';
-
-const FOTO_PERFIL_TAMANHO_MAXIMO = 2 * 1024 * 1024;
 
 function Perfil() {
   const navigate = useNavigate();
@@ -106,6 +103,11 @@ function Perfil() {
   async function salvarAlteracoes(event) {
     event.preventDefault();
 
+    if (fotoPreview && !isLinkPublicoValido(fotoPreview)) {
+      setErro('Informe uma URL pública válida para a foto.');
+      return;
+    }
+
     try {
       setSalvando(true);
       setErro('');
@@ -134,38 +136,10 @@ function Perfil() {
     }
   }
 
-  function alterarFotoPerfil(event) {
-    const arquivo = event.target.files?.[0];
-
-    if (!arquivo) {
-      return;
-    }
-
-    if (!arquivo.type.startsWith('image/')) {
-      setErro('Selecione um arquivo de imagem para a foto do perfil.');
-      event.target.value = '';
-      return;
-    }
-
-    if (arquivo.size > FOTO_PERFIL_TAMANHO_MAXIMO) {
-      setErro('A foto deve ter no máximo 2 MB.');
-      event.target.value = '';
-      return;
-    }
-
-    const leitor = new FileReader();
-
-    leitor.onload = () => {
-      setFotoPreview(String(leitor.result || ''));
-      setErro('');
-      setMensagemSucesso('');
-    };
-
-    leitor.onerror = () => {
-      setErro('Não foi possível carregar a foto selecionada.');
-    };
-
-    leitor.readAsDataURL(arquivo);
+  function alterarLinkFoto(event) {
+    setFotoPreview(event.target.value.trim());
+    setErro('');
+    setMensagemSucesso('');
   }
 
   async function sairDaConta() {
@@ -390,12 +364,12 @@ function Perfil() {
 
       {editando && (
         <div className="perfil-modal-overlay" onClick={fecharEdicaoPerfil}>
-          <form className="perfil-modal" onSubmit={salvarAlteracoes} onClick={(event) => event.stopPropagation()}>
+          <form className="perfil-modal" noValidate onSubmit={salvarAlteracoes} onClick={(event) => event.stopPropagation()}>
             <h2>Editar perfil</h2>
 
             <div className="perfil-photo-field">
               <div className="perfil-photo-preview">
-                {fotoPreview ? (
+                {isLinkPublicoValido(fotoPreview) ? (
                   <img src={fotoPreview} alt={`Foto de ${formatarNome(perfil.nomeCompleto) || 'perfil'}`} />
                 ) : (
                   getInitials(perfil.nomeCompleto)
@@ -403,14 +377,14 @@ function Perfil() {
               </div>
 
               <div className="perfil-photo-actions">
-                <label className="perfil-photo-button">
-                  <Camera size={18} />
-                  <span>Adicionar foto</span>
+                <label className="perfil-photo-link">
+                  <span>Link público da foto</span>
                   <input
-                    type="file"
-                    accept="image/*"
+                    type="url"
+                    value={fotoPreview}
+                    placeholder="https://exemplo.com/foto.jpg"
                     disabled={salvando}
-                    onChange={alterarFotoPerfil}
+                    onChange={alterarLinkFoto}
                   />
                 </label>
 
@@ -575,6 +549,10 @@ function getFotoPerfil(usuario = {}) {
 
 function isImagemPerfilValida(foto) {
   return /^data:image\/|^https?:\/\//i.test(String(foto || ''));
+}
+
+function isLinkPublicoValido(link) {
+  return /^https?:\/\/\S+$/i.test(String(link || ''));
 }
 
 function formatarNome(nome = '') {

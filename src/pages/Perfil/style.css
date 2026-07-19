@@ -464,12 +464,12 @@
 
 .perfil-photo-actions {
   min-width: 0;
-  display: flex;
-  flex-wrap: wrap;
+  flex: 1;
+  display: grid;
   gap: 10px;
 }
 
-.perfil-photo-button,
+.perfil-photo-link input,
 .perfil-photo-remove {
   min-height: 42px;
   border-radius: 14px;
@@ -480,21 +480,19 @@
   cursor: pointer;
 }
 
-.perfil-photo-button {
-  border: 1px solid #07132b;
-  background: #07132b;
-  color: #ffffff;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
+.perfil-photo-link {
+  display: grid;
+  gap: 6px;
+  color: #506a92;
+  font-size: 14px;
+  font-weight: 800;
 }
 
-.perfil-photo-button input {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  opacity: 0;
-  pointer-events: none;
+.perfil-photo-link input {
+  width: 100%;
+  border: 1px solid #cddced;
+  background: #ffffff;
+  color: #07132b;
 }
 
 .perfil-photo-remove {
@@ -503,7 +501,7 @@
   color: #991b1b;
 }
 
-.perfil-photo-button:has(input:disabled),
+.perfil-photo-link input:disabled,
 .perfil-photo-remove:disabled {
   cursor: not-allowed;
   opacity: 0.65;

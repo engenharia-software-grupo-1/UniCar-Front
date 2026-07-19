@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 
@@ -247,56 +247,32 @@ describe('salvar alterações', () => {
 });
 
 describe('foto de perfil', () => {
-  it('rejeita arquivo que não é imagem e limpa o input', async () => {
+  it('exibe a prévia ao informar um link público', async () => {
     const user = userEvent.setup();
     renderPerfil();
 
     await abrirEdicao(user);
 
-    const input = screen.getByLabelText(/Adicionar foto/i);
-    const arquivo = new File(['texto'], 'documento.txt', { type: 'text/plain' });
-    // fireEvent.change (em vez de user.upload) injeta o arquivo ignorando o
-    // accept="image/*", para exercitar a validação de tipo da própria página.
-    fireEvent.change(input, { target: { files: [arquivo] } });
+    const input = screen.getByLabelText(/Link público da foto/i);
+    await user.type(input, 'https://imagens.exemplo.com/foto.png');
 
-    expect(
-      screen.getByText('Selecione um arquivo de imagem para a foto do perfil.'),
-    ).toBeInTheDocument();
-    expect(input.value).toBe('');
+    const preview = screen.getByAltText(/Foto de Fulano De Tal/i);
+    expect(preview).toHaveAttribute('src', 'https://imagens.exemplo.com/foto.png');
   });
 
-  it('rejeita imagem acima de 2 MB e limpa o input', async () => {
+  it('impede salvar quando o link da foto não é público', async () => {
     const user = userEvent.setup();
     renderPerfil();
 
     await abrirEdicao(user);
 
-    const input = screen.getByLabelText(/Adicionar foto/i);
-    const grande = new File(
-      [new Uint8Array(2 * 1024 * 1024 + 1)],
-      'grande.png',
-      { type: 'image/png' },
-    );
-    await user.upload(input, grande);
+    await user.type(screen.getByLabelText(/Link público da foto/i), 'foto-local.png');
+    await user.click(screen.getByRole('button', { name: 'Salvar' }));
 
     expect(
-      screen.getByText('A foto deve ter no máximo 2 MB.'),
+      screen.getByText('Informe uma URL pública válida para a foto.'),
     ).toBeInTheDocument();
-    expect(input.value).toBe('');
-  });
-
-  it('carrega a imagem válida no preview via FileReader', async () => {
-    const user = userEvent.setup();
-    renderPerfil();
-
-    await abrirEdicao(user);
-
-    const input = screen.getByLabelText(/Adicionar foto/i);
-    const imagem = new File(['conteudo'], 'foto.png', { type: 'image/png' });
-    await user.upload(input, imagem);
-
-    const preview = await screen.findByAltText(/Foto de Fulano De Tal/i);
-    expect(preview).toHaveAttribute('src', expect.stringMatching(/^data:image\/png/));
+    expect(atualizarPerfilUsuarioAutenticado).not.toHaveBeenCalled();
   });
 });
 

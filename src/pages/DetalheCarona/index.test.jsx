@@ -20,6 +20,7 @@ vi.mock('../../services/publicProfileService.js', () => ({
 vi.mock('../../services/reservaService.js', () => ({
   aceitarReserva: vi.fn(),
   criarReserva: vi.fn(),
+  listarReservasDaCarona: vi.fn().mockResolvedValue([]),
   listarReservasPendentesDaCarona: vi.fn().mockResolvedValue([]),
   recusarReserva: vi.fn(),
 }));
@@ -35,6 +36,7 @@ import { obterPerfilPublicoUsuario } from '../../services/publicProfileService.j
 import {
   aceitarReserva,
   criarReserva,
+  listarReservasDaCarona,
   listarReservasPendentesDaCarona,
   recusarReserva,
 } from '../../services/reservaService.js';
@@ -76,6 +78,7 @@ beforeEach(() => {
   getPerfilUsuarioAutenticado.mockResolvedValue(null);
   obterPerfilPublicoUsuario.mockResolvedValue(null);
   listarReservasPendentesDaCarona.mockResolvedValue([]);
+  listarReservasDaCarona.mockResolvedValue([]);
   listarPassageirosCarona.mockResolvedValue([]);
   aceitarReserva.mockResolvedValue({});
   recusarReserva.mockResolvedValue({});
@@ -414,14 +417,19 @@ describe('DetalheCarona — responder solicitações (motorista)', () => {
     listarReservasPendentesDaCarona.mockResolvedValue([
       { ...SOLICITACAO, origemEmbarque: 'Rua do Cajá, 100' },
     ]);
+    // O confirmado NÃO traz embarque (o PassageiroResponseDTO do backend em
+    // produção ainda não expõe o campo) — ele é enriquecido por reservaId a
+    // partir de /reservas/recebidas.
     listarPassageirosCarona.mockResolvedValue([{
       id: 71,
       reservaId: 777,
       nome: 'Carlos Lima',
       curso: 'Física',
       status: 'Confirmado',
-      embarque: 'Av. Central, 500',
     }]);
+    listarReservasDaCarona.mockResolvedValue([
+      { id: 777, status: 'ACEITA', origemEmbarque: 'Av. Central, 500' },
+    ]);
 
     renderPagina({ state: { minhaCarona: true } });
 

@@ -159,6 +159,30 @@ describe('listarReservasPendentesDaCarona', () => {
     ]);
     expect(fetch.mock.calls.map(([url]) => url)).not.toContain(`${BASE_URL}/reservas/72`);
   });
+
+  it('extrai o origemEmbarque (endereço de embarque) das reservas recebidas pendentes', async () => {
+    fetch.mockImplementation((url) => {
+      if (url.endsWith('/reservas/recebidas')) {
+        return Promise.resolve(respostaJson([
+          {
+            id: 80,
+            status: 'PENDENTE',
+            usuario: { id: 5, nome: 'Maria' },
+            origemEmbarque: { descricao: 'Rua do Cajá, 100', latitude: -7.3, longitude: -35.95 },
+          },
+        ]));
+      }
+      if (url.endsWith('/reservas/80')) {
+        return Promise.resolve(respostaJson({ carona: { id: 10 } }));
+      }
+      throw new Error(`URL inesperada: ${url}`);
+    });
+
+    const { listarReservasPendentesDaCarona } = await importarService();
+    const reservas = await listarReservasPendentesDaCarona(10);
+
+    expect(reservas[0].origemEmbarque).toBe('Rua do Cajá, 100');
+  });
 });
 
 describe('obterDetalhesReserva', () => {

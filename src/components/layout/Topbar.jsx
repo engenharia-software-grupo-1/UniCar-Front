@@ -15,6 +15,16 @@ const ROTAS_RAIZ = new Set([
   '/perfil',
 ]);
 
+// Algumas telas possuem um retorno próprio no conteúdo, pois ele faz parte do
+// contexto da página (por exemplo, “Voltar ao histórico”). Não repetimos a
+// seta na barra global nesses casos.
+function rotaComVoltarProprio(pathname) {
+  return (
+    /^\/reservas\/[^/]+$/.test(pathname)
+    || /^\/(?:reservas|minhas-caronas)\/[^/]+\/chat\/[^/]+$/.test(pathname)
+  );
+}
+
 // Barra superior global do app autenticado: voltar + logo à esquerda, sino à
 // direita. Flutuante e translúcida. O título de cada tela fica no corpo, não aqui.
 export default function Topbar() {
@@ -22,7 +32,7 @@ export default function Topbar() {
   const { pathname } = useLocation();
   const [temNaoLida, setTemNaoLida] = useState(false);
 
-  const mostrarVoltar = !ROTAS_RAIZ.has(pathname);
+  const mostrarVoltar = !ROTAS_RAIZ.has(pathname) && !rotaComVoltarProprio(pathname);
 
   useEffect(() => {
     let ativo = true;

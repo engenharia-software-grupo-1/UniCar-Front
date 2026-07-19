@@ -4,6 +4,7 @@ const BASE_URL = 'http://localhost:8080';
 const TOKEN = 'token-simulado';
 const FOTO = 'data:image/png;base64,iVBORw0KGgo=';
 const OUTRA_FOTO = 'data:image/jpeg;base64,/9j/4AAQSkZJRg==';
+const FOTO_PUBLICA = 'https://cdn.exemplo.com/foto.jpg';
 
 let getPerfilUsuarioAutenticado;
 let atualizarPerfilUsuarioAutenticado;
@@ -368,6 +369,7 @@ describe('getPerfilUsuarioAutenticado — foto de perfil', () => {
   });
 
   it.each([
+    ['linkFoto'],
     ['fotoPerfil'],
     ['avatarUrl'],
     ['avatar'],
@@ -476,7 +478,6 @@ describe('atualizarPerfilUsuarioAutenticado — request', () => {
     expect(JSON.parse(options.body)).toEqual({
       genero: 'FEMININO',
       receberEmail: false,
-      curso: 'Ciência da Computação',
     });
   });
 
@@ -492,12 +493,14 @@ describe('atualizarPerfilUsuarioAutenticado — request', () => {
       cpf: '12345678901',
       emailInstitucional: 'fulano@ufcg.edu.br',
       telefone: '83999999999',
-      fotoUrl: FOTO,
+      fotoUrl: FOTO_PUBLICA,
       id: 1,
     });
 
-    expect(JSON.parse(fetch.mock.calls[0][1].body)).toMatchObject({
-      fotoUrl: FOTO,
+    expect(fetch.mock.calls[1][0]).toBe(`${BASE_URL}/usuarios/me/foto`);
+    expect(fetch.mock.calls[1][1].method).toBe('PATCH');
+    expect(JSON.parse(fetch.mock.calls[1][1].body)).toEqual({
+      linkFoto: FOTO_PUBLICA,
     });
   });
 
@@ -723,7 +726,7 @@ describe('foto de perfil — ciclo salvar/ler/remover', () => {
     expect(localStorage.getItem(chaveFoto(1))).toBeNull();
 
     fetch.mockResolvedValue(respostaJson({ id: 1 }));
-    expect((await getPerfilUsuarioAutenticado()).fotoUrl).toBe('');
+    expect((await getPerfilUsuarioAutenticado()).fotoUrl).toBe(FOTO);
   });
 });
 

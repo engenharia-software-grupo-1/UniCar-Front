@@ -362,6 +362,8 @@ function BuscarCarona() {
                 state={{
                   origem,
                   destino,
+                  origemCoordenadas,
+                  destinoCoordenadas,
                 }}
               >
                 <BellPlus size={15} />

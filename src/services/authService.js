@@ -35,7 +35,17 @@ export async function login({ matricula, usuario, senha }) {
 }
 
 export async function logout() {
-  clearSession();
+  const session = readStoredSession();
+
+  try {
+    if (session?.token) {
+      await apiRequest('/auth/logout', { method: 'POST' });
+    }
+  } catch {
+    // A saÃ­da local nÃ£o deve ficar bloqueada se a API estiver indisponÃ­vel.
+  } finally {
+    clearSession();
+  }
 }
 
 export function getSession() {

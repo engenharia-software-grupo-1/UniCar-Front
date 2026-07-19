@@ -27,6 +27,7 @@ function normalizarPerfil(perfil = {}) {
 function obterFotoPerfil(perfil) {
   const foto =
     perfil.fotoUrl ??
+    perfil.linkFoto ??
     perfil.fotoPerfil ??
     perfil.fotoPerfilUrl ??
     perfil.avatarUrl ??

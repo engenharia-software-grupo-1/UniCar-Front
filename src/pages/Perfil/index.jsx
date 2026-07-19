@@ -125,7 +125,7 @@ function Perfil() {
         ...perfilAtualizado,
         telefone,
         curso,
-        fotoUrl: fotoPreview,
+        fotoUrl: perfilAtualizado.fotoUrl,
       }));
       setMensagemSucesso('Perfil atualizado com sucesso.');
       setEditando(false);
@@ -536,6 +536,7 @@ function getInitials(nome) {
 function getFotoPerfil(usuario = {}) {
   const foto = (
     usuario.fotoUrl ||
+    usuario.linkFoto ||
     usuario.fotoPerfil ||
     usuario.avatarUrl ||
     usuario.avatar ||

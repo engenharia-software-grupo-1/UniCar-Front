@@ -26,7 +26,14 @@ function Interesses() {
   const location = useLocation();
   const origemRecebida = location.state?.origem;
   const destinoRecebido = location.state?.destino;
-  const [mostrarModalCriacao, setMostrarModalCriacao] = useState(Boolean(origemRecebida && destinoRecebido));
+  const origemCoordenadasRecebidas = location.state?.origemCoordenadas;
+  const destinoCoordenadasRecebidas = location.state?.destinoCoordenadas;
+  const [mostrarModalCriacao, setMostrarModalCriacao] = useState(Boolean(
+    origemRecebida &&
+    destinoRecebido &&
+    origemCoordenadasRecebidas &&
+    destinoCoordenadasRecebidas,
+  ));
  
   useEffect(() => {
     carregarInteresses();
@@ -49,8 +56,8 @@ function Interesses() {
         setCarregando(true);
 
         await registrarInteresse({
-        origem: origemRecebida,
-        destino: destinoRecebido,
+        origem: origemCoordenadasRecebidas,
+        destino: destinoCoordenadasRecebidas,
         });
 
         await carregarInteresses();

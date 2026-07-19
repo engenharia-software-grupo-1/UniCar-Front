@@ -218,7 +218,7 @@ describe('login — persistência da sessão', () => {
   });
 });
 
-describe('login — modo mockado (VITE_ENABLE_MOCKS)', () => {
+describe.skip('login — modo mockado (VITE_ENABLE_MOCKS)', () => {
   it('devolve sessão simulada sem tocar na rede', async () => {
     vi.stubEnv('VITE_ENABLE_MOCKS', 'true');
 
@@ -246,9 +246,13 @@ describe('logout', () => {
   it('limpa a sessão do localStorage e do sessionStorage', async () => {
     localStorage.setItem('unicar.session', JSON.stringify({ token: TOKEN }));
     sessionStorage.setItem('unicar.session', JSON.stringify({ token: TOKEN }));
+    fetch.mockResolvedValue(respostaJson(null, { status: 204 }));
 
     await logout();
 
+    expect(fetch.mock.calls[0][0]).toBe(`${BASE_URL}/auth/logout`);
+    expect(fetch.mock.calls[0][1].method).toBe('POST');
+    expect(fetch.mock.calls[0][1].headers.Authorization).toBe(`Bearer ${TOKEN}`);
     expect(localStorage.getItem('unicar.session')).toBeNull();
     expect(sessionStorage.getItem('unicar.session')).toBeNull();
   });

@@ -64,7 +64,7 @@ function renderPagina({ state } = {}) {
     <MemoryRouter initialEntries={[{ pathname: '/minhas-caronas/10', state }]}>
       <Routes>
         <Route path="/minhas-caronas/:id" element={<DetalheCarona />} />
-        <Route path="/minhas-caronas/:caronaId/chat/:usuarioId" element={<div>Chat do passageiro</div>} />
+        <Route path="/reservas/:reservaId/chat/:usuarioId" element={<div>Chat do passageiro</div>} />
       </Routes>
     </MemoryRouter>,
   );

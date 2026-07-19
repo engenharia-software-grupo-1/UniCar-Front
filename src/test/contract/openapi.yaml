@@ -318,7 +318,8 @@ components:
             - CARONA_CANCELADA
             - CARONA_INICIADA
             - CARONA_FINALIZADA
-            - CARONA_COMPATIVEL
+            - NOTIFICACAO_AVALIACAO
+            - INTERESSE_TRAJETO
           example: RESERVA_ACEITA
         visualizada:
           type: boolean
@@ -479,7 +480,7 @@ components:
 
     VeiculoRequest:
       type: object
-      required: [modelo, placa]
+      required: [modelo, placa, tipoVeiculo]
       properties:
         modelo:
           type: string
@@ -493,7 +494,7 @@ components:
         tipoVeiculo:
           type: string
           example: CARRO
-          enum: CARRO, MOTO
+          enum: [CARRO, MOTO]
 
     Veiculo:
       type: object
@@ -708,7 +709,7 @@ components:
       type: object
       properties:
         id:
-          type: integer
+          type: string
           example: 1
         origem:
           $ref: '#/components/schemas/Coordenada'
@@ -904,7 +905,7 @@ components:
           example: 50
         status:
           type: string
-          enum: [PENDENTE, ACEITA, RECUSADA, CANCELADA, EXPIRADA, FINALIZADA]
+          enum: [PENDENTE, ACEITA, RECUSADA, CANCELADA, REMOVIDA, CONCLUIDA]
           example: ACEITA
 
     ReservaEnviada:
@@ -2070,7 +2071,7 @@ paths:
       summary: Finalizar uma carona
       description: >
         Apenas o motorista proprietário pode finalizar. Carona deve estar
-        EM_ANDAMENTO. Reservas ACEITAS são marcadas como FINALIZADAS e
+        EM_ANDAMENTO. Reservas ACEITAS são marcadas como CONCLUIDAS e
         participantes ficam elegíveis para avaliação (RN-CAR-22 a RN-CAR-25).
       parameters:
         - name: id
@@ -2209,7 +2210,7 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
+            type: string
           example: 1
       requestBody:
         required: true
@@ -2552,8 +2553,7 @@ paths:
       tags: [Reservas]
       summary: Cancelar uma reserva
       description: >
-        Passageiro pode cancelar a própria reserva; motorista pode cancelar
-        reservas ACEITAS. Vagas devolvidas se reserva estava ACEITA.
+        Passageiro pode cancelar a própria reserva. Vagas devolvidas se reserva estava ACEITA.
         Usuário afetado é notificado (RN-RES-23 a RN-RES-27).
       parameters:
         - name: id

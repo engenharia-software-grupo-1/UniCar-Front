@@ -103,26 +103,26 @@
 }
 
 .carona-card__rota {
-  margin: 0 0 10px;
-  padding: 12px 14px;
+  margin: 0 0 8px;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  grid-template-columns: 20px minmax(0, 1fr);
   align-items: center;
-  gap: 10px;
-  border: 1px solid #e5edf7;
-  border-radius: 14px;
-  background: #f8fbff;
+  row-gap: 5px;
+  column-gap: 4px;
   color: #07132b;
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.35;
 }
 
 .carona-card__rota svg {
+  grid-column: 1;
+  grid-row: 2;
   color: #94a3b8;
 }
 
 .carona-card__rota strong,
 .carona-card__rota span {
+  grid-column: 2;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -130,10 +130,12 @@
 }
 
 .carona-card__rota strong {
+  grid-row: 1;
   font-weight: 800;
 }
 
 .carona-card__rota span {
+  grid-row: 2;
   color: #385579;
   font-weight: 700;
 }

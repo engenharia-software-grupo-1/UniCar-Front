@@ -232,25 +232,16 @@
   opacity: 0.85;
 }
 
-.carona-card__detalhes-wrapper {
-  display: flex;
-  justify-content: center;
-  margin-top: 14px;
-}
-
 .carona-card__detalhes {
-  width: fit-content;
-  padding: 9px 14px;
+  width: 52px;
+  min-height: 52px;
+  padding: 0;
   border: 1px solid #dbe6f4;
-  border-radius: 10px;
-  background: #f6faff;
-  color: #244c7d;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  font-size: 15px;
-  font-weight: 800;
+  border-radius: 14px;
+  background: #ffffff;
+  color: #07132b;
+  display: grid;
+  place-items: center;
   text-decoration: none;
   cursor: pointer;
   transition: background 0.18s, border-color 0.18s, color 0.18s;
@@ -258,8 +249,8 @@
 
 .carona-card__detalhes:hover {
   border-color: #b9cbe4;
-  background: #eaf3ff;
-  color: #07132b;
+  background: #f6faff;
+  color: #244c7d;
 }
 
 .caronas-loading,

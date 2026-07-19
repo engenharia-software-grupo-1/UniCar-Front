@@ -409,6 +409,49 @@ describe('DetalheCarona — responder solicitações (motorista)', () => {
     expect(recusarReserva).not.toHaveBeenCalled();
   });
 
+  it('mostra o endereço de embarque de cada passageiro (confirmado e pendente)', async () => {
+    obterCarona.mockResolvedValue(CARONA_MINHA);
+    listarReservasPendentesDaCarona.mockResolvedValue([
+      { ...SOLICITACAO, origemEmbarque: 'Rua do Cajá, 100' },
+    ]);
+    listarPassageirosCarona.mockResolvedValue([{
+      id: 71,
+      reservaId: 777,
+      nome: 'Carlos Lima',
+      curso: 'Física',
+      status: 'Confirmado',
+      embarque: 'Av. Central, 500',
+    }]);
+
+    renderPagina({ state: { minhaCarona: true } });
+
+    await screen.findByRole('heading', { name: 'Você (motorista)' });
+    await userEvent.click(screen.getByRole('button', { name: 'Passageiros' }));
+
+    // O motorista vê onde buscar cada passageiro.
+    expect(await screen.findByText('Av. Central, 500')).toBeInTheDocument();
+    expect(await screen.findByText('Rua do Cajá, 100')).toBeInTheDocument();
+  });
+
+  it('mostra "Embarque não informado" quando o passageiro não tem endereço', async () => {
+    obterCarona.mockResolvedValue(CARONA_MINHA);
+    listarReservasPendentesDaCarona.mockResolvedValue([]);
+    listarPassageirosCarona.mockResolvedValue([{
+      id: 72,
+      reservaId: 778,
+      nome: 'Sem Endereço',
+      status: 'Confirmado',
+      embarque: '',
+    }]);
+
+    renderPagina({ state: { minhaCarona: true } });
+
+    await screen.findByRole('heading', { name: 'Você (motorista)' });
+    await userEvent.click(screen.getByRole('button', { name: 'Passageiros' }));
+
+    expect(await screen.findByText('Embarque não informado')).toBeInTheDocument();
+  });
+
   it('recusa a solicitação: chama recusarReserva, remove da lista e não altera as vagas', async () => {
     obterCarona.mockResolvedValue(CARONA_MINHA);
     listarReservasPendentesDaCarona.mockResolvedValue([SOLICITACAO]);

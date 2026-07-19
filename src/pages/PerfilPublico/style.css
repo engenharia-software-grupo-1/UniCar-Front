@@ -43,4 +43,11 @@
 .perfil-publico-page .confirmacaoMensagem { color:#334155; font-size:14px; }
 .perfil-publico-page .confirmacaoBotoes { margin-top:18px; gap:8px; }
 .perfil-publico-page .confirmacaoBotoes button { min-height:42px; padding:9px 14px; border-radius:12px; font-size:14px; }
+.perfil-publico-avaliacao { display:flex; flex-direction:column; gap:.7rem; padding:20px 0; }
+.perfil-publico-avaliacao:not(:last-child) { border-bottom:1px solid #e5e7eb; }
+.perfil-publico-avaliacao-topo { display:flex; justify-content:space-between; align-items:center; }
+.perfil-publico-avaliacao-nota { display:flex; align-items:center; gap:.35rem; color:#f59e0b; font-weight:700; }
+.perfil-publico-avaliador { color:#111827; font-size:15px; }
+.perfil-publico-avaliacao time { color:#6b7280; font-size:13px; }
+.perfil-publico-comentario { margin:0; color:#374151; line-height:1.6; font-style:italic; }
 @media (max-width:520px) { .perfil-publico-shell{width:min(var(--app-content-width),calc(100% - var(--app-content-gutter-mobile)));padding-top:14px}.perfil-publico-card,.perfil-publico-avaliacoes{padding:16px}.perfil-publico-header{align-items:flex-start;gap:13px}.perfil-publico-avatar{width:58px;height:58px}.perfil-publico-metricas{grid-template-columns:repeat(3,minmax(0,1fr))}.perfil-publico-metrica{min-height:72px;padding:8px 4px}.perfil-publico-page .confirmacaoFundo{align-items:flex-end;padding:12px}.perfil-publico-page .confirmacaoCaixa{max-width:none;border-radius:18px}.perfil-publico-toast{right:16px;bottom:88px} }

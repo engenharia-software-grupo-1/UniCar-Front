@@ -110,7 +110,7 @@ function PerfilPublico() {
                   <strong>
                     <Star size={17} fill="currentColor" aria-hidden="true" />
                     {formatarMedia(perfil.avaliacao)}
-                    <small>• {perfil.totalCaronas} caronas</small>
+                    <small>• {perfil.quantidadeCaronas} caronas</small>
                   </strong>
                 </div>
               </div>
@@ -118,7 +118,7 @@ function PerfilPublico() {
               <p className="perfil-publico-bio">{perfil.biografia}</p>
 
               <div className="perfil-publico-metricas" aria-label="Resumo do usuário">
-                <Metrica icon={Car} valor={perfil.totalCaronas} label="Caronas" />
+                <Metrica icon={Car} valor={perfil.quantidadeCaronas} label="Caronas" />
                 <Metrica icon={Star} valor={formatarMedia(perfil.avaliacao)} label="Avaliação" />
                 <Metrica icon={CalendarDays} valor={perfil.membroDesde} label="Membro" />
               </div>
@@ -132,19 +132,37 @@ function PerfilPublico() {
 
             <section className="perfil-publico-avaliacoes">
               <h2>Avaliações recentes</h2>
-              {perfil.avaliacoes.map((avaliacao) => (
-                <article key={avaliacao.id} className="perfil-publico-avaliacao">
-                  <div>
-                    <strong>{avaliacao.autor}</strong>
-                    <p>{avaliacao.comentario}</p>
-                    <time>{avaliacao.data}</time>
+
+              {perfil.avaliacoes.length === 0 ? (
+                <p className="perfil-publico-sem-avaliacoes">
+                  Este usuário ainda não recebeu avaliações.
+                </p>
+              ) : (
+                perfil.avaliacoes.map((avaliacao) => (
+                 <article className="perfil-publico-avaliacao">
+                  <div className="perfil-publico-avaliacao-topo">
+                    <div className="perfil-publico-avaliacao-nota">
+                      <Star size={16} fill="currentColor" />
+                      <span>{avaliacao.nota.toFixed(1)}</span>
+                    </div>
+
+                    <time dateTime={avaliacao.dataAvaliacao}>
+                      {formatarData(avaliacao.dataAvaliacao)}
+                    </time>
                   </div>
-                  <span>
-                    <Star size={16} fill="currentColor" aria-hidden="true" />
-                    {avaliacao.nota}
-                  </span>
+
+                  <strong className="perfil-publico-avaliador">
+                    {avaliacao.avaliador.nome}
+                  </strong>
+
+                  {avaliacao.comentario && (
+                    <p className="perfil-publico-comentario">
+                      {avaliacao.comentario}
+                    </p>
+                  )}
                 </article>
-              ))}
+                ))
+              )}
             </section>
           </>
         )}
@@ -169,6 +187,13 @@ function PerfilPublico() {
       )}
     </main>
   );
+}
+
+function formatarData(valor) {
+  if (!valor) return '';
+  const data = new Date(valor);
+  if (Number.isNaN(data.getTime())) return valor;
+  return data.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
 
 function mensagemErroBloqueio(error) {

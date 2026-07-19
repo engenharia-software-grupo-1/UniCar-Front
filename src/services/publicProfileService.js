@@ -16,7 +16,7 @@ function normalizarPerfil(perfil = {}) {
     instituicao: 'UFCG',
     verificado: Boolean(perfil.verificado ?? perfil.motoristaVerificado),
     avaliacao: Number(perfil.reputacao ?? perfil.avaliacao ?? perfil.rating ?? 0),
-    totalCaronas: Number(perfil.totalCaronas ?? 0),
+    quantidadeCaronas: Number(perfil.quantidadeCaronas ?? 0),
     fotoUrl: obterFotoPerfil(perfil),
     membroDesde: perfil.membroDesde ?? new Date().getFullYear(),
     biografia: perfil.biografia ?? 'Membro da comunidade UniCar.',

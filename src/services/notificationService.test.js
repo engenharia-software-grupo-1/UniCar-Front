@@ -192,6 +192,19 @@ describe('caminho de rede (VITE_ENABLE_MOCKS desligado)', () => {
       });
     });
 
+    it('usa dataEnvio, conforme o contrato de notificações da API', async () => {
+      fetch.mockResolvedValue(respostaJson([{
+        id: 43,
+        titulo: 'Reserva cancelada',
+        mensagem: 'Sua reserva foi cancelada.',
+        dataEnvio: '2026-07-17T09:00:00.000Z',
+      }]));
+
+      const [notificacao] = await listarNotificacoes();
+
+      expect(notificacao.dataHora).toBe('2026-07-17T09:00:00.000Z');
+    });
+
     it('remove marcação HTML das mensagens recebidas da API', async () => {
       fetch.mockResolvedValue(respostaJson([{
         id: 8,

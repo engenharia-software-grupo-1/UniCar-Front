@@ -127,12 +127,13 @@ function normalizarNotificacao(notificacao = {}) {
     id:
       notificacao.id ??
       notificacao.notificacaoId ??
-      `${notificacao.dataHora ?? notificacao.createdAt ?? ''}-${notificacao.titulo ?? ''}`,
+      `${notificacao.dataHora ?? notificacao.dataEnvio ?? notificacao.createdAt ?? ''}-${notificacao.titulo ?? ''}`,
     titulo: notificacao.titulo ?? notificacao.title ?? 'Notificação',
     mensagem,
     detalhes,
     dataHora:
       notificacao.dataHora ??
+      notificacao.dataEnvio ??
       notificacao.data ??
       notificacao.createdAt ??
       notificacao.criadoEm ??

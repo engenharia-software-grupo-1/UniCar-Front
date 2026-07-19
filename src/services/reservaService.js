@@ -276,6 +276,11 @@ export async function listarReservasAceitas() {
 
 function normalizarResumoReserva(reserva = {}) {
   const carona = reserva.carona || {};
+  const motorista = reserva.motorista || carona.motorista || carona.condutor || {};
+  const motoristaNome =
+    carona.motoristaNome || reserva.motoristaNome ||
+    motorista.nome || motorista.nomeCompleto || '';
+
   return {
     id: reserva.id ?? reserva.reservaId,
     status: String(reserva.status || '').toUpperCase(),
@@ -287,6 +292,12 @@ function normalizarResumoReserva(reserva = {}) {
       reserva.dataHoraSaida ||
       carona.dataHoraSaida ||
       '',
+    motorista: {
+      id: motorista.id ?? motorista.usuarioId ?? reserva.motoristaId ?? '',
+      nome: motoristaNome,
+      fotoPerfil: motorista.fotoPerfil || motorista.avatarUrl || motorista.avatar || '',
+      avaliacao: motorista.avaliacao ?? motorista.rating ?? null,
+    },
     carona: {
       id: carona.id ?? reserva.caronaId,
       origem: descricao(carona.origem ?? reserva.origem),

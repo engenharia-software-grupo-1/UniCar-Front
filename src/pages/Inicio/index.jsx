@@ -158,7 +158,7 @@ function Inicio() {
               <strong id="proxima-carona">{carregando ? 'Carregando...' : 'Nenhuma carona futura'}</strong>
               <span>
                 {carregando
-                  ? 'Buscando suas informações no backend.'
+                  ? 'Buscando suas informações...'
                   : 'Você ainda não tem caronas agendadas. Que tal buscar ou ofertar uma agora?'}
               </span>
               {!carregando && <div className="inicio-empty-actions">

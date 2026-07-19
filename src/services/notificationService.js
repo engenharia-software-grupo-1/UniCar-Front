@@ -111,20 +111,26 @@ function obterToken() {
 }
 
 function normalizarNotificacao(notificacao = {}) {
+  const mensagem = normalizarConteudoNotificacao(
+    notificacao.mensagem ?? notificacao.message ?? notificacao.descricao ?? '',
+  );
+  const detalhes = normalizarConteudoNotificacao(
+    notificacao.detalhes ??
+      notificacao.details ??
+      notificacao.conteudo ??
+      notificacao.mensagem ??
+      notificacao.message ??
+      '',
+  );
+
   return {
     id:
       notificacao.id ??
       notificacao.notificacaoId ??
       `${notificacao.dataHora ?? notificacao.createdAt ?? ''}-${notificacao.titulo ?? ''}`,
     titulo: notificacao.titulo ?? notificacao.title ?? 'Notificação',
-    mensagem: notificacao.mensagem ?? notificacao.message ?? notificacao.descricao ?? '',
-    detalhes:
-      notificacao.detalhes ??
-      notificacao.details ??
-      notificacao.conteudo ??
-      notificacao.mensagem ??
-      notificacao.message ??
-      '',
+    mensagem,
+    detalhes,
     dataHora:
       notificacao.dataHora ??
       notificacao.data ??
@@ -134,6 +140,24 @@ function normalizarNotificacao(notificacao = {}) {
     lida: Boolean(notificacao.lida ?? notificacao.read ?? notificacao.visualizada),
     tipo: notificacao.tipo ?? notificacao.type ?? 'sistema',
   };
+}
+
+function normalizarConteudoNotificacao(conteudo) {
+  if (typeof conteudo !== 'string') {
+    return conteudo ?? '';
+  }
+
+  const textoSemTags = conteudo
+    .replace(/<br\s*\/?\s*>/gi, '\n')
+    .replace(/<\/?(?:p|div|h[1-6]|li|ul|ol)\b[^>]*>/gi, '\n')
+    .replace(/<[^>]*>/g, '');
+
+  // O textarea decodifica entidades HTML (por exemplo, &amp;) sem inserir o
+  // conteúdo no DOM da página.
+  const decodificador = document.createElement('textarea');
+  decodificador.innerHTML = textoSemTags;
+
+  return decodificador.value.replace(/\n[\t ]*/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
 }
 
 function ordenarPorDataDesc(notificacoes) {

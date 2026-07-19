@@ -192,6 +192,20 @@ describe('caminho de rede (VITE_ENABLE_MOCKS desligado)', () => {
       });
     });
 
+    it('remove marcação HTML das mensagens recebidas da API', async () => {
+      fetch.mockResolvedValue(respostaJson([{
+        id: 8,
+        titulo: 'Reserva cancelada',
+        mensagem: '<p>Olá, <strong>Jennifer</strong>.</p><p>Sua reserva foi cancelada.</p>',
+        dataHora: '2026-07-17T10:00:00.000Z',
+      }]));
+
+      const [notificacao] = await listarNotificacoes();
+
+      expect(notificacao.mensagem).toBe('Olá, Jennifer.\n\nSua reserva foi cancelada.');
+      expect(notificacao.detalhes).toBe('Olá, Jennifer.\n\nSua reserva foi cancelada.');
+    });
+
     it.each([
       ['content', (lista) => ({ content: lista })],
       ['items', (lista) => ({ items: lista })],

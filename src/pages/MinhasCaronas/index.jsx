@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { ArrowRight, Pencil, Play, Square, Users, X } from 'lucide-react';
+import { ArrowRight, Eye, Pencil, Play, Square, Users, X } from 'lucide-react';
 import Confirmacao from '../../components/common/Confirmacao.jsx';
 import StatusReservaBadge from '../../components/common/StatusReservaBadge.jsx';
 import { cancelarCarona, iniciarCarona, finalizarCarona, listarMinhasCaronas } from '../../services/caronaService.js';
@@ -554,6 +554,7 @@ function CaronaCard({ carona, onCancelar, onIniciar, onFinalizar }) {
       </div>
 
       <Link to={`/minhas-caronas/${carona.id}`} state={{ minhaCarona: true, carona }} className="carona-card__detalhes">
+        <Eye size={17} aria-hidden="true" />
         Ver detalhes da carona
       </Link>
     </article>

@@ -233,17 +233,29 @@
 }
 
 .carona-card__detalhes {
-  width: 100%;
+  width: fit-content;
   margin-top: 14px;
-  border: 0;
-  background: transparent;
-  color: #0b1531;
+  margin-inline: auto;
+  padding: 9px 14px;
+  border: 1px solid #dbe6f4;
+  border-radius: 10px;
+  background: #f6faff;
+  color: #244c7d;
   display: inline-flex;
+  align-items: center;
   justify-content: center;
+  gap: 7px;
   font-size: 15px;
   font-weight: 800;
   text-decoration: none;
   cursor: pointer;
+  transition: background 0.18s, border-color 0.18s, color 0.18s;
+}
+
+.carona-card__detalhes:hover {
+  border-color: #b9cbe4;
+  background: #eaf3ff;
+  color: #07132b;
 }
 
 .caronas-loading,

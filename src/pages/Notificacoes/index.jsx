@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
   Bell,
   Check,
@@ -24,7 +23,6 @@ const ICONES_POR_TIPO = {
 };
 
 function Notificacoes() {
-  const navigate = useNavigate();
   const [notificacoes, setNotificacoes] = useState([]);
   const [notificacaoSelecionada, setNotificacaoSelecionada] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -150,11 +148,6 @@ function Notificacoes() {
           </ul>
         )}
 
-        <div className="notificacoes-footer-actions">
-          <button type="button" onClick={() => navigate('/perfil')}>
-            Voltar para o perfil
-          </button>
-        </div>
       </section>
 
       {notificacaoSelecionada && (

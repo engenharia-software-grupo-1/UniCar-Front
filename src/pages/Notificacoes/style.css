@@ -166,29 +166,6 @@
   font-weight: 600;
 }
 
-.notificacoes-footer-actions {
-  margin-top: 18px;
-  display: flex;
-  justify-content: center;
-}
-
-.notificacoes-footer-actions button {
-  min-height: 48px;
-  border: 0;
-  border-radius: 16px;
-  background: #07132b;
-  color: #ffffff;
-  padding: 0 22px;
-  font: inherit;
-  font-size: 16px;
-  font-weight: 900;
-  cursor: pointer;
-}
-
-.notificacoes-footer-actions button:hover {
-  background: #10224a;
-}
-
 .notificacoes-state-card,
 .notificacoes-empty {
   min-height: 220px;

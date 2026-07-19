@@ -1,4 +1,4 @@
-.inicio-page { min-height: 100vh; background: #f8fafc; color: #172033; font-family: "Nunito", ui-sans-serif, system-ui, sans-serif; }
+.inicio-page { min-height: 100vh; background: #eef6ff; color: #172033; font-family: "Nunito", ui-sans-serif, system-ui, sans-serif; }
 .inicio-page * { box-sizing: border-box; }
 .inicio-shell { width: min(var(--app-content-width), calc(100% - var(--app-content-gutter))); margin: 0 auto; padding: 24px 0 32px; }
 

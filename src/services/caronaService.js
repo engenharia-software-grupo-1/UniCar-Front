@@ -104,6 +104,15 @@ export async function obterCarona(id) {
   }
 }
 
+export async function listarPassageirosCarona(id) {
+  const resposta = await apiRequest(`/caronas/${encodeURIComponent(id)}/passageiros`);
+  const passageiros = Array.isArray(resposta)
+    ? resposta
+    : resposta?.content || resposta?.passageiros || resposta?.items || [];
+
+  return normalizarPassageiros(passageiros);
+}
+
 // Cria caronas (POST /caronas). A recorrência não é um atributo da carona: os
 // dias marcados pelo motorista viram uma lista de datas concretas e o back cria
 // UMA carona por data. Por isso o payload leva `datasHorasSaida` e a resposta é
@@ -370,7 +379,8 @@ export async function cancelarCarona(id) {
 }
 
 // Inicia uma carona do motorista (PATCH /caronas/{id}/iniciar) — contrato
-// US7-BACK-08. Sem corpo; devolve { id, status: 'EM_ANDAMENTO' }.
+// US7-BACK-08. O backend responde 204 sem corpo; normalizamos o retorno para a
+// tela conseguir atualizar o card imediatamente.
 export async function iniciarCarona(id) {
   if (shouldUseLocalDataMocks()) {
     const caronas = carregarCaronasMock();
@@ -384,13 +394,15 @@ export async function iniciarCarona(id) {
     return { id: Number(id), status: 'EM_ANDAMENTO' };
   }
 
-  return apiRequest(`/caronas/${id}/iniciar`, {
+  const resposta = await apiRequest(`/caronas/${id}/iniciar`, {
     method: 'PATCH',
   });
+
+  return resposta || { id: Number(id), status: 'EM_ANDAMENTO' };
 }
 
-// Inicia uma carona do motorista (PATCH /caronas/{id}/finalizar) — contrato
-// US7-BACK-09. Sem corpo; devolve { id, status: 'FINALIZADA' }.
+// Finaliza uma carona do motorista (PATCH /caronas/{id}/finalizar) — contrato
+// US7-BACK-09. O backend também responde 204 sem corpo.
 export async function finalizarCarona(id) {
   if (shouldUseLocalDataMocks()) {
     const caronas = carregarCaronasMock();
@@ -407,9 +419,11 @@ export async function finalizarCarona(id) {
     };
   }
 
-  return apiRequest(`/caronas/${id}/finalizar`, {
+  const resposta = await apiRequest(`/caronas/${id}/finalizar`, {
     method: 'PATCH',
   });
+
+  return resposta || { id: Number(id), status: 'FINALIZADA' };
 }
 
 // Remove uma reserva da carona (PATCH /reservas/{reservaId}/remover).

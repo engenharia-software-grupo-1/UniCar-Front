@@ -13,6 +13,7 @@ import {
   Star,
 } from 'lucide-react';
 import { buscarCaronas } from '../../services/caronaService.js';
+import { buscarSugestoesEndereco } from '../../services/geocodingService.js';
 import './style.css';
 
 const CURSOS = [
@@ -25,6 +26,39 @@ const CURSOS = [
   'Letras',
 ];
 const GENEROS = ['Qualquer', 'Feminino', 'Masculino', 'Outro'];
+
+function useSugestoesEndereco(consulta, ativa) {
+  const [sugestoes, setSugestoes] = useState([]);
+  const [buscando, setBuscando] = useState(false);
+
+  useEffect(() => {
+    const texto = consulta.trim();
+    if (!ativa || texto.length < 3) {
+      setSugestoes([]);
+      return undefined;
+    }
+
+    let buscaAtiva = true;
+    const timer = window.setTimeout(async () => {
+      setBuscando(true);
+      try {
+        const resultados = await buscarSugestoesEndereco(texto);
+        if (buscaAtiva) setSugestoes(resultados);
+      } catch {
+        if (buscaAtiva) setSugestoes([]);
+      } finally {
+        if (buscaAtiva) setBuscando(false);
+      }
+    }, 350);
+
+    return () => {
+      buscaAtiva = false;
+      window.clearTimeout(timer);
+    };
+  }, [consulta, ativa]);
+
+  return { sugestoes, buscando };
+}
 
 function BuscarCarona() {
   const navigate = useNavigate();
@@ -42,6 +76,9 @@ function BuscarCarona() {
   const [mostrarFiltros, setMostrarFiltros] = useState(false);
   const [vagasMinimas, setVagasMinimas] = useState(1);
   const [precoMaximo, setPrecoMaximo] = useState(20);
+  const [campoEnderecoAtivo, setCampoEnderecoAtivo] = useState(null);
+  const sugestoesOrigem = useSugestoesEndereco(origem, campoEnderecoAtivo === 'origem');
+  const sugestoesDestino = useSugestoesEndereco(destino, campoEnderecoAtivo === 'destino');
 
 
 
@@ -113,8 +150,42 @@ function BuscarCarona() {
         </header>
 
         <div className="buscar-formulario">
-          <Field icon={MapPin} placeholder="De onde você sai" value={origem} onChange={setOrigem} erro={erroOrigem} />
-          <Field icon={MapPin} placeholder="Para onde vai" value={destino} onChange={setDestino} erro={erroDestino} />
+          <Field
+            id="origem"
+            icon={MapPin}
+            placeholder="De onde você sai"
+            value={origem}
+            onChange={setOrigem}
+            erro={erroOrigem}
+            ativo={campoEnderecoAtivo === 'origem'}
+            onFocus={() => setCampoEnderecoAtivo('origem')}
+            onBlur={() => window.setTimeout(() => setCampoEnderecoAtivo(null), 150)}
+            sugestoes={sugestoesOrigem.sugestoes}
+            buscandoSugestoes={sugestoesOrigem.buscando}
+            onSelect={(endereco) => {
+              setOrigem(endereco.descricao);
+              setCampoEnderecoAtivo(null);
+              setErroOrigem('');
+            }}
+          />
+          <Field
+            id="destino"
+            icon={MapPin}
+            placeholder="Para onde vai"
+            value={destino}
+            onChange={setDestino}
+            erro={erroDestino}
+            ativo={campoEnderecoAtivo === 'destino'}
+            onFocus={() => setCampoEnderecoAtivo('destino')}
+            onBlur={() => window.setTimeout(() => setCampoEnderecoAtivo(null), 150)}
+            sugestoes={sugestoesDestino.sugestoes}
+            buscandoSugestoes={sugestoesDestino.buscando}
+            onSelect={(endereco) => {
+              setDestino(endereco.descricao);
+              setCampoEnderecoAtivo(null);
+              setErroDestino('');
+            }}
+          />
 
           <div className="buscar-acoes">
             <button type="button" className="buscar-botao" onClick={realizarBusca} disabled={carregando}>
@@ -190,13 +261,55 @@ function BuscarCarona() {
   );
 }
 
-function Field({ icon: Icon, placeholder, value, onChange, erro }) {
+function Field({
+  id,
+  icon: Icon,
+  placeholder,
+  value,
+  onChange,
+  erro,
+  ativo,
+  onFocus,
+  onBlur,
+  sugestoes,
+  buscandoSugestoes,
+  onSelect,
+}) {
+  const listaId = `buscar-sugestoes-${id}`;
+
   return (
     <div className="buscar-field-wrapper">
       <div className={`buscar-field${erro ? ' buscar-field--erro' : ''}`}>
         <Icon size={17} />
-        <input type="text" placeholder={placeholder} value={value} onChange={(evento) => onChange(evento.target.value)} />
+        <input
+          type="text"
+          placeholder={placeholder}
+          value={value}
+          role="combobox"
+          aria-autocomplete="list"
+          aria-expanded={ativo && (buscandoSugestoes || sugestoes.length > 0)}
+          aria-controls={listaId}
+          onFocus={onFocus}
+          onBlur={onBlur}
+          onChange={(evento) => onChange(evento.target.value)}
+        />
       </div>
+      {ativo && value.trim().length >= 3 && (buscandoSugestoes || sugestoes.length > 0) && (
+        <ul id={listaId} className="buscar-sugestoes-endereco" role="listbox">
+          {buscandoSugestoes && <li className="buscar-sugestoes-status">Buscando endereços...</li>}
+          {sugestoes.map((endereco) => (
+            <li
+              key={`${endereco.latitude}-${endereco.longitude}`}
+              role="option"
+              onMouseDown={(evento) => evento.preventDefault()}
+              onClick={() => onSelect(endereco)}
+            >
+              <MapPin size={16} aria-hidden="true" />
+              {endereco.descricao}
+            </li>
+          ))}
+        </ul>
+      )}
       {erro && <span className="buscar-field-erro">{erro}</span>}
     </div>
   );

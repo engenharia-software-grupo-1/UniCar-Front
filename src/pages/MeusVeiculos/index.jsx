@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Car, Bike } from 'lucide-react';
 import Confirmacao from '../../components/common/Confirmacao.jsx';
 import {
@@ -14,6 +14,7 @@ const PLACA_REGEX = /^[A-Z]{3}-?\d[A-Z0-9]\d{2}$/;
 
 function MeusVeiculos() {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [veiculos, setVeiculos] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -78,6 +79,12 @@ function MeusVeiculos() {
     };
   }, []);
 
+  useEffect(() => {
+    if (location.state?.abrirCadastro) {
+      abrirCadastro();
+    }
+  }, [location.state?.abrirCadastro]);
+
   function abrirCadastro() {
     setVeiculoEmEdicao(null);
     setModelo('');
@@ -99,6 +106,13 @@ function MeusVeiculos() {
   }
 
   function voltarParaLista() {
+    if (location.state?.retorno && !veiculoEmEdicao) {
+      navigate(location.state.retorno, {
+        state: { ofertaRascunho: location.state.ofertaRascunho },
+      });
+      return;
+    }
+
     setModo('lista');
     setVeiculoEmEdicao(null);
     setErroForm('');
@@ -131,7 +145,22 @@ function MeusVeiculos() {
       if (veiculoEmEdicao) {
         await atualizarVeiculo(veiculoEmEdicao.id, dados);
       } else {
-        await criarVeiculo(dados);
+        const criado = await criarVeiculo(dados);
+
+        if (location.state?.retorno) {
+          navigate(location.state.retorno, {
+            replace: true,
+            state: {
+              ofertaRascunho: {
+                ...location.state.ofertaRascunho,
+                passo: 2,
+                tipoVeiculo: criado.tipo || tipo,
+                veiculoId: String(criado.id),
+              },
+            },
+          });
+          return;
+        }
       }
 
       await carregarVeiculos();

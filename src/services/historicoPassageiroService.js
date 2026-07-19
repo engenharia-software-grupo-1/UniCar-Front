@@ -70,12 +70,32 @@ export async function listarHistoricoComoPassageiro() {
     return RESERVAS_PASSAGEIRO_MOCK.map(normalizarReservaPassageiro);
   }
 
-  const resposta = await apiRequest('/historico/passageiro');
+  // O backend atual não implementa /historico/passageiro. As reservas
+  // enviadas permanecem disponíveis depois da viagem com status FINALIZADA.
+  const resposta = await apiRequest('/reservas/enviadas');
   const reservas = Array.isArray(resposta)
     ? resposta
     : resposta?.content || resposta?.items || resposta?.reservas || [];
 
-  return reservas.map(normalizarReservaPassageiro);
+  const reservasComDetalhe = await Promise.all(
+    reservas.map(async (reserva) => {
+      const caronaId = reserva?.carona?.id ?? reserva?.caronaId;
+      if (caronaId == null) return reserva;
+
+      try {
+        const carona = await apiRequest(`/caronas/${encodeURIComponent(caronaId)}`);
+        return {
+          ...reserva,
+          carona: { ...reserva.carona, ...carona },
+          motorista: carona?.motorista || reserva.motorista,
+        };
+      } catch {
+        return reserva;
+      }
+    }),
+  );
+
+  return reservasComDetalhe.map(normalizarReservaPassageiro);
 }
 
 export async function obterResumoHistoricoPassageiro() {
@@ -86,14 +106,15 @@ export async function obterResumoHistoricoPassageiro() {
 }
 
 function normalizarReservaPassageiro(reserva = {}) {
-  const motorista = reserva.motorista || {};
+  const motorista = reserva.motorista || reserva.carona?.motorista || {};
 
   return {
     id: reserva.id,
     status: reserva.status || 'PENDENTE',
     dataHora: reserva.dataHora || reserva.carona?.dataHoraSaida || '',
     vagasReservadas: reserva.vagasReservadas ?? reserva.quantidadePassageiros ?? 1,
-    totalVagas: reserva.totalVagas ?? reserva.carona?.quantidadeVagas ?? null,
+    totalVagas:
+      reserva.totalVagas ?? reserva.carona?.quantidadeVagas ?? reserva.carona?.vagasTotais ?? null,
     origem: descricaoLocal(reserva.origem || reserva.carona?.origem),
     destino: descricaoLocal(reserva.destino || reserva.carona?.destino),
     pontoReferencia:

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useLocation, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import {
   Ban,
   Car,
@@ -10,7 +10,6 @@ import {
   MessageCircle,
   MessageSquareText,
   Pencil,
-  Send,
   Shield,
   Star,
   UserMinus,
@@ -19,7 +18,7 @@ import {
   X,
   XCircle,
 } from 'lucide-react';
-import { obterCarona, removerReservaCarona } from '../../services/caronaService.js';
+import { listarPassageirosCarona, obterCarona, removerReservaCarona } from '../../services/caronaService.js';
 import { getPerfilUsuarioAutenticado } from '../../services/profileService.js';
 import { obterPerfilPublicoUsuario } from '../../services/publicProfileService.js';
 import {
@@ -47,6 +46,7 @@ const MOTIVOS_DENUNCIA = [
 function DetalheCarona() {
   const { id } = useParams();
   const location = useLocation();
+  const navigate = useNavigate();
   const [carona, setCarona] = useState(null);
   const [perfil, setPerfil] = useState(null);
   const [carregando, setCarregando] = useState(true);
@@ -64,13 +64,12 @@ function DetalheCarona() {
   const [modalDenunciaAberto, setModalDenunciaAberto] = useState(false);
   const [motivoDenuncia, setMotivoDenuncia] = useState(MOTIVOS_DENUNCIA[0]);
   const [denunciaEnviada, setDenunciaEnviada] = useState(false);
-  const [mensagens, setMensagens] = useState([]);
-  const [textoMensagem, setTextoMensagem] = useState('');
   const [feedback, setFeedback] = useState(location.state?.mensagem || '');
   const [reservaParaRemover, setReservaParaRemover] = useState(null);
   const [removendoReserva, setRemovendoReserva] = useState(false);
   const [processandoSolicitacao, setProcessandoSolicitacao] = useState(null);
   const [solicitacoesPendentes, setSolicitacoesPendentes] = useState([]);
+  const [passageirosConfirmados, setPassageirosConfirmados] = useState([]);
   const [carregandoSolicitacoes, setCarregandoSolicitacoes] = useState(false);
   const [erroSolicitacoes, setErroSolicitacoes] = useState('');
 
@@ -183,8 +182,14 @@ function DetalheCarona() {
       try {
         setCarregandoSolicitacoes(true);
         setErroSolicitacoes('');
-        const reservas = await listarReservasPendentesDaCarona(id);
-        if (ativo) setSolicitacoesPendentes(reservas);
+        const [reservas, passageirosDaCarona] = await Promise.all([
+          listarReservasPendentesDaCarona(id),
+          listarPassageirosCarona(id),
+        ]);
+        if (ativo) {
+          setSolicitacoesPendentes(reservas);
+          setPassageirosConfirmados(passageirosDaCarona);
+        }
       } catch (error) {
         if (ativo) setErroSolicitacoes(error.message || 'Não foi possível carregar as solicitações.');
       } finally {
@@ -201,7 +206,11 @@ function DetalheCarona() {
     [solicitacoesPendentes],
   );
   const itensPassageiros = isMinhaCarona
-    ? [...passageiros.filter((passageiro) => passageiro.status !== 'Pendente'), ...solicitacoesComoPassageiros]
+    ? [
+        ...(passageirosConfirmados.length > 0 ? passageirosConfirmados : passageiros)
+          .filter((passageiro) => passageiro.status !== 'Pendente'),
+        ...solicitacoesComoPassageiros,
+      ]
     : passageiros;
 
   async function responderSolicitacao(passageiro, acao) {
@@ -220,28 +229,6 @@ function DetalheCarona() {
     } finally {
       setProcessandoSolicitacao(null);
     }
-  }
-
-  function enviarMensagem() {
-    const texto = textoMensagem.trim();
-
-    if (!texto) {
-      return;
-    }
-
-    setMensagens((atuais) => [
-      ...atuais,
-      {
-        id: Date.now(),
-        autor: 'Voce',
-        texto,
-        horario: new Date().toLocaleTimeString('pt-BR', {
-          hour: '2-digit',
-          minute: '2-digit',
-        }),
-      },
-    ]);
-    setTextoMensagem('');
   }
 
   function abrirConfirmacaoSolicitacao() {
@@ -270,7 +257,11 @@ function DetalheCarona() {
     try {
       setEnviandoSolicitacao(true);
       setErroSolicitacao('');
-      await criarReserva(carona.id, Number(quantidadePassageiros));
+      await criarReserva(carona.id, Number(quantidadePassageiros), {
+        descricao: carona.origem,
+        latitude: carona.origemCoordenadas?.latitude,
+        longitude: carona.origemCoordenadas?.longitude,
+      });
       setSolicitada(true);
       setModalSolicitacaoAberto(false);
       setFeedback('Solicitação de participação enviada com sucesso.');
@@ -450,13 +441,6 @@ function DetalheCarona() {
               >
                 Passageiros
               </button>
-              <button
-                type="button"
-                className={abaAtiva === 'chat' ? 'is-active' : ''}
-                onClick={() => setAbaAtiva('chat')}
-              >
-                Chat
-              </button>
             </div>
 
             {abaAtiva === 'info' && (
@@ -529,6 +513,19 @@ function DetalheCarona() {
                     <em className={passageiro.status === 'Confirmado' ? 'is-confirmed' : ''}>
                       {passageiro.status}
                     </em>
+                    {isMinhaCarona && (
+                      <button
+                        type="button"
+                        className="detalhe-passenger-chat"
+                        aria-label={`Conversar com ${passageiro.nome}`}
+                        onClick={() => navigate(
+                          `/minhas-caronas/${carona.id}/chat/${passageiro.id}`,
+                          { state: { passageiro, status: carona.status } },
+                        )}
+                      >
+                        <MessageCircle size={17} aria-hidden="true" />
+                      </button>
+                    )}
                     {isMinhaCarona && passageiro.status === 'Confirmado' && (
                       <button
                         type="button"
@@ -553,40 +550,6 @@ function DetalheCarona() {
                     ))}
                   </>
                 )}
-              </section>
-            )}
-
-            {abaAtiva === 'chat' && (
-              <section className="detalhe-card detalhe-chat-card">
-                <div className="detalhe-chat-messages">
-                  {mensagens.map((mensagem) => (
-                    <article
-                      className={mensagem.autor === 'Voce' ? 'is-me' : ''}
-                      key={mensagem.id}
-                    >
-                      <strong>{mensagem.autor}</strong>
-                      <p>{mensagem.texto}</p>
-                      <span>{mensagem.horario}</span>
-                    </article>
-                  ))}
-                </div>
-
-                <div className="detalhe-chat-input">
-                  <MessageCircle size={18} />
-                  <input
-                    value={textoMensagem}
-                    onChange={(event) => setTextoMensagem(event.target.value)}
-                    onKeyDown={(event) => {
-                      if (event.key === 'Enter') {
-                        enviarMensagem();
-                      }
-                    }}
-                    placeholder="Mensagem"
-                  />
-                  <button type="button" onClick={enviarMensagem} aria-label="Enviar mensagem">
-                    <Send size={18} />
-                  </button>
-                </div>
               </section>
             )}
 

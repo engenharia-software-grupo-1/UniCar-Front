@@ -1,4 +1,4 @@
-.buscar-page { min-height: 100vh; background: #f8fafc; color: #172033; font-family: "Nunito", ui-sans-serif, system-ui, sans-serif; }
+.buscar-page { min-height: 100vh; background: #eef6ff; color: #172033; font-family: "Nunito", ui-sans-serif, system-ui, sans-serif; }
 
 .buscar-page * { box-sizing: border-box; }
 .buscar-page button, .buscar-page input, .buscar-page select { font: inherit; }
@@ -16,6 +16,7 @@
 .buscar-alertas-botao:hover { background: #f1f5fb; text-decoration: none; }
 
 .buscar-formulario { padding: 16px; margin-bottom: 18px; border: 1px solid #e2e8f0; border-radius: 16px; background: #fff; box-shadow: 0 1px 3px rgba(15, 23, 42, .08); }
+.buscar-field-wrapper { position: relative; }
 .buscar-field-wrapper + .buscar-field-wrapper { margin-top: 12px; }
 .buscar-field { display: flex; align-items: center; gap: 8px; min-height: 42px; padding: 0 12px; border: 1px solid #d8e0ea; border-radius: 8px; background: #fff; transition: border-color .18s, box-shadow .18s; }
 .buscar-field:focus-within { border-color: #16284c; box-shadow: 0 0 0 3px rgba(22, 40, 76, .08); }
@@ -24,6 +25,12 @@
 .buscar-field input::placeholder { color: #7b8494; }
 .buscar-field--erro { border-color: #c7372f; }
 .buscar-field-erro { display: block; margin: 5px 2px 0; color: #b3261e; font-size: .72rem; }
+
+.buscar-sugestoes-endereco { position:absolute; z-index:20; right:0; left:0; margin:6px 0 0; padding:6px; overflow-y:auto; max-height:220px; list-style:none; border:1px solid #dbe6f4; border-radius:14px; background:#fff; box-shadow:0 16px 34px rgba(7,19,43,.14); }
+.buscar-sugestoes-endereco li { display:flex; align-items:flex-start; gap:8px; padding:10px; border-radius:10px; color:#33507a; font-size:13px; line-height:1.35; cursor:pointer; }
+.buscar-sugestoes-endereco li:not(.buscar-sugestoes-status):hover { background:#f0f5fc; color:#07132b; }
+.buscar-sugestoes-endereco li svg { flex:0 0 auto; margin-top:1px; }
+.buscar-sugestoes-status { color:#587091 !important; cursor:default !important; }
 
 .buscar-acoes { display: flex; gap: 8px; margin-top: 12px; }
 .buscar-botao { flex: 1; min-height: 42px; border: 0; border-radius: 8px; background: #07132b; color: #fff; font-size: 14px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; }

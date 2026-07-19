@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ArrowLeft, ArrowRight, CalendarDays, CheckCircle2, Clock, MapPin, Star, UserRound, Users, X, XCircle } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CalendarDays, CheckCircle2, Clock, MapPin, MessageCircle, Star, UserRound, Users, X, XCircle } from 'lucide-react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import NavegacaoInferior from '../../components/layout/NavegacaoInferior.jsx';
 import StatusReservaBadge from '../../components/common/StatusReservaBadge.jsx';
@@ -139,6 +139,17 @@ function DetalheReserva() {
                     <span><Star size={15} fill="currentColor" /> {formatarAvaliacao(reserva.motorista.avaliacao)}</span>
                   )}
                 </div>
+                <button
+                  type="button"
+                  className="detalhe-reserva-chat"
+                  aria-label={`Conversar com ${reserva.motorista.nome}`}
+                  onClick={() => navigate(
+                    `/reservas/${reserva.id}/chat/${reserva.motorista.id}`,
+                    { state: { passageiro: reserva.motorista, status: reserva.status } },
+                  )}
+                >
+                  <MessageCircle size={18} aria-hidden="true" />
+                </button>
               </div>
             </Card>
 

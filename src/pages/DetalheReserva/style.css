@@ -47,6 +47,8 @@
 .detalhe-reserva-motorista > div { display:grid; gap:4px; }
 .detalhe-reserva-motorista > div span { color:#64748b; display:flex; align-items:center; gap:4px; font-size:12px; }
 .detalhe-reserva-motorista > div span svg { color:#e9a317; }
+.detalhe-reserva-chat { width:40px; height:40px; margin-left:auto; border:1px solid #b8c2d1; border-radius:50%; background:#fff; color:#0b1531; padding:0; display:grid; place-items:center; cursor:pointer; }
+.detalhe-reserva-chat:hover { background:#f1f5f9; }
 .detalhe-reserva-reservas-topo { margin-top:-32px; margin-bottom:14px; display:flex; justify-content:flex-end; color:#56708f; }
 .detalhe-reserva-reservas-topo span { display:flex; align-items:center; gap:5px; }
 .detalhe-reserva-reservas { margin:0; padding:0; list-style:none; display:grid; gap:10px; }

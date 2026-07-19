@@ -102,6 +102,19 @@ describe('carregamento', () => {
     expect(screen.getByText('Marina Souza')).toBeInTheDocument();
     expect(screen.getByText('Você é passageiro(a)')).toBeInTheDocument();
   });
+
+  it('abre a conversa com o motorista', async () => {
+    renderPagina();
+
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Conversar com Marina Souza' }),
+    );
+
+    expect(navigateMock).toHaveBeenCalledWith(
+      '/reservas/42/chat/marina',
+      { state: { passageiro: RESERVA.motorista, status: 'ACEITA' } },
+    );
+  });
 });
 
 describe('fallback resiliente via location.state', () => {

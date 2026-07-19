@@ -54,6 +54,33 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
+describe('listarPassageirosCarona', () => {
+  it('busca os passageiros confirmados da carona e normaliza a resposta', async () => {
+    fetch.mockResolvedValue(respostaJson([
+      {
+        reservaId: 70,
+        usuarioId: 5,
+        nome: 'Carlos Lima',
+        quantidadePassageiros: 1,
+        status: 'ACEITA',
+      },
+    ]));
+
+    const { listarPassageirosCarona } = await importarService();
+    const passageiros = await listarPassageirosCarona(10);
+
+    expect(fetch.mock.calls[0][0]).toBe(`${BASE_URL}/caronas/10/passageiros`);
+    expect(passageiros).toEqual([
+      expect.objectContaining({
+        id: 5,
+        reservaId: 70,
+        nome: 'Carlos Lima',
+        status: 'Confirmado',
+      }),
+    ]);
+  });
+});
+
 describe('listarMinhasCaronas', () => {
   it('busca /caronas/minhas e enriquece cada item com /caronas/{id}', async () => {
     fetch.mockImplementation((url) => {
@@ -268,6 +295,36 @@ describe('mock local (dev / VITE_ENABLE_MOCKS)', () => {
 
     expect(caronas.find((carona) => carona.id === 10).status).toBe('CANCELADA');
     expect(fetch).not.toHaveBeenCalled();
+  });
+});
+
+describe('iniciar e finalizar carona com resposta 204', () => {
+  function respostaSemConteudo() {
+    return {
+      ok: true,
+      status: 204,
+      headers: { get: () => null },
+    };
+  }
+
+  it('normaliza o início para EM_ANDAMENTO', async () => {
+    fetch.mockResolvedValue(respostaSemConteudo());
+    const { iniciarCarona } = await importarService();
+
+    await expect(iniciarCarona(10)).resolves.toEqual({
+      id: 10,
+      status: 'EM_ANDAMENTO',
+    });
+  });
+
+  it('normaliza a finalização para FINALIZADA', async () => {
+    fetch.mockResolvedValue(respostaSemConteudo());
+    const { finalizarCarona } = await importarService();
+
+    await expect(finalizarCarona(10)).resolves.toEqual({
+      id: 10,
+      status: 'FINALIZADA',
+    });
   });
 });
 

@@ -9,10 +9,11 @@ import { shouldUseDevelopmentFallbacks, shouldUseLocalDataMocks } from './apiCon
 // Status de reserva do contrato (US10, "Status Possíveis").
 export const RESERVA_ACEITA = 'ACEITA';
 
-export async function criarReserva(caronaId, quantidadePassageiros) {
+export async function criarReserva(caronaId, quantidadePassageiros, origemEmbarque) {
   const payload = {
     caronaId: Number(caronaId),
     quantidadePassageiros: Number(quantidadePassageiros),
+    origemEmbarque,
   };
 
   if (shouldUseLocalDataMocks()) {
@@ -43,15 +44,58 @@ const SOLICITACOES_MOCK = [
 export async function listarReservasPendentesDaCarona(caronaId) {
   if (shouldUseLocalDataMocks()) return SOLICITACOES_MOCK.map(normalizarSolicitacao);
   try {
-    const resposta = await apiRequest(`/caronas/${encodeURIComponent(caronaId)}/reservas`);
+    const resposta = await apiRequest('/reservas/recebidas');
     const lista = Array.isArray(resposta) ? resposta : resposta?.content || resposta?.reservas || resposta?.items || [];
-    return lista.map(normalizarSolicitacao).filter((reserva) => reserva.status === 'PENDENTE');
+    const pendentes = lista
+      .map(normalizarSolicitacao)
+      .filter((reserva) => reserva.status === 'PENDENTE');
+    const pendentesComCarona = await Promise.all(
+      pendentes.map(async (reserva) => {
+        if (reserva.caronaId != null) return reserva;
+
+        const detalhes = await apiRequest(`/reservas/${encodeURIComponent(reserva.id)}`);
+        return {
+          ...reserva,
+          caronaId: detalhes?.carona?.id ?? detalhes?.caronaId,
+        };
+      }),
+    );
+
+    return pendentesComCarona.filter(
+      (reserva) => String(reserva.caronaId) === String(caronaId),
+    );
   } catch (error) {
     if (shouldUseDevelopmentFallbacks()) {
       return SOLICITACOES_MOCK.map(normalizarSolicitacao);
     }
     throw error;
   }
+}
+
+// Recupera também reservas já FINALIZADAS. A rota de passageiros da carona
+// filtra apenas status ACEITA, portanto fica vazia depois que a viagem termina.
+export async function listarReservasDaCarona(caronaId) {
+  const resposta = await apiRequest('/reservas/recebidas');
+  const lista = Array.isArray(resposta)
+    ? resposta
+    : resposta?.content || resposta?.reservas || resposta?.items || [];
+
+  const reservas = await Promise.all(
+    lista.map(async (item) => {
+      const resumo = normalizarSolicitacao(item);
+      if (resumo.caronaId != null) return resumo;
+
+      const detalhe = await apiRequest(`/reservas/${encodeURIComponent(resumo.id)}`);
+      return {
+        ...resumo,
+        caronaId: detalhe?.carona?.id ?? detalhe?.caronaId,
+      };
+    }),
+  );
+
+  return reservas.filter(
+    (reserva) => String(reserva.caronaId) === String(caronaId),
+  );
 }
 
 export async function aceitarReserva(reservaId) {
@@ -71,6 +115,7 @@ function normalizarSolicitacao(reserva = {}) {
     status: String(reserva.status || 'PENDENTE').toUpperCase(),
     quantidadePassageiros: Number(reserva.quantidadePassageiros ?? reserva.vagasReservadas ?? 1),
     dataSolicitacao: reserva.dataSolicitacao || reserva.createdAt || reserva.solicitadoEm || '',
+    caronaId: reserva.caronaId ?? reserva.carona?.id,
     solicitante: {
       id: solicitante.id ?? solicitante.usuarioId,
       nome: solicitante.nome || solicitante.nomeCompleto || 'Solicitante',
@@ -253,7 +298,28 @@ export async function obterDetalhesReserva(id) {
 
   try {
     const resposta = await apiRequest(`/reservas/${encodeURIComponent(id)}`);
-    return normalizarDetalhesReserva(resposta);
+    const detalhes = normalizarDetalhesReserva(resposta);
+
+    if (!detalhes.carona.id) return detalhes;
+
+    try {
+      const carona = await apiRequest(`/caronas/${encodeURIComponent(detalhes.carona.id)}`);
+      const motorista = carona?.motorista || carona?.condutor || {};
+
+      return {
+        ...detalhes,
+        motorista: {
+          id: motorista.id ?? motorista.usuarioId ?? detalhes.motorista.id,
+          nome: motorista.nome || motorista.nomeCompleto || detalhes.motorista.nome,
+          fotoPerfil:
+            motorista.fotoPerfil || motorista.fotoUrl || motorista.avatarUrl ||
+            detalhes.motorista.fotoPerfil,
+          avaliacao: motorista.avaliacao ?? motorista.rating ?? detalhes.motorista.avaliacao,
+        },
+      };
+    } catch {
+      return detalhes;
+    }
   } catch (error) {
     if (shouldUseDevelopmentFallbacks()) {
       return obterDetalheReservaMock(id);

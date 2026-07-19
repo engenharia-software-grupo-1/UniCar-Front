@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 
 vi.mock('../../services/caronaService.js', () => ({
+  listarPassageirosCarona: vi.fn(),
   obterCarona: vi.fn(),
   removerReservaCarona: vi.fn(),
 }));
@@ -24,7 +25,7 @@ vi.mock('../../services/reservaService.js', () => ({
 }));
 
 import DetalheCarona from './index.jsx';
-import { obterCarona, removerReservaCarona } from '../../services/caronaService.js';
+import { listarPassageirosCarona, obterCarona, removerReservaCarona } from '../../services/caronaService.js';
 import { getPerfilUsuarioAutenticado } from '../../services/profileService.js';
 import { obterPerfilPublicoUsuario } from '../../services/publicProfileService.js';
 import {
@@ -39,6 +40,7 @@ const CARONA_BASE = {
   status: 'CRIADA',
   dataHoraSaida: '2026-08-25T07:30:00',
   origem: 'Bodocongó',
+  origemCoordenadas: { latitude: -7.2166, longitude: -35.9095 },
   destino: 'UFCG',
   pontoEncontro: 'Portão principal',
   observacao: '',
@@ -55,6 +57,7 @@ function renderPagina({ state } = {}) {
     <MemoryRouter initialEntries={[{ pathname: '/minhas-caronas/10', state }]}>
       <Routes>
         <Route path="/minhas-caronas/:id" element={<DetalheCarona />} />
+        <Route path="/minhas-caronas/:caronaId/chat/:usuarioId" element={<div>Chat do passageiro</div>} />
       </Routes>
     </MemoryRouter>,
   );
@@ -68,6 +71,7 @@ beforeEach(() => {
   getPerfilUsuarioAutenticado.mockResolvedValue(null);
   obterPerfilPublicoUsuario.mockResolvedValue(null);
   listarReservasPendentesDaCarona.mockResolvedValue([]);
+  listarPassageirosCarona.mockResolvedValue([]);
   aceitarReserva.mockResolvedValue({});
   recusarReserva.mockResolvedValue({});
   removerReservaCarona.mockResolvedValue(undefined);
@@ -131,7 +135,11 @@ describe('DetalheCarona — solicitação de participação', () => {
     await userEvent.click(await screen.findByRole('button', { name: 'Solicitar Participação' }));
     await userEvent.click(screen.getByRole('button', { name: 'Confirmar solicitação' }));
 
-    expect(criarReserva).toHaveBeenCalledWith(10, 1);
+    expect(criarReserva).toHaveBeenCalledWith(10, 1, {
+      descricao: 'Bodocongó',
+      latitude: -7.2166,
+      longitude: -35.9095,
+    });
     expect(await screen.findByText('Solicitação de participação enviada com sucesso.')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Solicitação enviada' })).toBeDisabled();
   });
@@ -436,6 +444,40 @@ describe('DetalheCarona — remover reserva de passageiro confirmado (motorista)
       ],
     };
   }
+
+  it('mostra passageiros confirmados mesmo sem solicitações pendentes', async () => {
+    obterCarona.mockResolvedValue({
+      ...caronaComConfirmado({ vagasDisponiveis: 2, quantidadeVagas: 3 }),
+      passageiros: [],
+    });
+    listarReservasPendentesDaCarona.mockResolvedValue([]);
+    listarPassageirosCarona.mockResolvedValue([
+      { id: 'carlos', reservaId: 701, nome: 'Carlos Lima', curso: 'Física', status: 'Confirmado' },
+    ]);
+
+    renderPagina({ state: { minhaCarona: true } });
+
+    await screen.findByRole('heading', { name: 'Você (motorista)' });
+    await userEvent.click(screen.getByRole('button', { name: 'Passageiros' }));
+
+    expect(await screen.findByText('Não há solicitações pendentes.')).toBeInTheDocument();
+    expect(screen.getByText('Carlos Lima')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Conversar com Carlos Lima' })).toBeInTheDocument();
+  });
+
+  it('exibe o balão de chat no passageiro e abre a página da conversa', async () => {
+    obterCarona.mockResolvedValue(
+      caronaComConfirmado({ vagasDisponiveis: 2, quantidadeVagas: 3 }),
+    );
+
+    renderPagina({ state: { minhaCarona: true } });
+
+    await screen.findByRole('heading', { name: 'Você (motorista)' });
+    await userEvent.click(screen.getByRole('button', { name: 'Passageiros' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Conversar com Carlos Lima' }));
+
+    expect(screen.getByText('Chat do passageiro')).toBeInTheDocument();
+  });
 
   it('reincrementa a vaga ao remover um passageiro confirmado', async () => {
     obterCarona.mockResolvedValue(

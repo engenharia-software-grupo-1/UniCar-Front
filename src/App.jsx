@@ -26,6 +26,7 @@ import DetalheTrajetosRecorrentes from './pages/DetalheTrajetosRecorrentes/index
 import BuscarCarona from './pages/BuscarCarona/index.jsx';
 import DetalheReserva from './pages/DetalheReserva/index.jsx';
 import Interesses from './pages/Interesses/index.jsx';
+import ChatPassageiro from './pages/ChatPassageiro/index.jsx';
 
 import LayoutApp from './components/layout/LayoutApp.jsx';
 import { isAuthenticated } from './services/authService.js';
@@ -80,12 +81,14 @@ function App() {
           <Route path="/buscar-carona" element={<BuscarCarona />} />
           <Route path="/caronas/:id" element={<DetalheCarona />} />
           <Route path="/reservas/:id" element={<DetalheReserva />} />
+          <Route path="/reservas/:reservaId/chat/:usuarioId" element={<ChatPassageiro />} />
           <Route path="/ofertar" element={<Navigate to="/ofertar-carona" replace />} />
           <Route path="/ofertar-carona" element={<OfertarCarona />} />
           <Route path="/meus-veiculos" element={<MeusVeiculos />} />
           <Route path="/minhas-caronas" element={<MinhasCaronas />} />
           <Route path="/minhas-caronas/:id" element={<DetalheCarona />} />
           <Route path="/minhas-caronas/:id/editar" element={<EditarCarona />} />
+          <Route path="/minhas-caronas/:caronaId/chat/:usuarioId" element={<ChatPassageiro />} />
           <Route path="/historico-caronas" element={<HistoricoCaronas />} />
           <Route path="/historico/:id" element={<HistoricoDetalhes />} />
           <Route path="/usuarios/:usuarioId" element={<PerfilPublico />} />

@@ -375,7 +375,7 @@ a.detalhe-avatar:focus-visible {
   background: #edf6ff;
   padding: 5px;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 4px;
 }
 
@@ -494,7 +494,7 @@ a.detalhe-avatar:focus-visible {
 .detalhe-passenger {
   padding: 14px;
   display: grid;
-  grid-template-columns: auto 1fr auto auto;
+  grid-template-columns: auto 1fr auto auto auto;
   align-items: center;
   gap: 11px;
 }
@@ -529,6 +529,23 @@ a.detalhe-avatar:focus-visible {
   color: #166534;
 }
 
+.detalhe-passenger-chat {
+  width: 38px;
+  height: 38px;
+  border: 1px solid #b8c2d1;
+  border-radius: 50%;
+  background: #ffffff;
+  color: #07132b;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  cursor: pointer;
+}
+
+.detalhe-passenger-chat:hover {
+  background: #f8fbff;
+}
+
 .detalhe-empty-passengers {
   padding: 22px 18px;
   color: #5a7398;
@@ -556,93 +573,6 @@ a.detalhe-avatar:focus-visible {
 
 .detalhe-remove-reservation:hover {
   background: #fee2e2;
-}
-
-.detalhe-chat-card {
-  margin-top: 12px;
-  padding: 14px;
-}
-
-.detalhe-chat-messages {
-  display: grid;
-  gap: 10px;
-}
-
-.detalhe-chat-messages article {
-  width: fit-content;
-  max-width: 82%;
-  border-radius: 15px;
-  background: #eef6ff;
-  padding: 10px 12px;
-}
-
-.detalhe-chat-messages article.is-me {
-  justify-self: end;
-  background: #07132b;
-  color: #ffffff;
-}
-
-.detalhe-chat-messages strong {
-  display: block;
-  font-size: 12px;
-  font-weight: 900;
-}
-
-.detalhe-chat-messages p {
-  margin: 4px 0;
-  font-size: 13px;
-  font-weight: 700;
-  line-height: 1.35;
-}
-
-.detalhe-chat-messages span {
-  display: block;
-  color: #5a7398;
-  font-size: 11px;
-  font-weight: 900;
-}
-
-.detalhe-chat-messages article.is-me span {
-  color: rgba(255, 255, 255, 0.7);
-}
-
-.detalhe-chat-input {
-  margin-top: 14px;
-  border: 1px solid #dce7f3;
-  border-radius: 14px;
-  background: #f8fbff;
-  padding: 8px;
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  gap: 8px;
-}
-
-.detalhe-chat-input svg {
-  color: #5a7398;
-}
-
-.detalhe-chat-input input {
-  width: 100%;
-  min-width: 0;
-  border: 0;
-  background: transparent;
-  color: #07132b;
-  font: inherit;
-  font-size: 14px;
-  outline: none;
-}
-
-.detalhe-chat-input button {
-  width: 36px;
-  height: 36px;
-  border: 0;
-  border-radius: 12px;
-  background: #ff6f00;
-  color: #ffffff;
-  display: grid;
-  place-items: center;
-  cursor: pointer;
 }
 
 .detalhe-sticky-action {

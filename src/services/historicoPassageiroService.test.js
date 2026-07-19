@@ -42,7 +42,7 @@ afterEach(() => {
 });
 
 describe('listarHistoricoComoPassageiro — chamada à API', () => {
-  it('faz GET /historico/passageiro', async () => {
+  it('faz GET /reservas/enviadas, disponível no backend atual', async () => {
     comSessao();
     fetch.mockResolvedValue(respostaJson([{ id: 1 }]));
 
@@ -52,7 +52,7 @@ describe('listarHistoricoComoPassageiro — chamada à API', () => {
 
     const [url, options] = fetch.mock.calls[0];
 
-    expect(url).toBe(`${BASE_URL}/historico/passageiro`);
+    expect(url).toBe(`${BASE_URL}/reservas/enviadas`);
     // O apiRequest não passa `method`, então o fetch usa o GET padrão.
     expect(options.method).toBeUndefined();
     expect(options.body).toBeUndefined();

@@ -9,6 +9,7 @@ import {
   DollarSign,
   History,
   MapPin,
+  Plus,
   Repeat,
   Users,
 } from 'lucide-react';
@@ -94,18 +95,19 @@ function OfertarCarona() {
   // Definido quando o usuário chega por "Recriar viagem", vindo do detalhe de
   // um trajeto recorrente: pré-preenche o formulário com os dados do trajeto.
   const trajetoId = location.state?.trajetoId;
+  const rascunhoOferta = location.state?.ofertaRascunho || {};
 
-  const [passo, setPasso] = useState(1);
+  const [passo, setPasso] = useState(rascunhoOferta.passo || 1);
 
   // Passo 1 — trajeto e horário.
-  const [origem, setOrigem] = useState('');
-  const [destino, setDestino] = useState('');
-  const [pontoEncontro, setPontoEncontro] = useState('');
-  const [observacao, setObservacao] = useState('');
-  const [data, setData] = useState('');
-  const [horario, setHorario] = useState('');
-  const [recorrente, setRecorrente] = useState(false);
-  const [diasRecorrencia, setDiasRecorrencia] = useState([]);
+  const [origem, setOrigem] = useState(rascunhoOferta.origem || '');
+  const [destino, setDestino] = useState(rascunhoOferta.destino || '');
+  const [pontoEncontro, setPontoEncontro] = useState(rascunhoOferta.pontoEncontro || '');
+  const [observacao, setObservacao] = useState(rascunhoOferta.observacao || '');
+  const [data, setData] = useState(rascunhoOferta.data || '');
+  const [horario, setHorario] = useState(rascunhoOferta.horario || '');
+  const [recorrente, setRecorrente] = useState(Boolean(rascunhoOferta.recorrente));
+  const [diasRecorrencia, setDiasRecorrencia] = useState(rascunhoOferta.diasRecorrencia || []);
   const [trajetosRecorrentes, setTrajetosRecorrentes] = useState([]);
 
   // Sinaliza que veículo, vagas, contribuição e ponto de encontro vieram da
@@ -113,15 +115,15 @@ function OfertarCarona() {
   const [sugestaoDoHistorico, setSugestaoDoHistorico] = useState(false);
 
   // Passo 2 — veículo e vagas.
-  const [tipoVeiculo, setTipoVeiculo] = useState('carro');
-  const [veiculoId, setVeiculoId] = useState('');
-  const [vagas, setVagas] = useState(1);
-  const [contribuicao, setContribuicao] = useState(5);
+  const [tipoVeiculo, setTipoVeiculo] = useState(rascunhoOferta.tipoVeiculo || 'carro');
+  const [veiculoId, setVeiculoId] = useState(rascunhoOferta.veiculoId || '');
+  const [vagas, setVagas] = useState(rascunhoOferta.vagas || 1);
+  const [contribuicao, setContribuicao] = useState(rascunhoOferta.contribuicao ?? 5);
 
   // Coordenadas resolvidas ao avançar do passo 1: alimentam o teto da contribuição
   // (passo 2) e são reusadas no publicar, sem geocodificar de novo.
-  const [origemCoord, setOrigemCoord] = useState(null);
-  const [destinoCoord, setDestinoCoord] = useState(null);
+  const [origemCoord, setOrigemCoord] = useState(rascunhoOferta.origemCoord || null);
+  const [destinoCoord, setDestinoCoord] = useState(rascunhoOferta.destinoCoord || null);
   const [campoEnderecoAtivo, setCampoEnderecoAtivo] = useState(null);
 
   const [veiculos, setVeiculos] = useState([]);
@@ -181,7 +183,7 @@ function OfertarCarona() {
   // Data e horário ficam sempre em branco: a viagem nova precisa de uma data,
   // e isso força uma parada consciente no formulário.
   useEffect(() => {
-    if (!trajetoId) {
+    if (!trajetoId || location.state?.ofertaRascunho) {
       return undefined;
     }
 
@@ -289,7 +291,7 @@ function OfertarCarona() {
   const textoVeiculo = carregandoVeiculos
     ? 'Carregando veículos...'
     : veiculosDoTipo.length === 0
-      ? `Nenhum ${tipoVeiculo} cadastrado`
+      ? 'Nenhum veículo cadastrado'
       : veiculoSelecionado
         ? descricaoVeiculo(veiculoSelecionado)
         : 'Selecione um veículo';
@@ -429,6 +431,32 @@ function OfertarCarona() {
     setVeiculoId(String(veiculo.id));
     setDropdownAberto(false);
     limparErro('veiculo');
+  }
+
+  function cadastrarVeiculo() {
+    navigate('/meus-veiculos', {
+      state: {
+        abrirCadastro: true,
+        retorno: '/ofertar-carona',
+        ofertaRascunho: {
+          passo,
+          origem,
+          destino,
+          pontoEncontro,
+          observacao,
+          data,
+          horario,
+          recorrente,
+          diasRecorrencia,
+          tipoVeiculo,
+          veiculoId,
+          vagas,
+          contribuicao,
+          origemCoord,
+          destinoCoord,
+        },
+      },
+    });
   }
 
   function selecionarEndereco(campo, endereco) {
@@ -851,8 +879,9 @@ function OfertarCarona() {
 
             <div className="ofertar-campo">
               <span>Veículo</span>
-              <div className="ofertar-dropdown" ref={dropdownRef}>
-                <button
+              <div className="ofertar-veiculo-controle">
+                <div className="ofertar-dropdown" ref={dropdownRef}>
+                  <button
                   type="button"
                   className="ofertar-dropdown-trigger"
                   aria-haspopup="listbox"
@@ -864,8 +893,8 @@ function OfertarCarona() {
                   <ChevronDown size={18} aria-hidden="true" />
                 </button>
 
-                {dropdownAberto && (
-                  <ul className="ofertar-dropdown-lista" role="listbox" aria-label="Veículo">
+                  {dropdownAberto && (
+                    <ul className="ofertar-dropdown-lista" role="listbox" aria-label="Veículo">
                     {veiculosDoTipo.map((veiculo) => {
                       const selecionado = String(veiculo.id) === String(veiculoId);
 
@@ -881,7 +910,20 @@ function OfertarCarona() {
                         </li>
                       );
                     })}
-                  </ul>
+                    </ul>
+                  )}
+                </div>
+
+                {veiculos.length === 0 && !carregandoVeiculos && (
+                  <button
+                    type="button"
+                    className="ofertar-adicionar-veiculo"
+                    aria-label="Cadastrar veículo"
+                    title="Cadastrar veículo"
+                    onClick={cadastrarVeiculo}
+                  >
+                    <Plus size={22} aria-hidden="true" />
+                  </button>
                 )}
               </div>
               {errosCampos.veiculo && (

@@ -1040,6 +1040,45 @@ describe('buscarProximaCarona', () => {
   });
 });
 
+describe('buscarCaronas — filtros de gênero e curso', () => {
+  it('envia generoMotorista (enum em maiúsculo) e cursoMotorista, não genero/curso', async () => {
+    fetch.mockResolvedValue(
+      respostaJson([
+        {
+          id: 30,
+          origem: { descricao: 'Centro' },
+          destino: { descricao: 'UFCG' },
+          dataHoraSaida: '2030-08-01T07:00:00',
+          vagasDisponiveis: 2,
+          status: 'CRIADA',
+          motorista: { id: 4, nome: 'Ana', curso: 'Direito', genero: 'FEMININO' },
+        },
+      ]),
+    );
+
+    const { buscarCaronas } = await importarService();
+    await buscarCaronas({ origem: 'Centro', destino: 'UFCG', genero: 'Feminino', curso: 'Direito' });
+
+    const [url] = fetch.mock.calls[0];
+    expect(url).toContain('generoMotorista=FEMININO');
+    expect(url).toContain('cursoMotorista=Direito');
+    // Nomes/valores antigos que o backend ignorava não podem mais ser enviados.
+    expect(url).not.toMatch(/[?&]genero=/);
+    expect(url).not.toMatch(/[?&]curso=/);
+  });
+
+  it('não envia filtro de gênero/curso quando o valor é "Qualquer"', async () => {
+    fetch.mockResolvedValue(respostaJson([]));
+
+    const { buscarCaronas } = await importarService();
+    await buscarCaronas({ genero: 'Qualquer', curso: 'Qualquer' });
+
+    const [url] = fetch.mock.calls[0];
+    expect(url).not.toContain('generoMotorista');
+    expect(url).not.toContain('cursoMotorista');
+  });
+});
+
 describe('buscarSugestoesDeCaronas', () => {
   it('usa a busca do US9 (GET /caronas), não o inexistente /caronas/sugestoes', async () => {
     fetch.mockResolvedValue(

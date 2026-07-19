@@ -33,8 +33,9 @@ function useSugestoesEndereco(consulta, ativa) {
 
   useEffect(() => {
     const texto = consulta.trim();
+    // Sem busca com campo inativo ou texto curto. Não é preciso limpar as
+    // sugestões aqui: o dropdown só renderiza com o campo ativo e texto >= 3.
     if (!ativa || texto.length < 3) {
-      setSugestoes([]);
       return undefined;
     }
 
@@ -77,6 +78,7 @@ function BuscarCarona() {
   const [vagasMinimas, setVagasMinimas] = useState(1);
   const [precoMaximo, setPrecoMaximo] = useState(20);
   const [campoEnderecoAtivo, setCampoEnderecoAtivo] = useState(null);
+
   const sugestoesOrigem = useSugestoesEndereco(origem, campoEnderecoAtivo === 'origem');
   const sugestoesDestino = useSugestoesEndereco(destino, campoEnderecoAtivo === 'destino');
 
@@ -252,7 +254,7 @@ function BuscarCarona() {
             </div>
           )}
           {!carregando && caronasFiltradas.map((carona) => (
-            <RideCard key={carona.id} carona={carona} onOpenProfile={(id) => navigate(`/usuarios/${id}`)} />
+            <RideCard key={carona.id} carona={carona} enderecoEmbarque={origem} onOpenProfile={(id) => navigate(`/usuarios/${id}`)} />
           ))}
         </div>
 
@@ -316,10 +318,23 @@ function Field({
 }
 
 function RangeField({ label, min, max, value, onChange }) {
+  const minimo = Number(min);
+  const maximo = Number(max);
+  const preenchido = maximo > minimo
+    ? ((Number(value) - minimo) / (maximo - minimo)) * 100
+    : 0;
+
   return (
     <div className="buscar-range">
       <label>{label}</label>
-      <input type="range" min={min} max={max} value={value} onChange={(evento) => onChange(Number(evento.target.value))} />
+      <input
+        type="range"
+        min={min}
+        max={max}
+        value={value}
+        onChange={(evento) => onChange(Number(evento.target.value))}
+        style={{ '--preenchido': `${preenchido}%` }}
+      />
     </div>
   );
 }
@@ -335,7 +350,7 @@ function SelectField({ label, value, onChange, options }) {
   );
 }
 
-function RideCard({ carona, onOpenProfile }) {
+function RideCard({ carona, enderecoEmbarque, onOpenProfile }) {
   const motorista = carona.motorista ?? {};
   const nome = carona.motoristaNome || motorista.nome || 'Motorista';
   const iniciais = nome.split(' ').slice(0, 2).map((parte) => parte[0]).join('').toUpperCase();
@@ -350,7 +365,7 @@ function RideCard({ carona, onOpenProfile }) {
   const diasRecorrencia = carona.diasRecorrencia || carona.recurring?.days || [];
 
   return (
-    <Link to={`/caronas/${carona.id}`} state={{ carona, origem: 'busca' }} className="ride-card">
+    <Link to={`/caronas/${carona.id}`} state={{ carona, origem: 'busca', enderecoEmbarque }} className="ride-card">
       <span
         role="link"
         tabIndex={0}

@@ -256,6 +256,17 @@ function normalizarObservacao(observacao) {
 }
 
 // Busca uma carona via endpoint GET /caronas
+// Rótulo do <select> de gênero (UI) → nome do enum Genero do backend.
+const GENERO_UI_PARA_API = {
+  Feminino: 'FEMININO',
+  Masculino: 'MASCULINO',
+  Outro: 'OUTRO',
+};
+
+function mapearGeneroParaApi(genero) {
+  return GENERO_UI_PARA_API[genero] ?? String(genero).toUpperCase();
+}
+
 export async function buscarCaronas(filtros = {}) {
   const params = new URLSearchParams();
 
@@ -267,12 +278,16 @@ export async function buscarCaronas(filtros = {}) {
     params.append('destino', filtros.destino);
   }
 
+  // O backend filtra por `generoMotorista` (comparação exata com o enum Genero:
+  // MASCULINO|FEMININO|OUTRO|NAO_INFORMADO) e `cursoMotorista` (LIKE, sem caixa).
+  // Enviar `genero`/`curso` ou o rótulo com acentuação/caixa da UI faz o filtro
+  // ser ignorado — por isso a busca não filtrava.
   if (filtros.genero && filtros.genero !== 'Qualquer') {
-    params.append('genero', filtros.genero);
+    params.append('generoMotorista', mapearGeneroParaApi(filtros.genero));
   }
 
   if (filtros.curso && filtros.curso !== 'Qualquer') {
-    params.append('curso', filtros.curso);
+    params.append('cursoMotorista', filtros.curso);
   }
 
   if (shouldUseLocalDataMocks()) {

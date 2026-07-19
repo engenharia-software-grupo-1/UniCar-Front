@@ -10,6 +10,8 @@ import { shouldUseDevelopmentFallbacks, shouldUseLocalDataMocks } from './apiCon
 export const RESERVA_ACEITA = 'ACEITA';
 
 export async function criarReserva(caronaId, quantidadePassageiros, origemEmbarque) {
+  // O backend exige origemEmbarque (EnderecoDTO com descricao + latitude +
+  // longitude) — é o endereço de embarque que o passageiro informou na busca.
   const payload = {
     caronaId: Number(caronaId),
     quantidadePassageiros: Number(quantidadePassageiros),

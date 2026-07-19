@@ -2,7 +2,31 @@ const NOMINATIM_SEARCH_URL = 'https://nominatim.openstreetmap.org/search';
 const CACHE_KEY = 'unicar.geocoding.cache';
 const SUGGESTIONS_CACHE_KEY = 'unicar.geocoding.suggestions';
 const CACHE_TTL_MS = 60 * 60 * 1000;
+
+// Nominatim permite no máximo ~1 requisição por segundo por IP.
+const INTERVALO_MIN_MS = 1100;
 let ultimaRequisicao = 0;
+let filaRequisicoes = Promise.resolve();
+
+// Reserva a "vez" na fila de forma atômica: cada chamada só resolve quando já
+// passou INTERVALO_MIN_MS desde a anterior, e a atualização de `ultimaRequisicao`
+// acontece encadeada (não há dois awaits lendo o mesmo valor antigo).
+//
+// Sem isto havia uma corrida: origem e destino calculavam a espera lendo o mesmo
+// `ultimaRequisicao` antes de qualquer um gravá-lo, disparavam quase juntos e o
+// Nominatim recusava uma das requisições — por isso o segundo campo (destino)
+// quase nunca mostrava sugestão. Serializando, as chamadas saem uma a uma.
+function aguardarVezNaFila() {
+  const vez = filaRequisicoes.then(async () => {
+    const espera = Math.max(0, INTERVALO_MIN_MS - (Date.now() - ultimaRequisicao));
+    if (espera) await new Promise((resolve) => window.setTimeout(resolve, espera));
+    ultimaRequisicao = Date.now();
+  });
+
+  // A fila precisa avançar mesmo que esta requisição falhe depois.
+  filaRequisicoes = vez.catch(() => {});
+  return vez;
+}
 
 // Espelha a validação de contribuição do backend (CaronaService.validarValorContribuicao):
 // o teto de um trajeto é a distância Haversine em km multiplicada por um fator R$/km.
@@ -56,9 +80,7 @@ async function pesquisarEnderecos(texto, limite) {
     'accept-language': 'pt-BR',
   });
 
-  const espera = Math.max(0, 1100 - (Date.now() - ultimaRequisicao));
-  if (espera) await new Promise((resolve) => window.setTimeout(resolve, espera));
-  ultimaRequisicao = Date.now();
+  await aguardarVezNaFila();
 
   let response;
   try {

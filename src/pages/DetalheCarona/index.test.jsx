@@ -24,6 +24,10 @@ vi.mock('../../services/reservaService.js', () => ({
   recusarReserva: vi.fn(),
 }));
 
+vi.mock('../../services/geocodingService.js', () => ({
+  geocodificarEndereco: vi.fn(),
+}));
+
 import DetalheCarona from './index.jsx';
 import { listarPassageirosCarona, obterCarona, removerReservaCarona } from '../../services/caronaService.js';
 import { getPerfilUsuarioAutenticado } from '../../services/profileService.js';
@@ -34,6 +38,7 @@ import {
   listarReservasPendentesDaCarona,
   recusarReserva,
 } from '../../services/reservaService.js';
+import { geocodificarEndereco } from '../../services/geocodingService.js';
 
 const CARONA_BASE = {
   id: 10,
@@ -126,29 +131,47 @@ describe('DetalheCarona — observações do motorista', () => {
 });
 
 describe('DetalheCarona — solicitação de participação', () => {
-  it('confirma a reserva e atualiza a ação da tela', async () => {
+  // O passageiro informa o endereço de embarque na busca; ele chega no
+  // location.state e é geocodificado aqui para as coordenadas que o back exige.
+  const ENDERECO_EMBARQUE = 'Rua Aprígio Veloso, Bodocongó';
+  const EMBARQUE_GEO = { descricao: 'Bodocongó', latitude: -7.2166, longitude: -35.9095 };
+
+  it('geocodifica o endereço de embarque, confirma a reserva e atualiza a ação da tela', async () => {
     obterCarona.mockResolvedValue(CARONA_BASE);
+    geocodificarEndereco.mockResolvedValue(EMBARQUE_GEO);
     criarReserva.mockResolvedValue({ id: 50, status: 'PENDENTE' });
+
+    renderPagina({ state: { enderecoEmbarque: ENDERECO_EMBARQUE } });
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Solicitar Participação' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Confirmar solicitação' }));
+
+    expect(geocodificarEndereco).toHaveBeenCalledWith(ENDERECO_EMBARQUE);
+    expect(criarReserva).toHaveBeenCalledWith(10, 1, EMBARQUE_GEO);
+    expect(await screen.findByText('Solicitação de participação enviada com sucesso.')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Solicitação enviada' })).toBeDisabled();
+  });
+
+  it('bloqueia a solicitação quando não há endereço de embarque no state', async () => {
+    obterCarona.mockResolvedValue(CARONA_BASE);
 
     renderPagina();
 
     await userEvent.click(await screen.findByRole('button', { name: 'Solicitar Participação' }));
     await userEvent.click(screen.getByRole('button', { name: 'Confirmar solicitação' }));
 
-    expect(criarReserva).toHaveBeenCalledWith(10, 1, {
-      descricao: 'Bodocongó',
-      latitude: -7.2166,
-      longitude: -35.9095,
-    });
-    expect(await screen.findByText('Solicitação de participação enviada com sucesso.')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Solicitação enviada' })).toBeDisabled();
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Informe seu endereço de embarque na busca antes de solicitar.',
+    );
+    expect(criarReserva).not.toHaveBeenCalled();
   });
 
   it('mostra dentro do modal o erro ao enviar', async () => {
     obterCarona.mockResolvedValue(CARONA_BASE);
+    geocodificarEndereco.mockResolvedValue(EMBARQUE_GEO);
     criarReserva.mockRejectedValue(new Error('Não foi possível concluir a reserva.'));
 
-    renderPagina();
+    renderPagina({ state: { enderecoEmbarque: ENDERECO_EMBARQUE } });
 
     await userEvent.click(await screen.findByRole('button', { name: 'Solicitar Participação' }));
     await userEvent.click(screen.getByRole('button', { name: 'Confirmar solicitação' }));

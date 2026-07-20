@@ -8,6 +8,7 @@ import {
   marcarMensagensComoLidas,
   obterChatDaReserva,
 } from '../../services/chatService.js';
+import { obterFotoPerfil } from '../../utils/fotoPerfil.js';
 import './style.css';
 
 export default function ChatPassageiro() {
@@ -19,7 +20,7 @@ export default function ChatPassageiro() {
   const permiteMensagem = !['FINALIZADA', 'CANCELADA', 'RECUSADA', 'CONCLUIDA', 'REMOVIDA'].includes(status);
   const usuarioAutenticadoId = getSession()?.usuario?.id;
   const [nome, setNome] = useState(passageiro.nome || 'Passageiro');
-  const [fotoUrl, setFotoUrl] = useState(passageiro.fotoUrl || passageiro.linkFoto || '');
+  const [fotoUrl, setFotoUrl] = useState(obterFotoPerfil(passageiro));
   const [chatId, setChatId] = useState(null);
   const [mensagens, setMensagens] = useState([]);
   const [texto, setTexto] = useState('');
@@ -41,7 +42,7 @@ export default function ChatPassageiro() {
         if (ativo) {
           setChatId(chat.id);
           setNome(chat.nomeParticipante || passageiro.nome || 'Passageiro');
-          setFotoUrl(chat.linkFotoParticipante || passageiro.fotoUrl || passageiro.linkFoto || '');
+          setFotoUrl(obterFotoPerfil({ ...passageiro, linkFoto: chat.linkFotoParticipante }));
           setMensagens(lista);
         }
 

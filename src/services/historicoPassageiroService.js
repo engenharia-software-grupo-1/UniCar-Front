@@ -37,6 +37,7 @@ function normalizarReservaPassageiro(reserva = {}) {
         usuarioMotorista.reputacao ?? usuarioMotorista.avaliacao ?? usuarioMotorista.rating ?? '',
       fotoPerfil:
         usuarioMotorista.fotoPerfil ||
+        usuarioMotorista.fotoUrl ||
         usuarioMotorista.linkFoto ||
         usuarioMotorista.avatarUrl ||
         usuarioMotorista.avatar ||

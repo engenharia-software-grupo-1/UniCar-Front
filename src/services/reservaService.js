@@ -295,7 +295,7 @@ function normalizarResumoReserva(reserva = {}) {
     motorista: {
       id: motorista.id ?? motorista.usuarioId ?? reserva.motoristaId ?? '',
       nome: motoristaNome,
-      fotoPerfil: motorista.fotoPerfil || motorista.linkFoto || motorista.avatarUrl || motorista.avatar || '',
+      fotoPerfil: motorista.fotoPerfil || motorista.fotoUrl || motorista.linkFoto || motorista.avatarUrl || motorista.avatar || '',
       avaliacao: motorista.avaliacao ?? motorista.rating ?? null,
     },
     carona: {
@@ -412,8 +412,10 @@ export function normalizarDetalhesReserva(resposta = {}) {
       nome: item.nome || item.passageiro?.nome || 'Passageiro',
       fotoPerfil:
         item.fotoPerfil ||
+        item.fotoUrl ||
         item.linkFoto ||
         item.passageiro?.fotoPerfil ||
+        item.passageiro?.fotoUrl ||
         item.passageiro?.linkFoto ||
         '',
       avaliacao: item.avaliacao ?? item.passageiro?.avaliacao ?? null,
@@ -477,7 +479,7 @@ function ajustarReserva(reserva = {}) {
     motorista: {
       id: motorista.id ?? motorista.usuarioId ?? '',
       nome: motorista.nome || motorista.nomeCompleto || 'Motorista',
-      fotoPerfil: motorista.fotoPerfil || motorista.linkFoto || motorista.avatarUrl || motorista.avatar || '',
+      fotoPerfil: motorista.fotoPerfil || motorista.fotoUrl || motorista.linkFoto || motorista.avatarUrl || motorista.avatar || '',
       avaliacao: motorista.avaliacao ?? motorista.rating ?? null,
     },
     carona: {

@@ -15,6 +15,7 @@ import {
 } from '../../services/avaliacaoService.js';
 import { getPerfilUsuarioAutenticado } from '../../services/profileService.js';
 import { obterPerfilPublicoUsuario } from '../../services/publicProfileService.js';
+import { obterFotoPerfil } from '../../utils/fotoPerfil.js';
 import './style.css';
 
 const STATUS_RESERVA = {
@@ -495,7 +496,9 @@ function EscolherPassageiroModal({ carona, passageiros, onEscolher, onClose }) {
               type="button"
               onClick={() => onEscolher(passageiro)}
             >
-              <span>{inicialDoNome(passageiro.nome)}</span>
+              {obterFotoPerfil(passageiro) ? (
+                <img src={obterFotoPerfil(passageiro)} alt={`Foto de ${passageiro.nome}`} />
+              ) : <span>{inicialDoNome(passageiro.nome)}</span>}
               {passageiro.nome}
             </button>
           ))}
@@ -615,8 +618,9 @@ function ReservaPassageiroCard({ reserva, onAvaliarMotorista, pendentes }) {
 function Avatar({ motorista }) {
   const usuarioId = motorista.id || gerarUsuarioId(motorista.nome);
   const perfilUrl = `/usuarios/${usuarioId}`;
+  const foto = obterFotoPerfil(motorista);
 
-  if (motorista.fotoPerfil) {
+  if (foto) {
     return (
       <Link
         to={perfilUrl}
@@ -626,7 +630,7 @@ function Avatar({ motorista }) {
       >
         <img
           className="historico-avatar"
-          src={motorista.fotoPerfil}
+          src={foto}
           alt={`Foto de ${motorista.nome}`}
         />
       </Link>

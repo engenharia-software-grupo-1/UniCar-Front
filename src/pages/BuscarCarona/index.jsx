@@ -15,6 +15,7 @@ import {
 import { buscarCaronas } from '../../services/caronaService.js';
 import { getSession } from '../../services/authService.js';
 import { buscarSugestoesEndereco, geocodificarEndereco } from '../../services/geocodingService.js';
+import { obterFotoPerfil } from '../../utils/fotoPerfil.js';
 import './style.css';
 
 const CURSOS = [
@@ -503,6 +504,7 @@ function SelectField({ label, value, onChange, options }) {
 
 function RideCard({ carona, enderecoEmbarque, onOpenProfile }) {
   const motorista = carona.motorista ?? {};
+  const fotoMotorista = obterFotoPerfil(motorista);
   const nome = carona.motoristaNome || motorista.nome || 'Motorista';
   const iniciais = nome.split(' ').slice(0, 2).map((parte) => parte[0]).join('').toUpperCase();
   const data = new Date(carona.dataHoraSaida);
@@ -534,8 +536,8 @@ function RideCard({ carona, enderecoEmbarque, onOpenProfile }) {
           }
         }}
       >
-        {motorista.fotoUrl ? (
-          <img src={motorista.fotoUrl} alt={`Foto de ${nome}`} />
+        {fotoMotorista ? (
+          <img src={fotoMotorista} alt={`Foto de ${nome}`} />
         ) : (
           iniciais || 'U'
         )}

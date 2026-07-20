@@ -14,6 +14,7 @@ import {
 import { getSession } from '../../services/authService.js';
 import { getPerfilUsuarioAutenticado } from '../../services/profileService.js';
 import { buscarProximaCarona } from '../../services/caronaService.js';
+import { obterFotoPerfil } from '../../utils/fotoPerfil.js';
 import './style.css';
 
 function Inicio() {
@@ -213,7 +214,7 @@ function getMotoristaExibido(carona, usuario = {}) {
       ? usuario.id ?? usuario.usuarioId
       : carona?.motorista?.id ?? carona?.motorista?.usuarioId ?? carona?.motoristaId,
     nome,
-    fotoUrl: ehUsuarioLogado ? usuario.fotoUrl || '' : '',
+    fotoUrl: obterFotoPerfil(ehUsuarioLogado ? usuario : carona?.motorista),
     avatar: ehUsuarioLogado
       ? getIniciais(nome)
       : carona?.motorista?.avatar || getIniciais(nome),

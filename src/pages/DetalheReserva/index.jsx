@@ -5,6 +5,7 @@ import NavegacaoInferior from '../../components/layout/NavegacaoInferior.jsx';
 import StatusReservaBadge from '../../components/common/StatusReservaBadge.jsx';
 import MapaTrajeto from '../../components/common/MapaTrajeto.jsx';
 import { cancelarReserva, normalizarDetalhesReserva, obterDetalhesReserva } from '../../services/reservaService.js';
+import { obterFotoPerfil } from '../../utils/fotoPerfil.js';
 import './style.css';
 
 const STATUS = {
@@ -159,7 +160,7 @@ function DetalheReserva() {
 
             {reserva.passageiros.length > 0 && <Card titulo={`RESERVAS (${reserva.passageiros.length})`}>
               <div className="detalhe-reserva-reservas-topo"><span><Users size={16} /> {reserva.passageiros.length}/{reserva.carona.vagasTotais || reserva.passageiros.length} vagas</span></div>
-              <ul className="detalhe-reserva-reservas">{reserva.passageiros.map((passageiro) => <li key={passageiro.id}><Link className="detalhe-reserva-avatar-link" to={`/usuarios/${passageiro.id}`} aria-label={`Ver perfil de ${passageiro.nome}`}>{passageiro.fotoPerfil ? <img src={passageiro.fotoPerfil} alt={`Foto de ${passageiro.nome}`} /> : <span className="detalhe-reserva-avatar">{passageiro.nome[0]}</span>}</Link><div><strong>{passageiro.nome}</strong>{passageiro.avaliacao !== null && <span><Star size={14} fill="currentColor" /> {formatarAvaliacao(passageiro.avaliacao)}</span>}</div><em>Confirmado</em></li>)}</ul>
+              <ul className="detalhe-reserva-reservas">{reserva.passageiros.map((passageiro) => <li key={passageiro.id}><Link className="detalhe-reserva-avatar-link" to={`/usuarios/${passageiro.id}`} aria-label={`Ver perfil de ${passageiro.nome}`}>{obterFotoPerfil(passageiro) ? <img src={obterFotoPerfil(passageiro)} alt={`Foto de ${passageiro.nome}`} /> : <span className="detalhe-reserva-avatar">{passageiro.nome[0]}</span>}</Link><div><strong>{passageiro.nome}</strong>{passageiro.avaliacao !== null && <span><Star size={14} fill="currentColor" /> {formatarAvaliacao(passageiro.avaliacao)}</span>}</div><em>Confirmado</em></li>)}</ul>
             </Card>}
 
             {reserva.podeCancelar && (
@@ -213,7 +214,8 @@ function Item({ icone, termo, valor }) {
 
 function Avatar({ motorista }) {
   const perfil = `/usuarios/${motorista.id}`;
-  if (motorista.fotoPerfil) return <Link className="detalhe-reserva-avatar-link" to={perfil} aria-label={`Ver perfil de ${motorista.nome}`}><img src={motorista.fotoPerfil} alt={`Foto de ${motorista.nome}`} /></Link>;
+  const foto = obterFotoPerfil(motorista);
+  if (foto) return <Link className="detalhe-reserva-avatar-link" to={perfil} aria-label={`Ver perfil de ${motorista.nome}`}><img src={foto} alt={`Foto de ${motorista.nome}`} /></Link>;
   return <Link className="detalhe-reserva-avatar-link" to={perfil} aria-label={`Ver perfil de ${motorista.nome}`}><span className="detalhe-reserva-avatar">{motorista.nome?.trim()[0]?.toUpperCase() || 'M'}</span></Link>;
 }
 

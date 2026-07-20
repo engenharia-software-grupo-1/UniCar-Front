@@ -298,7 +298,7 @@ function normalizarDetalheHistorico(detalhe = {}) {
       id: motorista.id ?? motorista.usuarioId ?? detalhe.motoristaId ?? carona.motoristaId ?? '',
       nome: motorista.nome || motorista.nomeCompleto || 'Motorista',
       avaliacao: motorista.avaliacao ?? motorista.rating ?? '',
-      fotoPerfil: motorista.fotoPerfil || motorista.linkFoto || motorista.avatarUrl || motorista.avatar || '',
+      fotoPerfil: motorista.fotoPerfil || motorista.fotoUrl || motorista.linkFoto || motorista.avatarUrl || motorista.avatar || '',
     },
     reservas: reservas.map(normalizarReserva),
   };
@@ -314,7 +314,7 @@ function normalizarReserva(reserva = {}) {
     vagas: reserva.vagas ?? reserva.quantidadePassageiros ?? reserva.vagasReservadas ?? 1,
     status: reserva.status || 'CONFIRMADA',
     avaliacao: usuario.avaliacao ?? usuario.rating ?? reserva.avaliacao ?? '',
-    fotoPerfil: usuario.fotoPerfil || usuario.linkFoto || usuario.avatarUrl || '',
+    fotoPerfil: usuario.fotoPerfil || usuario.fotoUrl || usuario.linkFoto || usuario.avatarUrl || '',
   };
 }
 

@@ -16,6 +16,7 @@ import {
 import { getSession } from '../../services/authService.js';
 import { obterDetalhesHistorico } from '../../services/historicoDetalhesService.js';
 import MapaTrajeto from '../../components/common/MapaTrajeto.jsx';
+import { obterFotoPerfil } from '../../utils/fotoPerfil.js';
 import './style.css';
 
 const STATUS = {
@@ -193,8 +194,9 @@ function Metrica({ icone, rotulo, valor }) {
 function Avatar({ pessoa }) {
   pessoa = pessoa || {};
   const usuarioId = pessoa.usuarioId ?? pessoa.id;
-  const conteudo = pessoa.fotoPerfil
-    ? <img className="historico-detalhes-avatar" src={pessoa.fotoPerfil} alt={`Foto de ${pessoa.nome}`} />
+  const foto = obterFotoPerfil(pessoa);
+  const conteudo = foto
+    ? <img className="historico-detalhes-avatar" src={foto} alt={`Foto de ${pessoa.nome}`} />
     : <span className="historico-detalhes-avatar">{pessoa.nome?.trim()[0]?.toUpperCase() || 'U'}</span>;
 
   return (

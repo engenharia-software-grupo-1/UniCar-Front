@@ -138,12 +138,19 @@ describe('Inicio — carregamento resiliente (Promise.all)', () => {
 
 describe('Inicio — próxima carona', () => {
   it('renderiza o card com o motorista quando o usuário é passageiro', async () => {
-    buscarProximaCarona.mockResolvedValue(CARONA_PASSAGEIRO);
+    buscarProximaCarona.mockResolvedValue({
+      ...CARONA_PASSAGEIRO,
+      motorista: { ...CARONA_PASSAGEIRO.motorista, linkFoto: 'https://cdn.unicar.test/lucas.jpg' },
+    });
 
     renderInicio();
 
     expect(await screen.findByText('Você é passageiro')).toBeInTheDocument();
     expect(screen.getByText('Lucas Prado')).toBeInTheDocument();
+    expect(screen.getByAltText('Foto de Lucas Prado')).toHaveAttribute(
+      'src',
+      'https://cdn.unicar.test/lucas.jpg',
+    );
     expect(screen.getByText(/Bodocongó/)).toBeInTheDocument();
     expect(screen.getByText('Ver detalhes')).toBeInTheDocument();
   });

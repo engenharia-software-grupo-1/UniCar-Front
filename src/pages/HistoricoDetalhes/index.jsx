@@ -9,7 +9,6 @@ import {
   DollarSign,
   MapPin,
   ShieldAlert,
-  Star,
   UserRound,
   Users,
   XCircle,
@@ -156,10 +155,6 @@ function ConteudoDetalhe({ detalhe, papel }) {
           <Avatar pessoa={dadosMotorista} />
           <div>
             <strong>{dadosMotorista.nome || 'Motorista'}</strong>
-            <span>
-              <Star size={15} fill="currentColor" aria-hidden="true" />
-              {formatarMedia(dadosMotorista.avaliacao)}
-            </span>
           </div>
           {detalhe.veiculo && <div className="historico-detalhes-veiculo">
             <strong>{detalhe.veiculo.modelo}</strong>
@@ -179,7 +174,6 @@ function ConteudoDetalhe({ detalhe, papel }) {
               <Avatar pessoa={reserva} />
               <div>
                 <strong>{reserva.nome}</strong>
-                <span><Star size={13} fill="currentColor" /> {formatarMedia(reserva.avaliacao)}</span>
               </div>
               <em className={`historico-detalhes-reserva-status historico-detalhes-reserva-status--${String(reserva.status).toLowerCase()}`}>{rotuloStatusReserva(reserva.status)}</em>
             </li>
@@ -250,19 +244,6 @@ function formatarMoeda(valor) {
   return Number(valor || 0).toLocaleString('pt-BR', {
     style: 'currency',
     currency: 'BRL',
-  });
-}
-
-function formatarMedia(valor) {
-  const numero = Number(valor);
-
-  if (!Number.isFinite(numero) || numero <= 0) {
-    return 'Sem avaliação';
-  }
-
-  return numero.toLocaleString('pt-BR', {
-    minimumFractionDigits: Number.isInteger(numero) ? 0 : 1,
-    maximumFractionDigits: 1,
   });
 }
 

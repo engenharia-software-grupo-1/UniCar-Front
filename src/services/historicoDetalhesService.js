@@ -243,6 +243,8 @@ function normalizarDetalheHistorico(detalhe = {}) {
   detalhe = detalhe || {};
   const motorista = detalhe.motorista || detalhe.condutor || {};
   const reservas = extrairLista(detalhe.reservas || detalhe.passageiros || detalhe.participantesReserva);
+  const origemCoordenadas = coordenadasLocal(detalhe.origem) || coordenadasLocal(detalhe.origemCoordenadas);
+  const destinoCoordenadas = coordenadasLocal(detalhe.destino) || coordenadasLocal(detalhe.destinoCoordenadas);
 
   return {
     id: detalhe.caronaId ?? detalhe.id,
@@ -251,6 +253,8 @@ function normalizarDetalheHistorico(detalhe = {}) {
     dataHoraChegada: detalhe.dataHoraChegada || detalhe.chegadaPrevista || '',
     origem: descricaoLocal(detalhe.origem),
     destino: descricaoLocal(detalhe.destino),
+    ...(origemCoordenadas ? { origemCoordenadas } : {}),
+    ...(destinoCoordenadas ? { destinoCoordenadas } : {}),
     pontoReferencia: detalhe.pontoReferencia || detalhe.pontoEncontro || '',
     paradas: extrairLista(detalhe.paradas || detalhe.pontosParada).map(descricaoLocal).filter(Boolean),
     valor: Number(
@@ -301,6 +305,15 @@ function descricaoLocal(local) {
   }
 
   return typeof local === 'string' ? local : local.descricao || local.nome || local.endereco || '';
+}
+
+function coordenadasLocal(local) {
+  const latitude = Number(local?.latitude);
+  const longitude = Number(local?.longitude);
+
+  return Number.isFinite(latitude) && Number.isFinite(longitude)
+    ? { latitude, longitude }
+    : null;
 }
 
 function hojeAs(hora, minuto) {

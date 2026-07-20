@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { getSession } from '../../services/authService.js';
 import { obterDetalhesHistorico } from '../../services/historicoDetalhesService.js';
+import MapaTrajeto from '../../components/common/MapaTrajeto.jsx';
 import './style.css';
 
 const STATUS = {
@@ -122,13 +123,12 @@ function ConteudoDetalhe({ detalhe, papel }) {
       </header>
 
       <section className="historico-detalhes-card historico-detalhes-trajeto">
-        <div className="historico-detalhes-mapa" aria-hidden="true">
-          <span><MapPin size={14} /> Trajeto</span>
-          <svg viewBox="0 0 400 160" preserveAspectRatio="none">
-            <path d="M20 120 C 100 40, 200 140, 380 40" />
-            <circle cx="20" cy="120" r="7" />
-            <circle cx="380" cy="40" r="7" />
-          </svg>
+        <div className="historico-detalhes-mapa">
+          <span><MapPin size={14} aria-hidden="true" /> Trajeto</span>
+          <MapaTrajeto
+            origem={{ ...detalhe.origemCoordenadas, descricao: detalhe.origem }}
+            destino={{ ...detalhe.destinoCoordenadas, descricao: detalhe.destino }}
+          />
         </div>
         <div className="historico-detalhes-trajeto-corpo">
           <h2>{detalhe.origem}<ArrowRight size={18} />{montarDestino(detalhe)}</h2>

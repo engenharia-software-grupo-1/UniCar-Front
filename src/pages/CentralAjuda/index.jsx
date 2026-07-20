@@ -30,7 +30,7 @@ const CATEGORIAS = [
     id: 'seguranca',
     label: 'Segurança',
     icon: Shield,
-    description: 'Denúncias, bloqueios e verificação',
+    description: 'Bloqueios e verificação',
   },
   {
     id: 'pagamentos',
@@ -74,13 +74,6 @@ const FAQS = [
     question: 'Posso cancelar uma carona?',
     answer:
       'Sim. Em Minhas caronas ou no histórico da viagem, toque em Cancelar. Motoristas também podem cancelar, mas isso impacta a reputação.',
-  },
-  {
-    id: 'faq-5',
-    category: 'seguranca',
-    question: 'Como denuncio um usuário?',
-    answer:
-      'No perfil do usuário ou no card da carona, toque em Denunciar. Escolha o motivo, descreva o ocorrido e anexe evidências se tiver. Nossa equipe analisa em até 48h.',
   },
   {
     id: 'faq-6',

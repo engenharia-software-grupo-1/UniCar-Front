@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Flag, Send } from 'lucide-react';
+import { Send } from 'lucide-react';
 import { Link, useLocation, useParams } from 'react-router-dom';
 import { getSession } from '../../services/authService.js';
 import {
@@ -97,9 +97,6 @@ export default function ChatPassageiro() {
             <strong>{nome}</strong>
             <span>{passageiro.curso || 'Comunidade UFCG'} • UFCG</span>
           </div>
-          <button type="button" aria-label={`Denunciar ${nome}`}>
-            <Flag size={21} />
-          </button>
         </header>
 
         <div className="chat-passageiro-mensagens" aria-live="polite">

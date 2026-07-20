@@ -668,37 +668,6 @@ a.detalhe-avatar:focus-visible {
   cursor: pointer;
 }
 
-.detalhe-report-form {
-  display: grid;
-  gap: 10px;
-}
-
-.detalhe-report-form label {
-  min-height: 38px;
-  border-radius: 12px;
-  background: #f8fbff;
-  padding: 0 10px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: #07132b;
-  font-size: 13px;
-  font-weight: 800;
-}
-
-.detalhe-report-form textarea {
-  width: 100%;
-  resize: vertical;
-  border: 1px solid #dce7f3;
-  border-radius: 12px;
-  padding: 10px;
-  color: #07132b;
-  font: inherit;
-  font-size: 13px;
-  outline: none;
-}
-
-.detalhe-report-form button,
 .detalhe-block-modal button {
   min-height: 44px;
   border: 0;

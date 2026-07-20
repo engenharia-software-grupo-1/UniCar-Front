@@ -5,7 +5,6 @@ import {
   Car,
   CheckCircle,
   Clock,
-  Flag,
   MapPin,
   MessageCircle,
   MessageSquareText,
@@ -38,13 +37,6 @@ const STATUS = {
   CANCELADA: { rotulo: 'Cancelada', classe: 'cancelada' },
 };
 
-const MOTIVOS_DENUNCIA = [
-  'Comportamento inadequado',
-  'Informações falsas',
-  'Não compareceu',
-  'Outro motivo',
-];
-
 function DetalheCarona() {
   const { id } = useParams();
   const location = useLocation();
@@ -63,9 +55,6 @@ function DetalheCarona() {
   const [bloqueado, setBloqueado] = useState(false);
   const [bloqueando, setBloqueando] = useState(false);
   const [modalBloqueioAberto, setModalBloqueioAberto] = useState(false);
-  const [modalDenunciaAberto, setModalDenunciaAberto] = useState(false);
-  const [motivoDenuncia, setMotivoDenuncia] = useState(MOTIVOS_DENUNCIA[0]);
-  const [denunciaEnviada, setDenunciaEnviada] = useState(false);
   const [feedback, setFeedback] = useState(location.state?.mensagem || '');
   const [reservaParaRemover, setReservaParaRemover] = useState(null);
   const [removendoReserva, setRemovendoReserva] = useState(false);
@@ -302,12 +291,6 @@ function DetalheCarona() {
     }
   }
 
-  function enviarDenuncia(event) {
-    event.preventDefault();
-    setDenunciaEnviada(true);
-    setFeedback('Denúncia registrada com sucesso.');
-  }
-
   function confirmarBloqueio() {
     setBloqueando(true);
     window.setTimeout(() => {
@@ -397,7 +380,6 @@ function DetalheCarona() {
 
                 {!isMinhaCarona && (
                   <div className="detalhe-actions">
-                    <IconBtn icon={Flag} label="Denunciar" onClick={() => setModalDenunciaAberto(true)} />
                     <IconBtn icon={Ban} label="Bloquear" onClick={() => setModalBloqueioAberto(true)} />
                   </div>
                 )}
@@ -636,34 +618,6 @@ function DetalheCarona() {
               </button>
             </div>
           </div>
-        </Modal>
-      )}
-
-      {modalDenunciaAberto && (
-        <Modal title="Denunciar motorista" onClose={() => setModalDenunciaAberto(false)}>
-          {denunciaEnviada ? (
-            <div className="detalhe-modal-success">
-              <CheckCircle size={28} />
-              <strong>Denúncia enviada</strong>
-              <p>Obrigado por ajudar a manter a comunidade segura.</p>
-            </div>
-          ) : (
-            <form className="detalhe-report-form" onSubmit={enviarDenuncia}>
-              {MOTIVOS_DENUNCIA.map((motivo) => (
-                <label key={motivo}>
-                  <input
-                    type="radio"
-                    name="motivo"
-                    checked={motivoDenuncia === motivo}
-                    onChange={() => setMotivoDenuncia(motivo)}
-                  />
-                  {motivo}
-                </label>
-              ))}
-              <textarea placeholder="Descreva o ocorrido" rows={3} />
-              <button type="submit">Enviar denúncia</button>
-            </form>
-          )}
         </Modal>
       )}
 

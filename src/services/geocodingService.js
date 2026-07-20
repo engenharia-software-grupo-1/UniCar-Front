@@ -1,4 +1,5 @@
 const NOMINATIM_SEARCH_URL = 'https://nominatim.openstreetmap.org/search';
+const NOMINATIM_REVERSE_URL = 'https://nominatim.openstreetmap.org/reverse';
 const CACHE_KEY = 'unicar.geocoding.cache';
 const SUGGESTIONS_CACHE_KEY = 'unicar.geocoding.suggestions';
 const CACHE_TTL_MS = 60 * 60 * 1000;
@@ -53,6 +54,48 @@ export async function geocodificarEndereco(descricao) {
   cache[chave] = { endereco, expiraEm: Date.now() + CACHE_TTL_MS };
   sessionStorage.setItem(CACHE_KEY, JSON.stringify(cache));
   return endereco;
+}
+
+// A API de alertas guarda apenas latitude e longitude. Para não expor esses
+// números na interface, convertemos a coordenada de volta para um endereço
+// legível quando carregamos alertas que não trazem uma descrição.
+export async function descreverEnderecoPorCoordenadas(coordenadas) {
+  const latitude = Number(coordenadas?.latitude);
+  const longitude = Number(coordenadas?.longitude);
+
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return '';
+
+  const cache = carregarCache();
+  const chave = `reverse:${latitude.toFixed(5)},${longitude.toFixed(5)}`;
+  if (cache[chave]) return cache[chave].endereco.descricao;
+
+  const params = new URLSearchParams({
+    lat: String(latitude),
+    lon: String(longitude),
+    format: 'jsonv2',
+    'accept-language': 'pt-BR',
+  });
+
+  await aguardarVezNaFila();
+
+  let response;
+  try {
+    response = await fetch(`${NOMINATIM_REVERSE_URL}?${params}`);
+  } catch {
+    return '';
+  }
+
+  if (!response.ok) return '';
+
+  const resultado = await response.json();
+  const descricao = resultado?.display_name || resultado?.name || '';
+
+  if (descricao) {
+    cache[chave] = { endereco: { descricao }, expiraEm: Date.now() + CACHE_TTL_MS };
+    sessionStorage.setItem(CACHE_KEY, JSON.stringify(cache));
+  }
+
+  return descricao;
 }
 
 // Sugestões para os campos de origem e destino. A consulta é restrita à cidade

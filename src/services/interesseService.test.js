@@ -93,13 +93,16 @@ describe('listarInteresses — caminho de rede', () => {
     expect(resultado).toEqual(lista);
   });
 
-  it('normaliza as coordenadas do backend para texto renderizÃ¡vel', async () => {
-    fetch.mockResolvedValue(respostaJson([{ id: 1, origem: ORIGEM, destino: DESTINO }]));
+  it('converte as coordenadas do backend em endereços legíveis', async () => {
+    fetch
+      .mockResolvedValueOnce(respostaJson([{ id: 1, origem: ORIGEM, destino: DESTINO }]))
+      .mockResolvedValueOnce(respostaJson({ display_name: 'Rua da Origem, Campina Grande, Paraíba' }))
+      .mockResolvedValueOnce(respostaJson({ display_name: 'Rua do Destino, Campina Grande, Paraíba' }));
 
     await expect(listarInteresses()).resolves.toEqual([{
       id: 1,
-      origem: '-7.23056, -35.88111',
-      destino: '-7.21715, -35.90980',
+      origem: 'Rua da Origem, Campina Grande, Paraíba',
+      destino: 'Rua do Destino, Campina Grande, Paraíba',
     }]);
   });
 

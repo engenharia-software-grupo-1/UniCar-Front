@@ -1,4 +1,5 @@
 import { apiRequest } from './api.js';
+import { descreverEnderecoPorCoordenadas } from './geocodingService.js';
 
 export async function registrarInteresse({ origem, destino }) {
   return apiRequest('/interesses-trajeto', {
@@ -16,15 +17,15 @@ export async function listarInteresses() {
     ? resposta
     : resposta?.content || resposta?.items || [];
 
-  return interesses.map((interesse) => ({
+  return Promise.all(interesses.map(async (interesse) => ({
     ...interesse,
     ...(interesse.origem !== undefined
-      ? { origem: descreverCoordenada(interesse.origem) }
+      ? { origem: await descreverCoordenada(interesse.origem) }
       : {}),
     ...(interesse.destino !== undefined
-      ? { destino: descreverCoordenada(interesse.destino) }
+      ? { destino: await descreverCoordenada(interesse.destino) }
       : {}),
-  }));
+  })));
 }
 
 export async function removerInteresse(id) {
@@ -44,7 +45,7 @@ function normalizarCoordenada(coordenada) {
   return { latitude, longitude };
 }
 
-function descreverCoordenada(coordenada) {
+async function descreverCoordenada(coordenada) {
   if (typeof coordenada === 'string') {
     return coordenada;
   }
@@ -57,6 +58,6 @@ function descreverCoordenada(coordenada) {
   const longitude = Number(coordenada?.longitude);
 
   return Number.isFinite(latitude) && Number.isFinite(longitude)
-    ? `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`
+    ? (await descreverEnderecoPorCoordenadas(coordenada)) || 'Localização selecionada'
     : '';
 }

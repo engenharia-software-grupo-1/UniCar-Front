@@ -10,6 +10,7 @@ import {
 } from '../../services/historicoCaronasService.js';
 import {
   criarAvaliacao,
+  listarAvaliacoesRecebidas,
   listarAvaliacoesPendentes,
 } from '../../services/avaliacaoService.js';
 import { getPerfilUsuarioAutenticado } from '../../services/profileService.js';
@@ -60,10 +61,13 @@ function HistoricoCaronas() {
         setCarregando(true);
         setErro('');
 
-        const [reservasPassageiro, caronasMotorista, perfil] = await Promise.all([
+        const [reservasPassageiro, caronasMotorista, perfil, avaliacoes] = await Promise.all([
           listarHistoricoComoPassageiro(),
           listarHistoricoComoMotorista(),
           getPerfilUsuarioAutenticado(),
+          // O perfil nem sempre traz a reputação. O endpoint de avaliações é a
+          // fonte que contém as notas realmente recebidas pelo usuário.
+          listarAvaliacoesRecebidas().catch(() => []),
         ]);
 
         if (!ativo) {
@@ -73,7 +77,7 @@ function HistoricoCaronas() {
         setReservas(reservasPassageiro);
         setCaronas(caronasMotorista);
         setResumo({
-          avaliacaoMedia: Number(perfil.avaliacao) || 0,
+          avaliacaoMedia: calcularMediaAvaliacoes(avaliacoes, perfil.avaliacao),
           caronasConcluidas: contarCaronasConcluidas(reservasPassageiro, caronasMotorista),
         });
 
@@ -231,7 +235,12 @@ function HistoricoCaronas() {
             <strong>{formatarMedia(resumo.avaliacaoMedia)}</strong>
             <span aria-label={`${formatarMedia(resumo.avaliacaoMedia)} estrelas`}>
               {Array.from({ length: 5 }).map((_, index) => (
-                <Star key={index} size={15} fill="currentColor" />
+                <Star
+                  key={index}
+                  size={15}
+                  fill={index < Math.round(resumo.avaliacaoMedia) ? 'currentColor' : 'none'}
+                  className={index < Math.round(resumo.avaliacaoMedia) ? 'is-filled' : ''}
+                />
               ))}
             </span>
           </div>
@@ -312,6 +321,16 @@ function HistoricoCaronas() {
       )}
     </main>
   );
+}
+
+function calcularMediaAvaliacoes(avaliacoes, mediaFallback) {
+  const notas = (Array.isArray(avaliacoes) ? avaliacoes : [])
+    .map((avaliacao) => Number(avaliacao.nota))
+    .filter((nota) => Number.isFinite(nota) && nota >= 1 && nota <= 5);
+
+  if (notas.length === 0) return Number(mediaFallback) || 0;
+
+  return notas.reduce((total, nota) => total + nota, 0) / notas.length;
 }
 
 function contarCaronasConcluidas(reservas = [], caronas = []) {

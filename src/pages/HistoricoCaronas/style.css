@@ -46,9 +46,13 @@
 }
 
 .historico-resumo__rating span {
-  color: #f97316;
+  color: #b8c5d6;
   display: flex;
   gap: 2px;
+}
+
+.historico-resumo__rating span .is-filled {
+  color: #f97316;
 }
 
 .historico-resumo__rating svg {

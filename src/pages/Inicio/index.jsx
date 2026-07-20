@@ -12,20 +12,13 @@ import {
 } from 'lucide-react';
 import { getSession } from '../../services/authService.js';
 import { getPerfilUsuarioAutenticado } from '../../services/profileService.js';
-import {
-  buscarProximaCarona,
-  buscarSugestoesDeCaronas,
-} from '../../services/caronaService.js';
+import { buscarProximaCarona } from '../../services/caronaService.js';
 import './style.css';
-
-const SUGESTOES_POR_PAGINA = 3;
 
 function Inicio() {
   const navigate = useNavigate();
   const [usuario, setUsuario] = useState(() => getSession()?.usuario || {});
   const [proximaCarona, setProximaCarona] = useState(null);
-  const [sugestoes, setSugestoes] = useState([]);
-  const [quantidadeSugestoesExibidas, setQuantidadeSugestoesExibidas] = useState(SUGESTOES_POR_PAGINA);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState('');
 
@@ -41,10 +34,7 @@ function Inicio() {
         setErro('');
 
         const perfil = await getPerfilUsuarioAutenticado();
-        const [proxima, listaSugestoes] = await Promise.all([
-          buscarProximaCarona().catch(() => null),
-          buscarSugestoesDeCaronas(perfil).catch(() => []),
-        ]);
+        const proxima = await buscarProximaCarona().catch(() => null);
 
         if (!ativo) {
           return;
@@ -52,8 +42,6 @@ function Inicio() {
 
         setUsuario(perfil);
         setProximaCarona(proxima);
-        setSugestoes(listaSugestoes);
-        setQuantidadeSugestoesExibidas(SUGESTOES_POR_PAGINA);
       } catch (error) {
         if (ativo) {
           setErro(error.message || 'Não foi possível carregar seus dados.');
@@ -188,54 +176,6 @@ function Inicio() {
             </Link>
           </div>
         </section>
-
-        <section className="inicio-section" aria-labelledby="sugestoes">
-          <div className="inicio-section-header">
-            <h2 id="sugestoes">SUGESTÕES PARA VOCÊ</h2>
-            <Link to="/buscar-carona">Encontrar caronas</Link>
-          </div>
-
-          <div className="inicio-suggestions">
-            {sugestoes.length > 0 ? (
-              sugestoes.slice(0, quantidadeSugestoesExibidas).map((sugestao) => (
-                <article key={sugestao.id || sugestao.rota} className="inicio-suggestion">
-                  <Link
-                    to={`/caronas/${sugestao.id}`}
-                    className="inicio-suggestion-link"
-                    aria-label={`Ver detalhes da carona de ${sugestao.rota}`}
-                  >
-                    <span className="inicio-suggestion-avatar" aria-hidden="true">
-                      {sugestao.motorista.avatar || 'U'}
-                    </span>
-
-                    <div className="inicio-suggestion-main">
-                      <h3>{sugestao.motorista.nome || 'Motorista'}</h3>
-                      <p>{sugestao.rota}</p>
-                    </div>
-
-                    <div className="inicio-suggestion-meta">
-                      <strong>{formatarHorario(sugestao.horario)}</strong>
-                      <span>{formatarPreco(sugestao.preco)}</span>
-                    </div>
-                  </Link>
-                </article>
-              ))
-            ) : (
-              <div className="inicio-empty-list">
-                {carregando ? 'Carregando sugestões...' : 'Nenhuma sugestão encontrada.'}
-              </div>
-            )}
-            {sugestoes.length > quantidadeSugestoesExibidas && (
-              <button
-                type="button"
-                className="inicio-mostrar-mais"
-                onClick={() => setQuantidadeSugestoesExibidas((quantidade) => quantidade + SUGESTOES_POR_PAGINA)}
-              >
-                Mostrar mais caronas
-              </button>
-            )}
-          </div>
-        </section>
       </section>
     </main>
   );
@@ -321,21 +261,6 @@ function formatarData(valor) {
     day: '2-digit',
     month: 'short',
   });
-}
-
-function formatarPreco(valor) {
-  if (valor === null || valor === undefined || valor === '') {
-    return '';
-  }
-
-  if (typeof valor === 'number') {
-    return valor.toLocaleString('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    });
-  }
-
-  return String(valor).startsWith('R$') ? valor : `R$ ${valor}`;
 }
 
 export default Inicio;

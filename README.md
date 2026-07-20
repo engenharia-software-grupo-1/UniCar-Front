@@ -1,62 +1,257 @@
 # UniCar Front
 
-Aplicação web do UniCar, uma plataforma de caronas universitárias. O projeto reúne os fluxos de autenticação, perfil, veículos, oferta e busca de caronas, reservas, histórico, notificações e avaliações.
+Frontend da plataforma **UniCar**, um sistema de compartilhamento de caronas voltado para estudantes universitários. A aplicação oferece os fluxos de autenticação, perfil, veículos, oferta e busca de caronas, reservas, chat, avaliações, histórico e notificações.
 
-## Tecnologias
+Este projeto foi desenvolvido como parte da disciplina de **Engenharia de Software** da **Universidade Federal de Campina Grande (UFCG)**.
 
-- React 19 e React Router
+---
+
+## Destaques
+
+- Aplicação web desenvolvida com React 19 e Vite
+- Navegação protegida com React Router
+- Integração com a API REST do UniCar por meio de `fetch`
+- Autenticação por JWT, enviado nas requisições autenticadas
+- Busca de endereços e cálculo de distância para oferta de caronas
+- Chat entre participantes, com alerta visual para mensagens não lidas
+- Testes automatizados com Vitest e Testing Library
+- Mocks locais opcionais para desenvolvimento
+
+---
+
+# Sumário
+
+- [Tecnologias](#tecnologias)
+- [Arquitetura](#arquitetura)
+- [Estrutura do Projeto](#estrutura-do-projeto)
+- [Funcionalidades](#funcionalidades)
+- [Requisitos](#requisitos)
+- [Variáveis de Ambiente](#variáveis-de-ambiente)
+- [Executando o Projeto](#executando-o-projeto)
+- [Integração com a API](#integração-com-a-api)
+- [Autenticação](#autenticação)
+- [Testes](#testes)
+- [Licença](#licença)
+- [Universidade](#universidade)
+- [Contribuidores](#contribuidores)
+
+---
+
+# Tecnologias
+
+- React 19
+- React Router
 - Vite
-- JavaScript e CSS
-- Vitest e Testing Library
-- MSW para desenvolvimento offline
+- JavaScript
+- CSS
+- Lucide React
+- Leaflet e React Leaflet
+- Vitest
+- Testing Library
+- MSW
 - ESLint
 
-## Requisitos
+---
 
-- Node.js
-- npm
+# Arquitetura
 
-## Começando
+O frontend é organizado por responsabilidades, separando páginas, componentes reutilizáveis, serviços de integração, hooks e utilitários.
 
-Instale as dependências e crie seu arquivo de ambiente:
+```text
+                 Usuário
+                    │
+                    ▼
+              Páginas React
+                    │
+                    ▼
+       Componentes e Hooks reutilizáveis
+                    │
+                    ▼
+          Services / Integração HTTP
+                    │
+                    ▼
+              API REST UniCar
+```
+
+---
+
+# Estrutura do Projeto
+
+```text
+src/
+├── components/  # Componentes reutilizáveis e elementos de layout
+├── data/        # Conteúdo estático da interface
+├── hooks/       # Hooks React reutilizáveis
+├── mocks/       # Handlers MSW para desenvolvimento local
+├── pages/       # Telas e estilos organizados por domínio
+├── routes/      # Configuração de rotas e guardas de acesso
+├── services/    # API, sessão, normalização e regras de integração
+├── test/        # Configuração compartilhada dos testes
+└── utils/       # Funções utilitárias puras
+```
+
+### Organização dos diretórios
+
+| Diretório | Responsabilidade |
+|-----------|------------------|
+| `components` | Componentes visuais reutilizáveis e layout global. |
+| `pages` | Telas acessadas pelas rotas da aplicação. |
+| `services` | Comunicação com a API, armazenamento de sessão e adaptação de dados. |
+| `routes` | Definição das rotas públicas, autenticadas e seus guardas. |
+| `hooks` | Lógica React reutilizável entre páginas e componentes. |
+| `mocks` | Simulação de respostas para desenvolvimento quando habilitada. |
+| `data` | Dados estáticos usados na interface. |
+| `utils` | Cálculos e transformações sem dependência de interface. |
+
+---
+
+# Funcionalidades
+
+- Autenticação e aceite dos termos de uso
+- Perfil, foto de perfil e preferências do usuário
+- Cadastro e gerenciamento de veículos
+- Oferta, edição, cancelamento, início e finalização de caronas
+- Busca de caronas com filtros e geolocalização de endereços
+- Reservas e gerenciamento de solicitações de passageiros
+- Chat entre motorista e passageiros com aviso de mensagens não lidas
+- Alertas de trajetos de interesse
+- Avaliações entre usuários e perfis públicos
+- Histórico de caronas como motorista e passageiro
+- Notificações, bloqueio de usuários e central de ajuda
+
+---
+
+# Requisitos
+
+- Node.js 20 ou superior
+- npm 10 ou superior
+- API do UniCar em execução ou uma URL pública configurada
+- Git
+
+---
+
+# Variáveis de Ambiente
+
+Crie um arquivo `.env` a partir do exemplo disponível no repositório.
 
 ```bash
-npm install
 cp .env.example .env
 ```
 
-Inicie o ambiente de desenvolvimento:
+| Variável | Descrição |
+|----------|-----------|
+| `VITE_API_URL` | URL base da API do UniCar usada fora do proxy de desenvolvimento. |
+| `VITE_ENABLE_MOCKS` | Habilita mocks locais em desenvolvimento quando definido como `true`. |
+
+Exemplo:
+
+```text
+VITE_API_URL=http://localhost:8080
+VITE_ENABLE_MOCKS=false
+```
+
+Em desenvolvimento, o Vite redireciona as rotas da API para `http://localhost:8080`. No build de produção, configure `VITE_API_URL` com a URL pública do backend.
+
+---
+
+# Executando o Projeto
+
+Clone o repositório.
 
 ```bash
+git clone https://github.com/engenharia-software-grupo-1/UniCar-Front.git
+```
+
+Acesse o diretório.
+
+```bash
+cd UniCar-Front
+```
+
+Instale as dependências.
+
+```bash
+npm install
+```
+
+Configure o ambiente e inicie o servidor de desenvolvimento.
+
+```bash
+cp .env.example .env
 npm run dev
 ```
 
-O Vite exibirá a URL local — normalmente `http://localhost:5173`.
+A aplicação estará disponível, normalmente, em:
 
-## Configuração da API
-
-As variáveis de ambiente estão documentadas em [`.env.example`](.env.example).
-
-```dotenv
-VITE_API_URL=http://localhost:8080
+```text
+http://localhost:5173
 ```
 
-- `VITE_API_URL`: URL base da API usada no build e na prévia de produção.
+Para gerar e visualizar o build de produção:
 
-O aplicativo sempre consulta a API configurada em `VITE_API_URL`. Em desenvolvimento, o proxy do Vite redireciona as requisições para o backend local.
+```bash
+npm run build
+npm run preview
+```
 
-## Scripts
+---
+
+# Integração com a API
+
+O frontend consome a [UniCar API](https://github.com/engenharia-software-grupo-1/UniCar-API) para os recursos autenticados da plataforma.
+
+Em ambiente local, o proxy do Vite encaminha as seguintes rotas para a API:
+
+```text
+/auth
+/usuarios
+/caronas
+/reservas
+/veiculos
+/avaliacoes
+/interesses-trajeto
+/notificacoes
+/chats
+/historico
+```
+
+Consulte a documentação da API para conhecer os contratos disponíveis:
+
+```text
+http://localhost:8080/swagger-ui/index.html
+```
+
+---
+
+# Autenticação
+
+Após o login, o token JWT retornado pela API é mantido na sessão do navegador e enviado automaticamente nas requisições autenticadas.
+
+```http
+Authorization: Bearer <token>
+```
+
+As rotas protegidas no cliente impedem a navegação sem sessão. A API permanece como fonte de verdade para autenticação, autorização e controle de acesso aos recursos.
+
+---
+
+# Testes
+
+Para executar todos os testes automatizados:
+
+```bash
+npm test
+```
+
+Outros comandos disponíveis:
 
 | Comando | Descrição |
-| --- | --- |
-| `npm run dev` | Inicia o servidor de desenvolvimento. |
-| `npm run build` | Gera o build de produção em `dist/`. |
-| `npm run preview` | Serve localmente o último build. |
-| `npm run lint` | Executa o ESLint. |
-| `npm test` | Executa toda a suíte de testes. |
-| `npm run test:unit` | Executa testes unitários, sem os testes de contrato. |
+|---------|-----------|
+| `npm run test:unit` | Executa os testes unitários, sem os testes de contrato. |
 | `npm run test:contract` | Executa os testes de contrato dos serviços. |
 | `npm run test:coverage` | Gera o relatório de cobertura. |
+| `npm run lint` | Executa o ESLint. |
+| `npm run build` | Gera o build de produção em `dist/`. |
 
 Antes de abrir um pull request, execute:
 
@@ -66,56 +261,56 @@ npm test
 npm run build
 ```
 
-## Funcionalidades
+---
 
-- Autenticação e aceite dos termos de uso
-- Perfil, foto de perfil e preferências
-- Cadastro e gerenciamento de veículos
-- Oferta, edição, cancelamento, início e finalização de caronas
-- Busca com filtros e alertas de trajetos de interesse
-- Reservas e gerenciamento de solicitações de passageiros
-- Histórico de caronas para motoristas e passageiros
-- Perfis públicos, bloqueio de usuários e avaliações
-- Notificações e central de ajuda
+# Licença
 
-## Estrutura do projeto
+Este projeto está licenciado sob os termos da **MIT License**. Consulte o arquivo [LICENSE](LICENSE) para mais informações.
 
-```text
-src/
-├── components/  # Componentes reutilizáveis e layout
-├── data/        # Conteúdo estático da interface
-├── hooks/       # Hooks React
-├── mocks/       # Handlers MSW usados no desenvolvimento
-├── pages/       # Telas e estilos por domínio
-├── routes/      # Entradas de rota
-├── services/    # Integração com API, sessão e normalização de dados
-├── utils/       # Utilitários puros
-└── test/        # Configuração compartilhada dos testes
-```
+---
 
-## Rotas principais
+# Universidade
 
-Depois da autenticação, as principais telas estão disponíveis em:
+Projeto desenvolvido para a disciplina de **Engenharia de Software**, ofertada pela **Universidade Federal de Campina Grande (UFCG)**.
 
-- `/inicio`
-- `/buscar-carona`
-- `/ofertar-carona`
-- `/minhas-caronas`
-- `/historico-caronas`
-- `/perfil`
-- `/meus-veiculos`
-- `/interesses`
-- `/notificacoes`
+# Contribuidores
 
-As rotas autenticadas são protegidas no cliente para navegação. A API deve continuar sendo a fonte de verdade para autenticação, autorização e acesso a recursos de outros usuários.
-
-## Segurança e dados locais
-
-- A sessão do navegador é mantida em `sessionStorage`; integrações de produção devem preferir cookies `HttpOnly`, `Secure` e `SameSite` fornecidos pela API.
-- Dados simulados são exclusivos de desenvolvimento e não devem ser usados como fonte de verdade.
-- Endereços geocodificados ficam apenas temporariamente na sessão do navegador.
-- Não registre tokens, dados pessoais ou respostas sensíveis em logs do cliente.
-
-## Status
-
-O projeto está em evolução junto da API do UniCar. Quando um endpoint passar a existir no backend, remova o handler correspondente em `src/mocks/` e mantenha o contrato coberto por testes.
+<table>
+  <tr>
+    <td align="center">
+      <a href="https://github.com/isadoralucena">
+        <img src="https://github.com/isadoralucena.png" width="120px;" alt="Isadora Lucena"/>
+        <br />
+        <sub><b>Isadora Lucena</b></sub>
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/jennifermedeiross">
+        <img src="https://github.com/jennifermedeiross.png" width="120px;" alt="Jennifer Medeiros"/>
+        <br />
+        <sub><b>Jennifer Medeiros</b></sub>
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/OscarRodrigues-83">
+        <img src="https://github.com/OscarRodrigues-83.png" width="120px;" alt="Oscar Rodrigues"/>
+        <br />
+        <sub><b>Oscar Rodrigues</b></sub>
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/MarceloLuisDantas">
+        <img src="https://github.com/MarceloLuisDantas.png" width="120px;" alt="Marcelo Luis Dantas"/>
+        <br />
+        <sub><b>Marcelo Luis Dantas</b></sub>
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/Eduarda-Cabral">
+        <img src="https://github.com/Eduarda-Cabral.png" width="120px;" alt="Eduarda Cabral"/>
+        <br />
+        <sub><b>Eduarda Cabral</b></sub>
+      </a>
+    </td>
+  </tr>
+</table>

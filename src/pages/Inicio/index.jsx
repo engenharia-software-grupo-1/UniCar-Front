@@ -174,6 +174,13 @@ function Inicio() {
               </span>
               Ofertar carona
             </Link>
+
+            <Link to="/meus-veiculos" className="inicio-shortcut inicio-shortcut--veiculo">
+              <span>
+                <CarFront size={27} />
+              </span>
+              Cadastrar veículo
+            </Link>
           </div>
         </section>
       </section>

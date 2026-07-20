@@ -1,4 +1,23 @@
 import { apiRequest } from './api.js';
+import { getSession } from './authService.js';
+
+// Usado pela barra superior para sinalizar novas mensagens mesmo quando o chat
+// não está aberto. Só conta mensagens recebidas de outra pessoa.
+export async function temMensagensChatNaoLidas() {
+  const usuarioId = getSession()?.usuario?.id;
+  if (!usuarioId) return false;
+
+  const resposta = await apiRequest('/chats');
+  const chats = Array.isArray(resposta) ? resposta : resposta?.content || [];
+
+  const listas = await Promise.all(
+    chats.filter((chat) => chat?.id != null).map((chat) => listarMensagensChat(chat.id)),
+  );
+
+  return listas.flat().some((mensagem) =>
+    !mensagem.lida && String(mensagem.remetenteId) !== String(usuarioId),
+  );
+}
 
 export async function obterChatDaReserva(reservaId) {
   const resposta = await apiRequest('/chats');

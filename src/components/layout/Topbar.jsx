@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Bell } from 'lucide-react';
 import Logo from '../common/Logo.jsx';
 import { listarNotificacoes } from '../../services/notificationService.js';
+import { temMensagensChatNaoLidas } from '../../services/chatService.js';
 import './Topbar.css';
 
 // Telas-raiz da barra inferior: nelas o "voltar" não faz sentido (poderia sair
@@ -21,27 +22,36 @@ export default function Topbar() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const [temNaoLida, setTemNaoLida] = useState(false);
+  const [temMensagemNaoLida, setTemMensagemNaoLida] = useState(false);
 
   const mostrarVoltar = !ROTAS_RAIZ.has(pathname);
 
   useEffect(() => {
     let ativo = true;
 
-    listarNotificacoes()
-      .then((notificacoes) => {
-        if (ativo) {
-          setTemNaoLida(
-            Array.isArray(notificacoes) && notificacoes.some((n) => !n.lida),
-          );
-        }
-      })
-      .catch(() => {});
+    async function atualizarAlertas() {
+      const [notificacoes, temMensagem] = await Promise.all([
+        listarNotificacoes().catch(() => []),
+        temMensagensChatNaoLidas().catch(() => false),
+      ]);
+
+      if (!ativo) return;
+
+      setTemNaoLida(Array.isArray(notificacoes) && notificacoes.some((n) => !n.lida));
+      setTemMensagemNaoLida(temMensagem);
+    }
+
+    atualizarAlertas();
+    const intervalo = window.setInterval(atualizarAlertas, 30000);
 
     return () => {
       ativo = false;
+      window.clearInterval(intervalo);
     };
-    // Reavalia a cada navegação para o badge acompanhar leituras recentes.
+    // Reavalia a cada navegação e a cada 30s para avisar mensagens novas.
   }, [pathname]);
+
+  const temAlerta = temNaoLida || temMensagemNaoLida;
 
   return (
     <header className="topbar">
@@ -63,9 +73,13 @@ export default function Topbar() {
           </Link>
         </div>
 
-        <Link to="/notificacoes" className="topbar__sino" aria-label="Notificações">
+        <Link
+          to="/notificacoes"
+          className="topbar__sino"
+          aria-label={temMensagemNaoLida ? 'Notificações e mensagens não lidas' : 'Notificações'}
+        >
           <Bell size={22} />
-          {temNaoLida && <span className="topbar__badge" aria-hidden="true" />}
+          {temAlerta && <span className="topbar__badge" aria-hidden="true" />}
         </Link>
       </div>
     </header>

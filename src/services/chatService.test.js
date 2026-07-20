@@ -74,4 +74,15 @@ describe('chatService', () => {
     expect(fetch.mock.calls[0][0]).toBe(`${BASE_URL}/chats/9/lidas`);
     expect(fetch.mock.calls[0][1].method).toBe('PATCH');
   });
+
+  it('identifica mensagem não lida recebida de outro usuário', async () => {
+    fetch
+      .mockResolvedValueOnce(respostaJson([{ id: 9 }]))
+      .mockResolvedValueOnce(respostaJson([
+        { id: 1, remetenteId: 5, conteudo: 'Olá', lida: false },
+        { id: 2, remetenteId: 1, conteudo: 'Minha mensagem', lida: false },
+      ]));
+
+    await expect(chatService.temMensagensChatNaoLidas()).resolves.toBe(true);
+  });
 });

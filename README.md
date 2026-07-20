@@ -278,38 +278,31 @@ Projeto desenvolvido para a disciplina de **Engenharia de Software**, ofertada p
 <table>
   <tr>
     <td align="center">
-      <a href="https://github.com/isadoralucena">
-        <img src="https://github.com/isadoralucena.png" width="120px;" alt="Isadora Lucena"/>
+      <a href="https://github.com/LiviaMacedo30">
+        <img src="https://avatars.githubusercontent.com/u/174443855?v=4&size=64" width="120px;" alt="Isadora Lucena"/>
         <br />
         <sub><b>Anna Lívia Macêdo</b></sub>
       </a>
     </td>
     <td align="center">
-      <a href="https://github.com/jennifermedeiross">
-        <img src="https://github.com/jennifermedeiross.png" width="120px;" alt="Jennifer Medeiros"/>
+      <a href="https://github.com/lorenacarvalho">
+        <img src="https://avatars.githubusercontent.com/u/17915129?s=64&v=4" width="120px;" alt="Jennifer Medeiros"/>
         <br />
-        <sub><b>Lorena</b></sub>
+        <sub><b>Lorena Carvalho</b></sub>
       </a>
     </td>
     <td align="center">
-      <a href="https://github.com/OscarRodrigues-83">
-        <img src="https://github.com/OscarRodrigues-83.png" width="120px;" alt="Oscar Rodrigues"/>
-        <br />
-        <sub><b>Oscar Rodrigues</b></sub>
-      </a>
-    </td>
-    <td align="center">
-      <a href="https://github.com/MarceloLuisDantas">
-        <img src="https://github.com/MarceloLuisDantas.png" width="120px;" alt="Marcelo Luis Dantas"/>
+      <a href="https://github.com/marinamoraisml">
+        <img src="https://avatars.githubusercontent.com/u/174443903?s=64&v=4" width="120px;" alt="Marcelo Luis Dantas"/>
         <br />
         <sub><b>Marina Morais</b></sub>
       </a>
     </td>
     <td align="center">
-      <a href="https://github.com/Eduarda-Cabral">
-        <img src="https://github.com/Eduarda-Cabral.png" width="120px;" alt="Eduarda Cabral"/>
+      <a href="https://github.com/annegmsilva">
+        <img src="https://avatars.githubusercontent.com/u/188988503?s=64&v=4" width="120px;" alt="Eduarda Cabral"/>
         <br />
-        <sub><b>Anne Graziele</b></sub>
+        <sub><b>Anne Grazieli</b></sub>
       </a>
     </td>
   </tr>

@@ -32,3 +32,5 @@ env/
 # Stryker (mutation testing)
 .stryker-tmp
 reports/
+.vercel
+.env*

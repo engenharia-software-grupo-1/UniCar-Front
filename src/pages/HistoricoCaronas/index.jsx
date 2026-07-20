@@ -46,6 +46,7 @@ function HistoricoCaronas() {
   const [caronaParaEscolherPassageiro, setCaronaParaEscolherPassageiro] = useState(null);
   const [enviandoAvaliacao, setEnviandoAvaliacao] = useState(false);
   const [mensagemSucesso, setMensagemSucesso] = useState('');
+  const [pendentesPorCarona, setPendentesPorCarona] = useState({});
 
   useEffect(() => {
     window.sessionStorage.setItem('unicar.historico.aba', aba);
@@ -75,6 +76,29 @@ function HistoricoCaronas() {
           avaliacaoMedia: Number(perfil.avaliacao) || 0,
           caronasConcluidas: contarCaronasConcluidas(reservasPassageiro, caronasMotorista),
         });
+
+        const caronasFinalizadas = [
+          ...caronasMotorista.filter((carona) => carona.status === 'FINALIZADA').map((carona) => carona.id),
+          ...reservasPassageiro
+            .filter((reserva) => ['CONCLUIDA', 'FINALIZADA'].includes(reserva.status))
+            .map((reserva) => reserva.caronaId),
+        ];
+        const idsDeCaronas = [...new Set(caronasFinalizadas.filter(Boolean))];
+
+        const pendencias = await Promise.all(
+          idsDeCaronas.map(async (caronaId) => {
+            try {
+              return [caronaId, await listarAvaliacoesPendentes(caronaId)];
+            } catch {
+              // Mantém o botão disponível se não for possível consultar as pendências.
+              return [caronaId, undefined];
+            }
+          }),
+        );
+
+        if (ativo) {
+          setPendentesPorCarona(Object.fromEntries(pendencias));
+        }
       } catch (error) {
         if (ativo) {
           setErro(error.message || 'Nao foi possivel carregar o historico.');
@@ -124,6 +148,11 @@ function HistoricoCaronas() {
         comentario,
       });
 
+      setPendentesPorCarona((pendentesAtuais) => ({
+        ...pendentesAtuais,
+        [caronaParaAvaliar.caronaId]: (pendentesAtuais[caronaParaAvaliar.caronaId] || [])
+          .filter((participante) => participante.id !== caronaParaAvaliar.avaliadoId),
+      }));
       setCaronaParaAvaliar(null);
       setMensagemSucesso('Avaliação enviada com sucesso.');
     } catch (error) {
@@ -164,6 +193,7 @@ function HistoricoCaronas() {
       caronaId: carona.id,
       avaliadoId: passageiro.id,
       nome: passageiro.nome,
+      tipo: 'PASSAGEIRO',
     });
   }
 
@@ -184,6 +214,7 @@ function HistoricoCaronas() {
         caronaId: reserva.caronaId,
         avaliadoId: motorista.id,
         nome: motorista.nome,
+        tipo: 'MOTORISTA',
       });
     } catch (error) {
       setErro(error.message || 'NÃ£o foi possÃ­vel carregar as avaliaÃ§Ãµes pendentes.');
@@ -247,6 +278,7 @@ function HistoricoCaronas() {
             erro={erro}
             caronas={caronas}
             onAvaliar={iniciarAvaliacao}
+            pendentesPorCarona={pendentesPorCarona}
           />
         ) : (
           <HistoricoPassageiro
@@ -254,6 +286,7 @@ function HistoricoCaronas() {
             erro={erro}
             reservas={reservas}
             onAvaliarMotorista={iniciarAvaliacaoMotorista}
+            pendentesPorCarona={pendentesPorCarona}
           />
         )}
       </section>
@@ -289,7 +322,7 @@ function contarCaronasConcluidas(reservas = [], caronas = []) {
   return reservasConcluidas + caronasConcluidas;
 }
 
-function HistoricoMotorista({ carregando, erro, caronas, onAvaliar }) {
+function HistoricoMotorista({ carregando, erro, caronas, onAvaliar, pendentesPorCarona }) {
   if (carregando) {
     return <p className="historico-loading">Carregando histórico...</p>;
   }
@@ -319,7 +352,11 @@ function HistoricoMotorista({ carregando, erro, caronas, onAvaliar }) {
       <ul className="historico-lista">
         {caronas.map((carona) => (
           <li key={carona.id}>
-            <CaronaMotoristaCard carona={carona} onAvaliar={onAvaliar} />
+            <CaronaMotoristaCard
+              carona={carona}
+              onAvaliar={onAvaliar}
+              pendentes={pendentesPorCarona[carona.id]}
+            />
           </li>
         ))}
       </ul>
@@ -327,7 +364,7 @@ function HistoricoMotorista({ carregando, erro, caronas, onAvaliar }) {
   );
 }
 
-function CaronaMotoristaCard({ carona, onAvaliar }) {
+function CaronaMotoristaCard({ carona, onAvaliar, pendentes }) {
   const status = STATUS_CARONA[carona.status] || {
     rotulo: carona.status || 'Carona',
     classe: 'ativa',
@@ -364,7 +401,9 @@ function CaronaMotoristaCard({ carona, onAvaliar }) {
         <p className="historico-passageiro">com {formatarPassageiros(carona.passageiros)}</p>
       )}
 
-      {carona.status === 'FINALIZADA' && (
+      {carona.status === 'FINALIZADA' && (pendentes === undefined || pendentes.some(
+        (participante) => participante.tipo === 'PASSAGEIRO',
+      )) && (
         <button
           type="button"
           className="historico-avaliar"
@@ -419,7 +458,7 @@ function EscolherPassageiroModal({ carona, passageiros, onEscolher, onClose }) {
   );
 }
 
-function HistoricoPassageiro({ carregando, erro, reservas, onAvaliarMotorista }) {
+function HistoricoPassageiro({ carregando, erro, reservas, onAvaliarMotorista, pendentesPorCarona }) {
   if (carregando) {
     return <p className="historico-loading">Carregando histórico...</p>;
   }
@@ -450,7 +489,11 @@ function HistoricoPassageiro({ carregando, erro, reservas, onAvaliarMotorista })
       <ul className="historico-lista">
         {reservas.map((reserva) => (
           <li key={reserva.id}>
-            <ReservaPassageiroCard reserva={reserva} onAvaliarMotorista={onAvaliarMotorista} />
+            <ReservaPassageiroCard
+              reserva={reserva}
+              onAvaliarMotorista={onAvaliarMotorista}
+              pendentes={pendentesPorCarona[reserva.caronaId]}
+            />
           </li>
         ))}
       </ul>
@@ -458,7 +501,7 @@ function HistoricoPassageiro({ carregando, erro, reservas, onAvaliarMotorista })
   );
 }
 
-function ReservaPassageiroCard({ reserva, onAvaliarMotorista }) {
+function ReservaPassageiroCard({ reserva, onAvaliarMotorista, pendentes }) {
   const status = STATUS_RESERVA[reserva.status] || {
     rotulo: reserva.status || 'Reserva',
     classe: 'pendente',
@@ -503,7 +546,9 @@ function ReservaPassageiroCard({ reserva, onAvaliarMotorista }) {
         {formatarVagas(reserva)}
       </p>
 
-      {['CONCLUIDA', 'FINALIZADA'].includes(reserva.status) && (
+      {['CONCLUIDA', 'FINALIZADA'].includes(reserva.status) && (pendentes === undefined || pendentes.some(
+        (participante) => participante.tipo === 'MOTORISTA',
+      )) && (
         <button
           type="button"
           className="historico-avaliar"

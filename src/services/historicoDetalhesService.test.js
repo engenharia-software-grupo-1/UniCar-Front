@@ -209,6 +209,28 @@ describe('obterDetalhesHistorico — chamada à API', () => {
     });
   });
 
+  it('completa coordenadas pela carona quando o DTO de histórico traz apenas os textos', async () => {
+    comSessao();
+    fetch
+      .mockResolvedValueOnce(respostaJson({
+        caronaId: 7,
+        origem: 'Bodocongó',
+        destino: 'UFCG',
+        status: 'FINALIZADA',
+      }))
+      .mockResolvedValueOnce(respostaJson({
+        id: 7,
+        origem: { descricao: 'Bodocongó', latitude: -7.2166, longitude: -35.9095 },
+        destino: { descricao: 'UFCG', latitude: -7.2138, longitude: -35.9092 },
+      }));
+
+    await expect(obterDetalhesHistorico(7)).resolves.toMatchObject({
+      origemCoordenadas: { latitude: -7.2166, longitude: -35.9095 },
+      destinoCoordenadas: { latitude: -7.2138, longitude: -35.9092 },
+    });
+    expect(fetch.mock.calls[1][0]).toBe(`${BASE_URL}/caronas/7`);
+  });
+
   it('não valida participação quando o dado vem do backend', async () => {
     // Sem sessão e sem validarAcesso: quem autoriza é a API, não o front.
     fetch.mockResolvedValue(respostaJson({ id: 42, motorista: { id: 'outro' } }));

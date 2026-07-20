@@ -195,9 +195,28 @@ export async function obterDetalhesHistorico(id) {
   }
 
   try {
-    const detalhe = await apiRequest(`/historico/${encodeURIComponent(id)}`);
+    const resposta = await apiRequest(`/historico/${encodeURIComponent(id)}`);
+    const detalhe = normalizarDetalheHistorico(resposta);
 
-    return normalizarDetalheHistorico(detalhe);
+    // O DTO de histórico traz origem/destino como texto. Para desenhar o mapa,
+    // buscamos a carona completa, que contém os EnderecoDTOs com latitude e
+    // longitude — mesma composição feita no detalhe de reserva.
+    const caronaId = resposta.caronaId ?? resposta.carona?.id;
+    if (!caronaId || (detalhe.origemCoordenadas && detalhe.destinoCoordenadas)) {
+      return detalhe;
+    }
+
+    try {
+      const carona = await apiRequest(`/caronas/${encodeURIComponent(caronaId)}`);
+
+      return normalizarDetalheHistorico({
+        ...resposta,
+        carona: { ...(resposta.carona || {}), ...carona },
+      });
+    } catch {
+      // Mantém os detalhes do histórico se a consulta complementar falhar.
+      return detalhe;
+    }
   } catch (error) {
     if (error.status === 403) {
       throw error;

@@ -6,3 +6,7 @@
   padding-bottom: calc(88px + env(safe-area-inset-bottom));
   min-width: 0;
 }
+
+.app-conteudo > * {
+  min-width: 0;
+}

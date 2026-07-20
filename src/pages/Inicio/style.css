@@ -74,3 +74,10 @@
   .inicio-next-role { max-width: 132px; }
   .inicio-suggestion-link { padding: 14px; }
 }
+
+@media (max-width: 380px) {
+  .inicio-shortcuts { grid-template-columns: 1fr; }
+  .inicio-shortcut--veiculo { grid-column: auto; }
+  .inicio-next-heading { align-items: flex-start; }
+  .inicio-next-role { white-space: nowrap; }
+}

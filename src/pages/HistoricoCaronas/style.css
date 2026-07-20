@@ -531,3 +531,14 @@
   .historico-card__topo time { font-size: 12px; }
   .historico-vagas { font-size: 12px; }
 }
+
+@media (max-width: 380px) {
+  .historico-resumo { gap: 14px; padding-inline: 16px; }
+  .historico-resumo__rating { width: 74px; }
+  .historico-resumo__rating strong { font-size: 29px; }
+  .historico-resumo__rating svg { width: 13px; height: 13px; }
+  .historico-resumo__total span { font-size: 13px; }
+  .historico-tabs { margin-block: 20px; }
+  .historico-tab { font-size: 12px; }
+  .historico-card { padding: 14px; border-radius: 18px; }
+}

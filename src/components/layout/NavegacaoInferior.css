@@ -68,3 +68,21 @@
     margin-top: -24px;
   }
 }
+
+@media (max-width: 380px) {
+  .nav-inferior {
+    height: calc(68px + env(safe-area-inset-bottom));
+    padding-top: 4px;
+  }
+
+  .nav-inferior a {
+    min-height: 48px;
+    font-size: 9px;
+  }
+
+  .nav-inferior__ofertar span {
+    width: 48px;
+    height: 48px;
+    margin-top: -22px;
+  }
+}

@@ -82,7 +82,7 @@ src/
 ├── components/  # Componentes reutilizáveis e elementos de layout
 ├── data/        # Conteúdo estático da interface
 ├── hooks/       # Hooks React reutilizáveis
-├── mocks/       # Handlers MSW para desenvolvimento local
+├── mocks/       # Handlers MSW usados pela suíte de testes
 ├── pages/       # Telas e estilos organizados por domínio
 ├── routes/      # Configuração de rotas e guardas de acesso
 ├── services/    # API, sessão, normalização e regras de integração
@@ -99,7 +99,7 @@ src/
 | `services` | Comunicação com a API, armazenamento de sessão e adaptação de dados. |
 | `routes` | Definição das rotas públicas, autenticadas e seus guardas. |
 | `hooks` | Lógica React reutilizável entre páginas e componentes. |
-| `mocks` | Simulação de respostas para desenvolvimento quando habilitada. |
+| `mocks` | Handlers e servidor MSW usados nos testes. |
 | `data` | Dados estáticos usados na interface. |
 | `utils` | Cálculos e transformações sem dependência de interface. |
 
@@ -123,7 +123,7 @@ src/
 
 # Requisitos
 
-- Node.js 20 ou superior
+- Node.js 20.19 ou superior (ou 22.12 ou superior)
 - npm 10 ou superior
 - API do UniCar em execução ou uma URL pública configurada
 - Git
@@ -141,7 +141,7 @@ cp .env.example .env
 | Variável | Descrição |
 |----------|-----------|
 | `VITE_API_URL` | URL base da API do UniCar usada fora do proxy de desenvolvimento. |
-| `VITE_ENABLE_MOCKS` | Habilita mocks locais em desenvolvimento quando definido como `true`. |
+| `VITE_ENABLE_MOCKS` | Habilita dados locais simulados nos serviços, em desenvolvimento, quando definido como `true`. |
 
 Exemplo:
 
@@ -151,6 +151,8 @@ VITE_ENABLE_MOCKS=false
 ```
 
 Em desenvolvimento, o Vite redireciona as rotas da API para `http://localhost:8080`. No build de produção, configure `VITE_API_URL` com a URL pública do backend.
+
+Os handlers do MSW são usados pela suíte de testes. Já `VITE_ENABLE_MOCKS=true` ativa dados locais simulados em alguns serviços durante o desenvolvimento.
 
 ---
 
@@ -207,6 +209,7 @@ Em ambiente local, o proxy do Vite encaminha as seguintes rotas para a API:
 /usuarios
 /caronas
 /reservas
+/trajetos-recorrentes
 /veiculos
 /avaliacoes
 /interesses-trajeto
@@ -249,7 +252,9 @@ Outros comandos disponíveis:
 |---------|-----------|
 | `npm run test:unit` | Executa os testes unitários, sem os testes de contrato. |
 | `npm run test:contract` | Executa os testes de contrato dos serviços. |
+| `npm run test:watch` | Executa os testes em modo observação. |
 | `npm run test:coverage` | Gera o relatório de cobertura. |
+| `npm run test:mutation` | Executa os testes de mutação com Stryker. |
 | `npm run lint` | Executa o ESLint. |
 | `npm run build` | Gera o build de produção em `dist/`. |
 
@@ -279,28 +284,28 @@ Projeto desenvolvido para a disciplina de **Engenharia de Software**, ofertada p
   <tr>
     <td align="center">
       <a href="https://github.com/LiviaMacedo30">
-        <img src="https://avatars.githubusercontent.com/u/174443855?v=4&size=64" width="120px;" alt="Isadora Lucena"/>
+        <img src="https://github.com/LiviaMacedo30.png" width="120px;" alt="Anna Lívia Macêdo"/>
         <br />
         <sub><b>Anna Lívia Macêdo</b></sub>
       </a>
     </td>
     <td align="center">
       <a href="https://github.com/lorenacarvalho">
-        <img src="https://avatars.githubusercontent.com/u/17915129?s=64&v=4" width="120px;" alt="Jennifer Medeiros"/>
+        <img src="https://github.com/lorenacarvalho.png" width="120px;" alt="Lorena Carvalho"/>
         <br />
         <sub><b>Lorena Carvalho</b></sub>
       </a>
     </td>
     <td align="center">
       <a href="https://github.com/marinamoraisml">
-        <img src="https://avatars.githubusercontent.com/u/174443903?s=64&v=4" width="120px;" alt="Marcelo Luis Dantas"/>
+        <img src="https://github.com/marinamoraisml.png" width="120px;" alt="Marina Morais"/>
         <br />
         <sub><b>Marina Morais</b></sub>
       </a>
     </td>
     <td align="center">
       <a href="https://github.com/annegmsilva">
-        <img src="https://avatars.githubusercontent.com/u/188988503?s=64&v=4" width="120px;" alt="Eduarda Cabral"/>
+        <img src="https://github.com/annegmsilva.png" width="120px;" alt="Anne Grazieli"/>
         <br />
         <sub><b>Anne Grazieli</b></sub>
       </a>

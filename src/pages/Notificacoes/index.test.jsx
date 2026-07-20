@@ -131,6 +131,25 @@ describe('Notificacoes', () => {
     expect(marcarMensagensComoLidas).toHaveBeenCalledWith(9);
   });
 
+  it('mantém o alerta do chat quando a API geral de notificações falha', async () => {
+    listarNotificacoes.mockRejectedValue(new Error('Serviço indisponível.'));
+    listarAlertasChatNaoLidas.mockResolvedValue([{
+      id: 'chat-9',
+      chatId: 9,
+      titulo: 'Nova mensagem de Marina',
+      mensagem: 'Estou chegando.',
+      detalhes: 'Estou chegando.',
+      dataHora: '2026-07-04T08:55:00-03:00',
+      lida: false,
+      tipo: 'chat',
+    }]);
+
+    renderPagina();
+
+    expect(await screen.findByText('Nova mensagem de Marina')).toBeInTheDocument();
+    expect(screen.queryByText('Serviço indisponível.')).not.toBeInTheDocument();
+  });
+
   it('expande uma notificação não lida, dispara atualização e muda o visual para lida', async () => {
     renderPagina();
 

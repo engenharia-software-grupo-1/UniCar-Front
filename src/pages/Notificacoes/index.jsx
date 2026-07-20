@@ -44,11 +44,21 @@ function Notificacoes() {
       setLoading(true);
       setErro('');
 
+      let erroNotificacoes;
       const [dados, alertasChat] = await Promise.all([
-        listarNotificacoes(),
+        listarNotificacoes().catch((error) => {
+          erroNotificacoes = error;
+          return [];
+        }),
         listarAlertasChatNaoLidas().catch(() => []),
       ]);
       setNotificacoes([...alertasChat, ...dados]);
+
+      // A API de notificações pode não estar disponível em instalações que já
+      // oferecem chat. Nesse caso, a nova mensagem continua aparecendo aqui.
+      if (erroNotificacoes && alertasChat.length === 0) {
+        setErro(erroNotificacoes.message || 'Não foi possível carregar as notificações.');
+      }
     } catch (error) {
       setErro(error.message || 'Não foi possível carregar as notificações.');
     } finally {
@@ -82,8 +92,12 @@ function Notificacoes() {
 
     async function carregarInicial() {
       try {
+        let erroNotificacoes;
         const [dados, alertasChat] = await Promise.all([
-          listarNotificacoes(),
+          listarNotificacoes().catch((error) => {
+            erroNotificacoes = error;
+            return [];
+          }),
           listarAlertasChatNaoLidas().catch(() => []),
         ]);
 
@@ -92,7 +106,11 @@ function Notificacoes() {
         }
 
         setNotificacoes([...alertasChat, ...dados]);
-        setErro('');
+        setErro(
+          erroNotificacoes && alertasChat.length === 0
+            ? erroNotificacoes.message || 'Não foi possível carregar as notificações.'
+            : '',
+        );
       } catch (error) {
         if (ativo) {
           setErro(error.message || 'Não foi possível carregar as notificações.');

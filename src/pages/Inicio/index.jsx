@@ -6,6 +6,7 @@ import {
   CalendarDays,
   CarFront,
   MapPin,
+  Repeat2,
   Sparkles,
   Star,
   UserRound,
@@ -175,11 +176,18 @@ function Inicio() {
               Ofertar carona
             </Link>
 
-            <Link to="/meus-veiculos" className="inicio-shortcut inicio-shortcut--veiculo">
+            <Link to="/meus-veiculos" className="inicio-shortcut inicio-shortcut--badge">
               <span>
                 <CarFront size={27} />
               </span>
               Cadastrar veículo
+            </Link>
+
+            <Link to="/trajetos-recorrentes" className="inicio-shortcut inicio-shortcut--badge">
+              <span>
+                <Repeat2 size={27} />
+              </span>
+              Trajetos recorrentes
             </Link>
           </div>
         </section>

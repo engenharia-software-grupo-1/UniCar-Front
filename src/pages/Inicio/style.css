@@ -50,7 +50,7 @@
 .inicio-shortcut:hover, .inicio-shortcut:focus-visible { border-color: rgba(22, 40, 76, .4); transform: translateY(-2px); }
 .inicio-shortcut span { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 12px; background: #07132b; color: #fff; }
 .inicio-shortcut span svg { width: 20px; height: 20px; }
-.inicio-shortcut--veiculo { grid-column: 1 / -1; min-height: 72px; flex-direction: row; align-items: center; background: #f8fbff; }
+.inicio-shortcut--badge { min-height: 72px; flex-direction: row; align-items: center; background: #f8fbff; }
 
 .inicio-suggestions { display: grid; gap: 12px; }
 .inicio-mostrar-mais { justify-self: center; margin-top: 4px; padding: 10px 16px; border: 1px solid #b9cbe4; border-radius: 10px; background: #f6faff; color: #244c7d; font: inherit; font-size: 14px; font-weight: 800; cursor: pointer; }
@@ -77,7 +77,6 @@
 
 @media (max-width: 380px) {
   .inicio-shortcuts { grid-template-columns: 1fr; }
-  .inicio-shortcut--veiculo { grid-column: auto; }
   .inicio-next-heading { align-items: flex-start; }
   .inicio-next-role { white-space: nowrap; }
 }

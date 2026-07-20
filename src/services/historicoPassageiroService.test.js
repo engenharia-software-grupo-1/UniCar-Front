@@ -205,6 +205,15 @@ describe('listarHistoricoComoPassageiro — normalização de campos', () => {
     });
   });
 
+  it('usa a reputação do motorista como avaliação no cartão do histórico', async () => {
+    const reserva = await normalizar({
+      id: 42,
+      motorista: { id: 9, nome: 'Marina Souza', reputacao: 4.7 },
+    });
+
+    expect(reserva.motorista.avaliacao).toBe(4.7);
+  });
+
   it('assume status PENDENTE quando o backend não manda status', async () => {
     expect((await normalizar({ id: 1 })).status).toBe('PENDENTE');
   });

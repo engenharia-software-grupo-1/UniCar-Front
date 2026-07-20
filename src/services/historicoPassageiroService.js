@@ -30,7 +30,9 @@ function normalizarReservaPassageiro(reserva = {}) {
     motorista: {
       id: motorista.id ?? motorista.usuarioId ?? motorista.userId ?? reserva.motoristaId ?? '',
       nome: motorista.nome || motorista.nomeCompleto || 'Motorista',
-      avaliacao: motorista.avaliacao ?? motorista.rating ?? '',
+      // O histórico pode chamar essa média de reputação, ao contrário de
+      // outras respostas da API que usam avaliacao/rating.
+      avaliacao: motorista.reputacao ?? motorista.avaliacao ?? motorista.rating ?? '',
       fotoPerfil:
         motorista.fotoPerfil ||
         motorista.linkFoto ||

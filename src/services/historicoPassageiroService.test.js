@@ -214,6 +214,15 @@ describe('listarHistoricoComoPassageiro — normalização de campos', () => {
     expect(reserva.motorista.avaliacao).toBe(4.7);
   });
 
+  it('extrai a avaliação quando o motorista vem aninhado em usuário', async () => {
+    const reserva = await normalizar({
+      id: 42,
+      motorista: { usuario: { id: 9, nome: 'Marina Souza', reputacao: 4.7 } },
+    });
+
+    expect(reserva.motorista).toMatchObject({ id: 9, nome: 'Marina Souza', avaliacao: 4.7 });
+  });
+
   it('assume status PENDENTE quando o backend não manda status', async () => {
     expect((await normalizar({ id: 1 })).status).toBe('PENDENTE');
   });

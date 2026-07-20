@@ -14,6 +14,7 @@ import {
   listarAvaliacoesPendentes,
 } from '../../services/avaliacaoService.js';
 import { getPerfilUsuarioAutenticado } from '../../services/profileService.js';
+import { obterPerfilPublicoUsuario } from '../../services/publicProfileService.js';
 import './style.css';
 
 const STATUS_RESERVA = {
@@ -69,21 +70,22 @@ function HistoricoCaronas() {
           // fonte que contém as notas realmente recebidas pelo usuário.
           listarAvaliacoesRecebidas().catch(() => []),
         ]);
+        const reservasComAvaliacoes = await enriquecerAvaliacoesDosMotoristas(reservasPassageiro);
 
         if (!ativo) {
           return;
         }
 
-        setReservas(reservasPassageiro);
+        setReservas(reservasComAvaliacoes);
         setCaronas(caronasMotorista);
         setResumo({
           avaliacaoMedia: calcularMediaAvaliacoes(avaliacoes, perfil.avaliacao),
-          caronasConcluidas: contarCaronasConcluidas(reservasPassageiro, caronasMotorista),
+          caronasConcluidas: contarCaronasConcluidas(reservasComAvaliacoes, caronasMotorista),
         });
 
         const caronasFinalizadas = [
           ...caronasMotorista.filter((carona) => carona.status === 'FINALIZADA').map((carona) => carona.id),
-          ...reservasPassageiro
+          ...reservasComAvaliacoes
             .filter((reserva) => ['CONCLUIDA', 'FINALIZADA'].includes(reserva.status))
             .map((reserva) => reserva.caronaId),
         ];
@@ -331,6 +333,32 @@ function calcularMediaAvaliacoes(avaliacoes, mediaFallback) {
   if (notas.length === 0) return Number(mediaFallback) || 0;
 
   return notas.reduce((total, nota) => total + nota, 0) / notas.length;
+}
+
+async function enriquecerAvaliacoesDosMotoristas(reservas) {
+  const ids = [...new Set(reservas.map((reserva) => reserva.motorista?.id).filter(Boolean))];
+  const avaliacoes = await Promise.all(ids.map(async (id) => {
+    try {
+      const perfil = await obterPerfilPublicoUsuario(id);
+      return [String(id), Number(perfil.avaliacao)];
+    } catch {
+      return [String(id), null];
+    }
+  }));
+  const avaliacaoPorMotorista = new Map(avaliacoes);
+
+  return reservas.map((reserva) => {
+    const avaliacao = avaliacaoPorMotorista.get(String(reserva.motorista?.id));
+    const avaliacaoAtual = Number(reserva.motorista?.avaliacao);
+
+    // Uma resposta sem avaliações não pode apagar uma nota já entregue pelo histórico.
+    if (!Number.isFinite(avaliacao) || (avaliacao <= 0 && avaliacaoAtual > 0)) return reserva;
+
+    return {
+      ...reserva,
+      motorista: { ...reserva.motorista, avaliacao },
+    };
+  });
 }
 
 function contarCaronasConcluidas(reservas = [], caronas = []) {

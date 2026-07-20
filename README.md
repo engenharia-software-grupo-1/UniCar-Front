@@ -281,14 +281,14 @@ Projeto desenvolvido para a disciplina de **Engenharia de Software**, ofertada p
       <a href="https://github.com/isadoralucena">
         <img src="https://github.com/isadoralucena.png" width="120px;" alt="Isadora Lucena"/>
         <br />
-        <sub><b>Isadora Lucena</b></sub>
+        <sub><b>Anna Lívia Macêdo</b></sub>
       </a>
     </td>
     <td align="center">
       <a href="https://github.com/jennifermedeiross">
         <img src="https://github.com/jennifermedeiross.png" width="120px;" alt="Jennifer Medeiros"/>
         <br />
-        <sub><b>Jennifer Medeiros</b></sub>
+        <sub><b>Lorena</b></sub>
       </a>
     </td>
     <td align="center">
@@ -302,14 +302,14 @@ Projeto desenvolvido para a disciplina de **Engenharia de Software**, ofertada p
       <a href="https://github.com/MarceloLuisDantas">
         <img src="https://github.com/MarceloLuisDantas.png" width="120px;" alt="Marcelo Luis Dantas"/>
         <br />
-        <sub><b>Marcelo Luis Dantas</b></sub>
+        <sub><b>Marina Morais</b></sub>
       </a>
     </td>
     <td align="center">
       <a href="https://github.com/Eduarda-Cabral">
         <img src="https://github.com/Eduarda-Cabral.png" width="120px;" alt="Eduarda Cabral"/>
         <br />
-        <sub><b>Eduarda Cabral</b></sub>
+        <sub><b>Anne Graziele</b></sub>
       </a>
     </td>
   </tr>

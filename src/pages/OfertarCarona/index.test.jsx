@@ -544,6 +544,32 @@ describe('rotas frequentes', () => {
       'UFCG - Campus Sede',
     );
   });
+
+  it('reutiliza as coordenadas da rota e não geocodifica novamente o endereço', async () => {
+    const user = userEvent.setup();
+    listarTrajetosRecorrentes.mockResolvedValue([
+      {
+        ...TRAJETOS_RECORRENTES[0],
+        origemCoord: COORD_ORIGEM,
+        destinoCoord: COORD_DESTINO,
+      },
+    ]);
+    renderPagina();
+
+    await user.click(
+      await screen.findByRole('button', { name: /Bodocongó → UFCG - Campus Sede/ }),
+    );
+    fireEvent.change(screen.getByLabelText('Data'), { target: { value: DATA_FUTURA } });
+    fireEvent.change(screen.getByLabelText('Horário'), { target: { value: '07:00' } });
+    await user.type(
+      screen.getByPlaceholderText('Onde os passageiros te encontram'),
+      'Portão principal',
+    );
+    await user.click(screen.getByRole('button', { name: 'Continuar' }));
+
+    expect(await screen.findByText('Passo 2 de 3')).toBeInTheDocument();
+    expect(geocodificarEndereco).not.toHaveBeenCalled();
+  });
 });
 
 describe('recriar viagem a partir de um trajeto recorrente', () => {

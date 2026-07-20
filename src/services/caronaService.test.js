@@ -694,7 +694,7 @@ describe('trajetos recorrentes', () => {
     ultimaUtilizacao: '2026-06-20T08:00:00',
   };
 
-  it('faz GET /trajetos-recorrentes e normaliza os locais para texto', async () => {
+  it('faz GET /trajetos-recorrentes e preserva as coordenadas para reutilizar a rota', async () => {
     fetch.mockResolvedValue(respostaJson([TRAJETO_CONTRATO]));
 
     const { listarTrajetosRecorrentes } = await importarService();
@@ -708,6 +708,8 @@ describe('trajetos recorrentes', () => {
         id: 1,
         origem: 'Bodocongó',
         destino: 'UFCG',
+        origemCoord: { latitude: -7.21456, longitude: -35.90872 },
+        destinoCoord: { latitude: -7.2159, longitude: -35.9095 },
         quantidadeViagens: 8,
         primeiraUtilizacao: '2026-01-15T07:00:00',
         ultimaUtilizacao: '2026-06-20T08:00:00',

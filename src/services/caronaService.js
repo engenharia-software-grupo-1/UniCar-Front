@@ -1048,10 +1048,18 @@ function chaveDoTrajeto(origem, destino) {
 // O contrato entrega origem/destino como { descricao, latitude, longitude },
 // mas a UI trabalha com texto — mesma normalização feita em ajustarCarona().
 function ajustarTrajetoRecorrente(trajeto = {}) {
+  const origemCoord = coordenadasLocal(trajeto.origem);
+  const destinoCoord = coordenadasLocal(trajeto.destino);
+
   return {
     id: trajeto.id,
     origem: descricaoLocal(trajeto.origem),
     destino: descricaoLocal(trajeto.destino),
+    // A tela de oferta usa estas coordenadas para reutilizar a rota sem
+    // depender de uma nova busca no geocodificador. A descrição continua em
+    // `origem`/`destino`, pois é assim que as telas exibem o trajeto.
+    origemCoord,
+    destinoCoord,
     quantidadeViagens: trajeto.quantidadeViagens ?? 0,
     primeiraUtilizacao: trajeto.primeiraUtilizacao || '',
     ultimaUtilizacao: trajeto.ultimaUtilizacao || '',

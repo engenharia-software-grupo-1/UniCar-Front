@@ -53,6 +53,22 @@ function dataLocalISO(data) {
   return `${data.getFullYear()}-${pad(data.getMonth() + 1)}-${pad(data.getDate())}`;
 }
 
+function coordenadasDaRota(trajeto, campo) {
+  const coordenadas = trajeto?.[`${campo}Coord`];
+  const latitude = Number(coordenadas?.latitude);
+  const longitude = Number(coordenadas?.longitude);
+
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+    return null;
+  }
+
+  return {
+    descricao: trajeto[campo],
+    latitude,
+    longitude,
+  };
+}
+
 function useSugestoesEndereco(consulta, ativa) {
   const [sugestoes, setSugestoes] = useState([]);
   const [buscando, setBuscando] = useState(false);
@@ -198,8 +214,8 @@ function OfertarCarona() {
 
       setOrigem(trajeto.origem);
       setDestino(trajeto.destino);
-      setOrigemCoord(null);
-      setDestinoCoord(null);
+      setOrigemCoord(coordenadasDaRota(trajeto, 'origem'));
+      setDestinoCoord(coordenadasDaRota(trajeto, 'destino'));
 
       const ultima = await buscarUltimaCaronaDoTrajeto(trajeto.origem, trajeto.destino);
 
@@ -653,8 +669,10 @@ function OfertarCarona() {
                     onClick={() => {
                       setOrigem(trajeto.origem);
                       setDestino(trajeto.destino);
-                      setOrigemCoord(null);
-                      setDestinoCoord(null);
+                      setOrigemCoord(coordenadasDaRota(trajeto, 'origem'));
+                      setDestinoCoord(coordenadasDaRota(trajeto, 'destino'));
+                      limparErro('origem');
+                      limparErro('destino');
                     }}
                   >
                     <strong>

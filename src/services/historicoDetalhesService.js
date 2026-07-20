@@ -241,34 +241,42 @@ function validarParticipante(detalhe) {
 
 function normalizarDetalheHistorico(detalhe = {}) {
   detalhe = detalhe || {};
-  const motorista = detalhe.motorista || detalhe.condutor || {};
-  const reservas = extrairLista(detalhe.reservas || detalhe.passageiros || detalhe.participantesReserva);
-  const origemCoordenadas = coordenadasLocal(detalhe.origem) || coordenadasLocal(detalhe.origemCoordenadas);
-  const destinoCoordenadas = coordenadasLocal(detalhe.destino) || coordenadasLocal(detalhe.destinoCoordenadas);
+  // O endpoint do histórico pode devolver a carona diretamente ou dentro de
+  // `carona` (como ocorre no detalhe de reserva). Sempre lemos os locais desse
+  // objeto para não perder latitude/longitude no segundo formato.
+  const carona = detalhe.carona || detalhe;
+  const motorista = detalhe.motorista || carona.motorista || carona.condutor || detalhe.condutor || {};
+  const reservas = extrairLista(
+    detalhe.reservas || carona.reservas || detalhe.passageiros || carona.passageiros || detalhe.participantesReserva,
+  );
+  const origemLocal = carona.origem ?? detalhe.origem;
+  const destinoLocal = carona.destino ?? detalhe.destino;
+  const origemCoordenadas = coordenadasLocal(origemLocal);
+  const destinoCoordenadas = coordenadasLocal(destinoLocal);
 
   return {
-    id: detalhe.caronaId ?? detalhe.id,
-    status: detalhe.status || detalhe.statusFinal || 'FINALIZADA',
-    dataHoraSaida: detalhe.dataViagem || detalhe.dataHoraSaida || detalhe.dataHora || '',
-    dataHoraChegada: detalhe.dataHoraChegada || detalhe.chegadaPrevista || '',
-    origem: descricaoLocal(detalhe.origem),
-    destino: descricaoLocal(detalhe.destino),
+    id: detalhe.caronaId ?? carona.id ?? detalhe.id,
+    status: detalhe.status || carona.status || detalhe.statusFinal || carona.statusFinal || 'FINALIZADA',
+    dataHoraSaida: carona.dataViagem || detalhe.dataViagem || carona.dataHoraSaida || detalhe.dataHoraSaida || carona.dataHora || detalhe.dataHora || '',
+    dataHoraChegada: carona.dataHoraChegada || detalhe.dataHoraChegada || carona.chegadaPrevista || detalhe.chegadaPrevista || '',
+    origem: descricaoLocal(origemLocal),
+    destino: descricaoLocal(destinoLocal),
     ...(origemCoordenadas ? { origemCoordenadas } : {}),
     ...(destinoCoordenadas ? { destinoCoordenadas } : {}),
-    pontoReferencia: detalhe.pontoReferencia || detalhe.pontoEncontro || '',
-    paradas: extrairLista(detalhe.paradas || detalhe.pontosParada).map(descricaoLocal).filter(Boolean),
+    pontoReferencia: carona.pontoReferencia || detalhe.pontoReferencia || carona.pontoEncontro || detalhe.pontoEncontro || '',
+    paradas: extrairLista(carona.paradas || detalhe.paradas || carona.pontosParada || detalhe.pontosParada).map(descricaoLocal).filter(Boolean),
     valor: Number(
-      detalhe.valor ?? detalhe.valorContribuicao ?? detalhe.custo ?? detalhe.preco ?? 0,
+      carona.valor ?? detalhe.valor ?? carona.valorContribuicao ?? detalhe.valorContribuicao ?? carona.custo ?? detalhe.custo ?? carona.preco ?? detalhe.preco ?? 0,
     ),
-    custos: detalhe.custos || detalhe.descricaoCustos || '',
-    vagasTotais: detalhe.vagasTotais ?? detalhe.quantidadeVagas ?? detalhe.totalVagas ?? 0,
-    veiculo: detalhe.veiculo ? {
-      modelo: detalhe.veiculo.modelo || '',
-      cor: detalhe.veiculo.cor || '',
-      placa: detalhe.veiculo.placa || '',
+    custos: carona.custos || detalhe.custos || carona.descricaoCustos || detalhe.descricaoCustos || '',
+    vagasTotais: carona.vagasTotais ?? detalhe.vagasTotais ?? carona.quantidadeVagas ?? detalhe.quantidadeVagas ?? carona.totalVagas ?? detalhe.totalVagas ?? 0,
+    veiculo: (carona.veiculo || detalhe.veiculo) ? {
+      modelo: (carona.veiculo || detalhe.veiculo).modelo || '',
+      cor: (carona.veiculo || detalhe.veiculo).cor || '',
+      placa: (carona.veiculo || detalhe.veiculo).placa || '',
     } : null,
     motorista: {
-      id: motorista.id ?? motorista.usuarioId ?? detalhe.motoristaId ?? '',
+      id: motorista.id ?? motorista.usuarioId ?? detalhe.motoristaId ?? carona.motoristaId ?? '',
       nome: motorista.nome || motorista.nomeCompleto || 'Motorista',
       avaliacao: motorista.avaliacao ?? motorista.rating ?? '',
       fotoPerfil: motorista.fotoPerfil || motorista.linkFoto || motorista.avatarUrl || motorista.avatar || '',

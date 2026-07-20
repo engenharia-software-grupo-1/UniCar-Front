@@ -10,6 +10,7 @@ import {
   listarNotificacoes,
   marcarNotificacaoComoLida,
 } from '../../services/notificationService.js';
+import { listarAlertasChatNaoLidas, marcarMensagensComoLidas } from '../../services/chatService.js';
 import './style.css';
 
 const ICONES_POR_TIPO = {
@@ -20,6 +21,7 @@ const ICONES_POR_TIPO = {
   cancelada: X,
   avaliacao: Star,
   avaliação: Star,
+  chat: Bell,
 };
 
 function Notificacoes() {
@@ -42,8 +44,11 @@ function Notificacoes() {
       setLoading(true);
       setErro('');
 
-      const dados = await listarNotificacoes();
-      setNotificacoes(dados);
+      const [dados, alertasChat] = await Promise.all([
+        listarNotificacoes(),
+        listarAlertasChatNaoLidas().catch(() => []),
+      ]);
+      setNotificacoes([...alertasChat, ...dados]);
     } catch (error) {
       setErro(error.message || 'Não foi possível carregar as notificações.');
     } finally {
@@ -64,7 +69,11 @@ function Notificacoes() {
       ),
     );
 
-    marcarNotificacaoComoLida(notificacao.id).catch(() => undefined);
+    if (notificacao.tipo === 'chat') {
+      marcarMensagensComoLidas(notificacao.chatId).catch(() => undefined);
+    } else {
+      marcarNotificacaoComoLida(notificacao.id).catch(() => undefined);
+    }
   }
 
 
@@ -73,13 +82,16 @@ function Notificacoes() {
 
     async function carregarInicial() {
       try {
-        const dados = await listarNotificacoes();
+        const [dados, alertasChat] = await Promise.all([
+          listarNotificacoes(),
+          listarAlertasChatNaoLidas().catch(() => []),
+        ]);
 
         if (!ativo) {
           return;
         }
 
-        setNotificacoes(dados);
+        setNotificacoes([...alertasChat, ...dados]);
         setErro('');
       } catch (error) {
         if (ativo) {

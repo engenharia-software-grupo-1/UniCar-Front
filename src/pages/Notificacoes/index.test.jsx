@@ -8,11 +8,17 @@ vi.mock('../../services/notificationService.js', () => ({
   marcarNotificacaoComoLida: vi.fn(),
 }));
 
+vi.mock('../../services/chatService.js', () => ({
+  listarAlertasChatNaoLidas: vi.fn(() => Promise.resolve([])),
+  marcarMensagensComoLidas: vi.fn(),
+}));
+
 import Notificacoes from './index.jsx';
 import {
   listarNotificacoes,
   marcarNotificacaoComoLida,
 } from '../../services/notificationService.js';
+import { listarAlertasChatNaoLidas, marcarMensagensComoLidas } from '../../services/chatService.js';
 
 // A contagem de não-lidas fica no <p> do titlebar (ex.: "2 não lidas"); o texto
 // é dividido em nós ({total} + rótulo), então casamos pelo textContent do <p>.
@@ -61,6 +67,8 @@ beforeEach(() => {
   vi.clearAllMocks();
   listarNotificacoes.mockResolvedValue(NOTIFICACOES);
   marcarNotificacaoComoLida.mockResolvedValue({ id: 3, lida: true });
+  listarAlertasChatNaoLidas.mockResolvedValue([]);
+  marcarMensagensComoLidas.mockResolvedValue();
 });
 
 describe('Notificacoes', () => {
@@ -102,6 +110,25 @@ describe('Notificacoes', () => {
     renderPagina();
 
     expect(await screen.findByText('Nenhuma notificação')).toBeInTheDocument();
+  });
+
+  it('inclui a mensagem nova do chat na central de notificações', async () => {
+    listarNotificacoes.mockResolvedValue([]);
+    listarAlertasChatNaoLidas.mockResolvedValue([{
+      id: 'chat-9',
+      chatId: 9,
+      titulo: 'Nova mensagem de Marina',
+      mensagem: 'Estou chegando.',
+      detalhes: 'Estou chegando.',
+      dataHora: '2026-07-04T08:55:00-03:00',
+      lida: false,
+      tipo: 'chat',
+    }]);
+
+    renderPagina();
+
+    await userEvent.click(await screen.findByRole('button', { name: /Nova mensagem de Marina/ }));
+    expect(marcarMensagensComoLidas).toHaveBeenCalledWith(9);
   });
 
   it('expande uma notificação não lida, dispara atualização e muda o visual para lida', async () => {

@@ -4,19 +4,54 @@ import { getSession } from './authService.js';
 // Usado pela barra superior para sinalizar novas mensagens mesmo quando o chat
 // não está aberto. Só conta mensagens recebidas de outra pessoa.
 export async function temMensagensChatNaoLidas() {
+  const alertas = await listarAlertasChatNaoLidas();
+  return alertas.length > 0;
+}
+
+// Converte mensagens não lidas em itens que a central de notificações consegue
+// exibir. O backend fornece o total no resumo do chat; para respostas antigas,
+// consultamos as mensagens como compatibilidade.
+export async function listarAlertasChatNaoLidas() {
   const usuarioId = getSession()?.usuario?.id;
-  if (!usuarioId) return false;
+  if (!usuarioId) return [];
 
   const resposta = await apiRequest('/chats');
   const chats = Array.isArray(resposta) ? resposta : resposta?.content || [];
 
-  const listas = await Promise.all(
-    chats.filter((chat) => chat?.id != null).map((chat) => listarMensagensChat(chat.id)),
-  );
+  const alertas = await Promise.all(chats.filter((chat) => chat?.id != null).map(async (chat) => {
+    let quantidade = Number(chat.mensagensNaoLidas);
+    let ultimaMensagem = chat.ultimaMensagem || '';
+    let dataHora = chat.dataUltimaMensagem || '';
 
-  return listas.flat().some((mensagem) =>
-    !mensagem.lida && String(mensagem.remetenteId) !== String(usuarioId),
-  );
+    if (!Number.isFinite(quantidade)) {
+      const mensagens = await listarMensagensChat(chat.id);
+      const naoLidas = mensagens.filter((mensagem) =>
+        !mensagem.lida && String(mensagem.remetenteId) !== String(usuarioId),
+      );
+      quantidade = naoLidas.length;
+      ultimaMensagem ||= naoLidas.at(-1)?.texto || '';
+      dataHora ||= naoLidas.at(-1)?.dataEnvio || '';
+    }
+
+    if (quantidade <= 0) return null;
+
+    const participante = chat.nomeParticipante || 'participante da carona';
+    const mensagem = ultimaMensagem || `Você recebeu ${quantidade} ${quantidade === 1 ? 'nova mensagem' : 'novas mensagens'}.`;
+
+    return {
+      id: `chat-${chat.id}`,
+      chatId: chat.id,
+      reservaId: chat.reservaId,
+      titulo: `Nova mensagem de ${participante}`,
+      mensagem,
+      detalhes: mensagem,
+      dataHora: dataHora || new Date().toISOString(),
+      lida: false,
+      tipo: 'chat',
+    };
+  }));
+
+  return alertas.filter(Boolean);
 }
 
 export async function obterChatDaReserva(reservaId) {

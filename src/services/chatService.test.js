@@ -85,4 +85,22 @@ describe('chatService', () => {
 
     await expect(chatService.temMensagensChatNaoLidas()).resolves.toBe(true);
   });
+
+  it('monta um alerta para a central de notificações', async () => {
+    fetch.mockResolvedValueOnce(respostaJson([{
+      id: 9,
+      reservaId: 77,
+      nomeParticipante: 'Marina',
+      ultimaMensagem: 'Estou chegando.',
+      dataUltimaMensagem: '2026-07-19T10:00:00',
+      mensagensNaoLidas: 1,
+    }]));
+
+    await expect(chatService.listarAlertasChatNaoLidas()).resolves.toMatchObject([{
+      chatId: 9,
+      titulo: 'Nova mensagem de Marina',
+      mensagem: 'Estou chegando.',
+      tipo: 'chat',
+    }]);
+  });
 });

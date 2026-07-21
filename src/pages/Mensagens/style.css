@@ -1,0 +1,30 @@
+.mensagens-page { min-height:100vh; background:var(--app-page-background); color:#07132b; font-family:"Nunito",ui-sans-serif,system-ui,sans-serif; }
+.mensagens-shell { width:min(var(--app-content-width),calc(100% - var(--app-content-gutter))); margin:auto; padding:22px 0 36px; }
+.mensagens-header { display:flex; align-items:center; justify-content:space-between; gap:20px; }
+.mensagens-header h1 { margin:0; font-size:30px; line-height:1.1; font-weight:900; }
+.mensagens-header p { margin:4px 0 0; color:#587097; font-size:13px; }
+.mensagens-busca { height:50px; margin:20px 0; padding:0 16px; border-radius:999px; background:#f1f5f9; color:#587097; display:flex; align-items:center; gap:10px; }
+.mensagens-busca input { width:100%; border:0; outline:0; background:transparent; color:#07132b; font:inherit; font-size:15px; }
+.mensagens-busca input::placeholder { color:#7183a0; }
+.mensagens-lista { margin:0; padding:0; border:1px solid #dce5ef; border-radius:22px; background:#fff; list-style:none; overflow:hidden; }
+.mensagens-lista li + li { border-top:1px solid #dce5ef; }
+.mensagens-conversa { width:100%; min-height:96px; padding:16px; border:0; background:#fff; color:inherit; display:grid; grid-template-columns:58px minmax(0,1fr) auto; align-items:center; gap:16px; text-align:left; cursor:pointer; }
+.mensagens-conversa:hover { background:#f8fbff; }
+.mensagens-avatar { width:58px; height:58px; border-radius:50%; background:#07132b; color:#fff; display:grid; place-items:center; overflow:hidden; font-size:17px; font-weight:900; }
+.mensagens-avatar img { width:100%; height:100%; object-fit:cover; }
+.mensagens-conversa__conteudo { min-width:0; display:grid; gap:3px; }
+.mensagens-conversa__conteudo > strong { min-width:0; display:flex; align-items:center; gap:6px; font-size:16px; }
+.mensagens-conversa__conteudo > strong svg { flex:none; color:#00a878; }
+.mensagens-conversa__trajeto,.mensagens-conversa__previa { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.mensagens-conversa__trajeto { color:#587097; font-size:12px; }
+.mensagens-conversa__previa { color:#587097; font-size:14px; }
+.mensagens-conversa__previa.is-nao-lida { color:#07132b; font-weight:800; }
+.mensagens-conversa__meta { align-self:stretch; min-width:48px; display:flex; flex-direction:column; align-items:flex-end; justify-content:space-between; color:#587097; font-size:12px; }
+.mensagens-conversa__meta b { min-width:24px; height:24px; padding:0 7px; border-radius:999px; background:#07132b; color:#fff; display:grid; place-items:center; font-size:11px; }
+.mensagens-estado { padding:24px; border:1px solid #dce5ef; border-radius:18px; background:#fff; color:#587097; text-align:center; }
+.mensagens-estado--erro { border-color:#fecaca; background:#fff1f2; color:#b91c1c; }
+.mensagens-estado--vazio { min-height:190px; display:grid; place-content:center; justify-items:center; gap:8px; }
+.mensagens-estado--vazio svg { width:34px; height:34px; }
+.mensagens-estado--vazio strong { color:#07132b; }
+.mensagens-estado--vazio span { font-size:13px; }
+@media (max-width:600px) { .mensagens-shell{width:min(var(--app-content-width),calc(100% - var(--app-content-gutter-mobile)));padding-top:16px}.mensagens-header h1{font-size:25px}.mensagens-conversa{min-height:88px;padding:13px;grid-template-columns:48px minmax(0,1fr) auto;gap:11px}.mensagens-avatar{width:48px;height:48px}.mensagens-conversa__conteudo>strong{font-size:14px}.mensagens-conversa__previa{font-size:13px} }

@@ -8,6 +8,54 @@ export async function temMensagensChatNaoLidas() {
   return alertas.length > 0;
 }
 
+// Lista usada pela caixa de entrada. Como versões antigas do resumo de /chats
+// ainda devolvem uma mensagem genérica e zero não lidas, consultamos as
+// mensagens de cada conversa para manter a prévia e o contador corretos.
+export async function listarChats() {
+  const usuarioId = getSession()?.usuario?.id;
+  const resposta = await apiRequest('/chats');
+  const chats = Array.isArray(resposta) ? resposta : resposta?.content || [];
+
+  const normalizados = await Promise.all(chats.map(async (chat) => {
+    const [mensagens, reserva] = await Promise.all([
+      listarMensagensChat(chat.id).catch(() => []),
+      chat.reservaId
+        ? apiRequest(`/reservas/${encodeURIComponent(chat.reservaId)}`).catch(() => null)
+        : Promise.resolve(null),
+    ]);
+    const ultima = mensagens.at(-1);
+    const naoLidasCalculadas = mensagens.filter((mensagem) =>
+      !mensagem.lida && String(mensagem.remetenteId) !== String(usuarioId),
+    ).length;
+    const carona = reserva?.carona || chat.carona || {};
+
+    return {
+      id: chat.id,
+      reservaId: chat.reservaId,
+      caronaId: chat.caronaId ?? carona.id ?? reserva?.caronaId,
+      participanteId:
+        chat.participanteId ?? chat.usuarioParticipanteId ?? chat.usuarioId ?? '',
+      nomeParticipante: chat.nomeParticipante || 'Participante',
+      fotoParticipante:
+        chat.linkFotoParticipante || chat.fotoParticipante || chat.fotoUrlParticipante || '',
+      verificado: Boolean(chat.participanteVerificado ?? chat.verificado),
+      origem: descricaoLocal(chat.origem ?? carona.origem ?? reserva?.origem),
+      destino: descricaoLocal(chat.destino ?? carona.destino ?? reserva?.destino),
+      dataCarona:
+        chat.dataCarona || carona.dataHoraSaida || carona.dataCarona || reserva?.dataCarona || '',
+      ultimaMensagem: ultima?.texto || chat.ultimaMensagem || 'Clique para abrir a conversa',
+      dataUltimaMensagem: ultima?.dataEnvio || chat.dataUltimaMensagem || '',
+      mensagensNaoLidas: mensagens.length > 0
+        ? naoLidasCalculadas
+        : Number(chat.mensagensNaoLidas) || 0,
+    };
+  }));
+
+  return normalizados.sort((a, b) =>
+    new Date(b.dataUltimaMensagem || 0).getTime() - new Date(a.dataUltimaMensagem || 0).getTime(),
+  );
+}
+
 // Converte mensagens não lidas em itens que a central de notificações consegue
 // exibir. O backend fornece o total no resumo do chat; para respostas antigas,
 // consultamos as mensagens como compatibilidade.
@@ -98,4 +146,9 @@ function normalizarMensagem(mensagem = {}) {
     lida: Boolean(mensagem.lida),
     dataEnvio: mensagem.dataEnvio ?? mensagem.dataHora ?? '',
   };
+}
+
+function descricaoLocal(local) {
+  if (!local) return '';
+  return typeof local === 'string' ? local : local.descricao || local.nome || '';
 }

@@ -18,7 +18,7 @@
 .detalhe-reserva-card h2 { margin:0 0 14px; font-size:15px; }
 .detalhe-reserva-trajeto { padding:0; overflow:hidden; }
 .detalhe-reserva-mapa { height:200px; position:relative; background:#f3f4f6; color:#6b7280; }
-.detalhe-reserva-mapa > span { position:absolute; top:15px; left:15px; z-index:1; padding:7px 12px; border-radius:999px; background:#fff; color:#0b1531; display:flex; align-items:center; gap:5px; font-size:12px; font-weight:800; }
+.detalhe-reserva-mapa > span { position:absolute; top:15px; right:15px; left:auto; z-index:1; padding:7px 12px; border-radius:999px; background:#fff; color:#0b1531; display:flex; align-items:center; gap:5px; font-size:12px; font-weight:800; }
 .mapa-trajeto { width:100%; height:100%; z-index:0; }
 .mapa-trajeto-indisponivel { height:100%; display:grid; place-items:center; color:#64748b; font-size:13px; }
 .detalhe-reserva-mapa .leaflet-control-attribution { font-size:9px; }

@@ -27,6 +27,7 @@ import BuscarCarona from './pages/BuscarCarona/index.jsx';
 import DetalheReserva from './pages/DetalheReserva/index.jsx';
 import Interesses from './pages/Interesses/index.jsx';
 import ChatPassageiro from './pages/ChatPassageiro/index.jsx';
+import Mensagens from './pages/Mensagens/index.jsx';
 
 import LayoutApp from './components/layout/LayoutApp.jsx';
 import { isAuthenticated } from './services/authService.js';
@@ -95,6 +96,7 @@ function App() {
           <Route path="/avaliacoes-recebidas" element={<AvaliacoesRecebidas />} />
           <Route path="/interesses" element={<Interesses />} />
           <Route path="/notificacoes" element={<Notificacoes />} />
+          <Route path="/mensagens" element={<Mensagens />} />
           <Route path="/central-ajuda" element={<CentralAjuda />} />
           <Route path="/bloqueados" element={<UsuariosBloqueados />} />
         </Route>

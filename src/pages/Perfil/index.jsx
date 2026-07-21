@@ -8,6 +8,7 @@ import {
   Edit3,
   History,
   LogOut,
+  MessageCircle,
   RefreshCw,
   ShieldCheck,
   ShieldOff,
@@ -303,6 +304,11 @@ function Perfil() {
             icon={Bell}
             label="Notificações"
             onClick={() => navigate('/notificacoes')}
+          />
+          <ProfileRow
+            icon={MessageCircle}
+            label="Mensagens"
+            onClick={() => navigate('/mensagens')}
           />
           <ProfileRow
             icon={ShieldOff}

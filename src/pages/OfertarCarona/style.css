@@ -659,8 +659,33 @@
 }
 
 @media (max-width: 560px) {
+  .ofertar-topbar,
+  .ofertar-shell {
+    padding-inline: 14px;
+  }
+
+  .ofertar-card {
+    width: 100%;
+    min-width: 0;
+    padding: 20px;
+  }
+
   .ofertar-linha {
     grid-template-columns: 1fr;
+    min-width: 0;
+  }
+
+  .ofertar-linha .ofertar-campo,
+  .ofertar-input,
+  .ofertar-input-simples {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .ofertar-linha .ofertar-input-simples {
+    display: block;
+    overflow: hidden;
   }
 }
 

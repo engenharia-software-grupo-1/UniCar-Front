@@ -108,11 +108,6 @@ function OfertarCarona() {
 
   const location = useLocation();
 
-  useEffect(() => {
-    document.documentElement.scrollTop = 0;
-    document.body.scrollTop = 0;
-  }, []);
-
   // Definido quando o usuário chega por "Recriar viagem", vindo do detalhe de
   // um trajeto recorrente: pré-preenche o formulário com os dados do trajeto.
   const trajetoId = location.state?.trajetoId;

@@ -685,7 +685,23 @@
 
   .ofertar-linha .ofertar-input-simples {
     display: block;
+    inline-size: 100%;
+    min-inline-size: 0;
+    max-inline-size: 100%;
     overflow: hidden;
+  }
+
+  .ofertar-linha input[type='date'],
+  .ofertar-linha input[type='time'] {
+    -webkit-appearance: none;
+    appearance: none;
+    box-sizing: border-box;
+  }
+
+  .ofertar-linha input[type='date']::-webkit-date-and-time-value,
+  .ofertar-linha input[type='time']::-webkit-date-and-time-value {
+    min-width: 0;
+    text-align: left;
   }
 }
 

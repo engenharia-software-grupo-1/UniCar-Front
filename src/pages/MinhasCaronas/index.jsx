@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { ArrowRight, Eye, Pencil, Play, Square, Users, X } from 'lucide-react';
+import { ArrowRight, Bell, ChevronRight, Eye, Pencil, Play, Square, Users, X } from 'lucide-react';
 import Confirmacao from '../../components/common/Confirmacao.jsx';
 import StatusReservaBadge from '../../components/common/StatusReservaBadge.jsx';
 import { cancelarCarona, iniciarCarona, finalizarCarona, listarMinhasCaronas } from '../../services/caronaService.js';
-import { listarReservasEnviadas } from '../../services/reservaService.js';
+import { listarReservasEnviadas, listarReservasPendentesDaCarona } from '../../services/reservaService.js';
 import './style.css';
 
 const STATUS = {
@@ -91,7 +91,7 @@ function MinhasCaronas() {
       setCarregando(true);
       setErro('');
 
-      const dados = await listarMinhasCaronas();
+      const dados = await carregarCaronasComPendencias();
 
       setCaronas(dados);
     } catch (error) {
@@ -106,7 +106,7 @@ function MinhasCaronas() {
 
     async function carregarInicial() {
       try {
-        const dados = await listarMinhasCaronas();
+        const dados = await carregarCaronasComPendencias();
 
         if (!ativo) {
           return;
@@ -396,33 +396,43 @@ function ConteudoPassageiro({ carregando, erro, reservas, onTentarNovamente }) {
 
   const confirmadas = reservas.filter((reserva) => ['ACEITA', 'ATIVA', 'CONFIRMADA'].includes(reserva.status));
   const pendentes = reservas.filter((reserva) => reserva.status === 'PENDENTE');
-  const outras = reservas.filter((reserva) => !['ACEITA', 'ATIVA', 'CONFIRMADA', 'PENDENTE'].includes(reserva.status));
+  const recusadas = reservas.filter((reserva) => reserva.status === 'RECUSADA');
+  const outras = reservas.filter((reserva) => !['ACEITA', 'ATIVA', 'CONFIRMADA', 'PENDENTE', 'RECUSADA'].includes(reserva.status));
 
   return (
     <div className="reservas-grupos">
       <GrupoReservas titulo="Confirmadas" reservas={confirmadas} />
       <GrupoReservas titulo="Solicitações pendentes" reservas={pendentes} pendente />
+      <GrupoReservas titulo="Solicitações recusadas" reservas={recusadas} recusada />
       <GrupoReservas titulo="Outras reservas" reservas={outras} />
     </div>
   );
 }
 
-function GrupoReservas({ titulo, reservas, pendente = false }) {
+function GrupoReservas({ titulo, reservas, pendente = false, recusada = false }) {
   if (reservas.length === 0) return null;
-  return <section className="reservas-grupo"><h2>{titulo}</h2><ul className="reservas-lista">{reservas.map((reserva) => <li key={reserva.id}><ReservaCard reserva={reserva} pendente={pendente} /></li>)}</ul></section>;
+  return <section className="reservas-grupo"><h2>{titulo}</h2><ul className="reservas-lista">{reservas.map((reserva) => <li key={reserva.id}><ReservaCard reserva={reserva} pendente={pendente} recusada={recusada} /></li>)}</ul></section>;
 }
 
-function ReservaCard({ reserva, pendente = false }) {
+function ReservaCard({ reserva, pendente = false, recusada = false }) {
+  const confirmada = ['ACEITA', 'ATIVA', 'CONFIRMADA'].includes(reserva.status);
+
   return (
-    <article className="reserva-card">
+    <article className={`reserva-card${pendente ? ' reserva-card--pendente' : ''}${recusada ? ' reserva-card--recusada' : ''}`}>
       <Link className="reserva-card__abrir" to={`/reservas/${reserva.id}`} state={{ reserva }} aria-label={`Ver detalhes da reserva com ${reserva.motorista?.nome || 'motorista'}`} />
       <div className="reserva-card__topo">
-        <StatusReservaBadge status={reserva.status} compacto />
+        {pendente
+          ? <span className="reserva-card__aguardando"><span aria-hidden="true" />Aguardando motorista</span>
+          : <StatusReservaBadge status={reserva.status} compacto />}
         <span className="reserva-card__data">{formatarDataReserva(reserva.dataViagem)}</span>
       </div>
       <strong className="reserva-card__motorista">{reserva.motorista?.nome || 'Motorista'}</strong>
       <p className="reserva-card__rota">{reserva.carona.origem || 'Origem'} <ArrowRight size={14} /> {reserva.carona.destino || 'Destino'}</p>
-      <span className="reserva-card__quantidade"><Users size={14} /> {formatarQuantidadeReserva(reserva.quantidadePassageiros)}</span>
+      {recusada ? (
+        <Link to="/buscar-carona" className="reserva-card__buscar">Buscar outras caronas</Link>
+      ) : !confirmada ? (
+        <span className="reserva-card__quantidade"><Users size={14} /> {formatarQuantidadeReserva(reserva.quantidadePassageiros)}</span>
+      ) : null}
       {pendente && <Link className="reserva-card__cancelar" to={`/reservas/${reserva.id}`} state={{ abrirCancelamento: true, reserva }}>Cancelar solicitação</Link>}
     </article>
   );
@@ -478,13 +488,28 @@ function CaronaCard({ carona, onCancelar, onIniciar, onFinalizar }) {
   const podeFinalizar = carona.status === 'EM_ANDAMENTO';
   const origem = carona.origem || 'Origem';
   const destino = montarDestino(carona);
+  const solicitacoesPendentes = carona.solicitacoesPendentes || [];
+  const quantidadeSolicitacoes = solicitacoesPendentes.length;
+  const quantidadePassageirosPendentes = solicitacoesPendentes.reduce(
+    (total, solicitacao) => total + (Number(solicitacao.quantidadePassageiros) || 1),
+    0,
+  );
+  const possuiSolicitacoes = quantidadeSolicitacoes > 0;
 
   return (
-    <article className="carona-card">
+    <article className={`carona-card ${possuiSolicitacoes ? 'carona-card--com-solicitacao' : ''}`}>
       <div className="carona-card__topo">
-        <span className={`carona-status carona-status--${status.classe}`}>
-          {status.rotulo}
-        </span>
+        <div className="carona-card__status-grupo">
+          <span className={`carona-status carona-status--${status.classe}`}>
+            {status.rotulo}
+          </span>
+          {possuiSolicitacoes && (
+            <span className="carona-card__novas-solicitacoes">
+              <Bell size={14} aria-hidden="true" />
+              {quantidadeSolicitacoes} {quantidadeSolicitacoes === 1 ? 'nova solicitação' : 'novas solicitações'}
+            </span>
+          )}
+        </div>
         <span className="carona-card__quando">{formatarQuando(carona.dataHoraSaida)}</span>
       </div>
 
@@ -498,6 +523,24 @@ function CaronaCard({ carona, onCancelar, onIniciar, onFinalizar }) {
         <p className="carona-card__passageiros">
           {carona.passageirosConfirmados} de {carona.quantidadeVagas} passageiros confirmados
         </p>
+      )}
+
+      {possuiSolicitacoes && (
+        <Link
+          to={`/minhas-caronas/${carona.id}`}
+          state={{ minhaCarona: true, carona, abaInicial: 'passageiros' }}
+          className="carona-card__solicitacao"
+          aria-label={`Ver ${quantidadeSolicitacoes} ${quantidadeSolicitacoes === 1 ? 'solicitação pendente' : 'solicitações pendentes'}`}
+        >
+          <span className="carona-card__solicitacao-icone"><Bell size={20} aria-hidden="true" /></span>
+          <span className="carona-card__solicitacao-texto">
+            <strong>
+              {quantidadePassageirosPendentes} {quantidadePassageirosPendentes === 1 ? 'passageiro aguardando' : 'passageiros aguardando'} sua resposta
+            </strong>
+            <small>{resumirSolicitantes(solicitacoesPendentes)}</small>
+          </span>
+          <ChevronRight size={20} aria-hidden="true" />
+        </Link>
       )}
 
       <div className="carona-card__acoes">
@@ -566,6 +609,24 @@ function CaronaCard({ carona, onCancelar, onIniciar, onFinalizar }) {
       </div>
     </article>
   );
+}
+
+async function carregarCaronasComPendencias() {
+  const caronas = await listarMinhasCaronas();
+
+  return Promise.all(caronas.map(async (carona) => {
+    if (carona.status !== 'CRIADA') return carona;
+
+    const solicitacoesPendentes = await listarReservasPendentesDaCarona(carona.id).catch(() => []);
+    return { ...carona, solicitacoesPendentes };
+  }));
+}
+
+function resumirSolicitantes(solicitacoes) {
+  const nomes = solicitacoes.map((solicitacao) => solicitacao.solicitante?.nome).filter(Boolean);
+  if (nomes.length === 0) return 'Ver solicitações pendentes';
+  if (nomes.length === 1) return nomes[0];
+  return `${nomes[0]} e mais ${nomes.length - 1}`;
 }
 
 function montarDestino(carona) {

@@ -45,7 +45,7 @@ function DetalheCarona() {
   const [perfil, setPerfil] = useState(null);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState('');
-  const [abaAtiva, setAbaAtiva] = useState('info');
+  const [abaAtiva, setAbaAtiva] = useState(location.state?.abaInicial || 'info');
   const [solicitada, setSolicitada] = useState(false);
   const [quantidadePassageiros, setQuantidadePassageiros] = useState('1');
   const [erroQuantidade, setErroQuantidade] = useState('');

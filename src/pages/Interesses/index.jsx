@@ -3,6 +3,8 @@ import {
   ArrowRight,
   BellRing,
   CalendarDays,
+  CheckCircle2,
+  CircleAlert,
   Clock,
   Loader2,
   MapPinOff,
@@ -23,6 +25,7 @@ function Interesses() {
   const [interesses, setInteresses] = useState([]);
   const [interesseSelecionado, setInteresseSelecionado] = useState(null);
   const [carregando, setCarregando] = useState(false);
+  const [feedback, setFeedback] = useState(null);
   const location = useLocation();
   const origemRecebida = location.state?.origem;
   const destinoRecebido = location.state?.destino;
@@ -39,15 +42,21 @@ function Interesses() {
     carregarInteresses();
   }, []);
 
+  useEffect(() => {
+    if (!feedback) return undefined;
+    const temporizador = window.setTimeout(() => setFeedback(null), 4500);
+    return () => window.clearTimeout(temporizador);
+  }, [feedback]);
+
   async function carregarInteresses() {
     try {
       const dados = await listarInteresses();
       setInteresses(dados);
     } catch (erro) {
-      alert(
-        erro.message ||
-          'Não foi possível carregar seus alertas.'
-      );
+      setFeedback({
+        tipo: 'erro',
+        mensagem: erro.message || 'Não foi possível carregar seus alertas.',
+      });
     }
   }
 
@@ -64,12 +73,12 @@ function Interesses() {
 
         setMostrarModalCriacao(false);
 
-        alert('Alerta criado com sucesso!');
+        setFeedback({ tipo: 'sucesso', mensagem: 'Alerta criado com sucesso!' });
     } catch (erro) {
-        alert(
-        erro.message ||
-        'Não foi possível criar o alerta.'
-        );
+        setFeedback({
+          tipo: 'erro',
+          mensagem: erro.message || 'Não foi possível criar o alerta.',
+        });
     } finally {
         setCarregando(false);
     }
@@ -89,14 +98,14 @@ function Interesses() {
         )
       );
 
-      alert('Alerta removido com sucesso.');
+      setFeedback({ tipo: 'sucesso', mensagem: 'Alerta removido com sucesso.' });
 
       setInteresseSelecionado(null);
     } catch (erro) {
-      alert(
-        erro.message ||
-          'Não foi possível remover o alerta.'
-      );
+      setFeedback({
+        tipo: 'erro',
+        mensagem: erro.message || 'Não foi possível remover o alerta.',
+      });
     } finally {
       setCarregando(false);
     }
@@ -122,6 +131,21 @@ function Interesses() {
             </p>
           </div>
         </header>
+
+        {feedback && (
+          <div
+            className={`interesses-feedback interesses-feedback--${feedback.tipo}`}
+            role={feedback.tipo === 'erro' ? 'alert' : 'status'}
+          >
+            {feedback.tipo === 'sucesso'
+              ? <CheckCircle2 size={19} aria-hidden="true" />
+              : <CircleAlert size={19} aria-hidden="true" />}
+            <span>{feedback.mensagem}</span>
+            <button type="button" onClick={() => setFeedback(null)} aria-label="Fechar mensagem">
+              <X size={16} aria-hidden="true" />
+            </button>
+          </div>
+        )}
 
         {interesses.length === 0 ? (
           <section className="interesses-vazio">

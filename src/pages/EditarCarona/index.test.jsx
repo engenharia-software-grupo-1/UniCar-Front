@@ -58,6 +58,20 @@ beforeEach(() => {
 });
 
 describe('EditarCarona — teto de contribuição por distância', () => {
+  it('atualiza o preenchimento da barra ao alterar o número de vagas', async () => {
+    obterCarona.mockResolvedValue({ ...CARONA, quantidadeVagas: 2 });
+
+    renderPagina();
+
+    const slider = await screen.findByRole('slider', { name: 'Número de vagas' });
+    expect(slider.style.getPropertyValue('--preenchido')).toBe('33.33333333333333%');
+
+    fireEvent.change(slider, { target: { value: '4' } });
+
+    expect(slider).toHaveValue('4');
+    expect(slider.style.getPropertyValue('--preenchido')).toBe('100%');
+  });
+
   it('limita o slider ao teto do trajeto, com passo de R$ 0,50', async () => {
     obterCarona.mockResolvedValue(CARONA);
 

@@ -4,11 +4,27 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 
 vi.mock('../../services/avaliacaoService.js', () => ({
+  criarAvaliacao: vi.fn(),
+  listarAvaliacoesPendentes: vi.fn(),
   listarAvaliacoesRecebidas: vi.fn(),
 }));
 
+vi.mock('../../services/historicoCaronasService.js', () => ({
+  listarHistoricoComoMotorista: vi.fn(),
+}));
+
+vi.mock('../../services/historicoPassageiroService.js', () => ({
+  listarHistoricoComoPassageiro: vi.fn(),
+}));
+
 import AvaliacoesRecebidas from './index.jsx';
-import { listarAvaliacoesRecebidas } from '../../services/avaliacaoService.js';
+import {
+  criarAvaliacao,
+  listarAvaliacoesPendentes,
+  listarAvaliacoesRecebidas,
+} from '../../services/avaliacaoService.js';
+import { listarHistoricoComoMotorista } from '../../services/historicoCaronasService.js';
+import { listarHistoricoComoPassageiro } from '../../services/historicoPassageiroService.js';
 
 const AVALIACOES = [
   {
@@ -38,6 +54,10 @@ function renderPagina() {
 beforeEach(() => {
   vi.clearAllMocks();
   listarAvaliacoesRecebidas.mockResolvedValue([]);
+  listarHistoricoComoMotorista.mockResolvedValue([]);
+  listarHistoricoComoPassageiro.mockResolvedValue([]);
+  listarAvaliacoesPendentes.mockResolvedValue([]);
+  criarAvaliacao.mockResolvedValue({ id: 100 });
 });
 
 afterEach(() => {
@@ -109,5 +129,38 @@ describe('AvaliacoesRecebidas', () => {
 
     expect(await screen.findByText('Pontual e muito educada.')).toBeInTheDocument();
     expect(listarAvaliacoesRecebidas).toHaveBeenCalledTimes(2);
+  });
+
+  it('lista avaliações pendentes e envia a nota sem recarregar', async () => {
+    listarHistoricoComoPassageiro.mockResolvedValue([{
+      id: 8,
+      caronaId: 44,
+      dataHora: '2026-05-28T07:20:00',
+      origem: 'Centenário',
+      destino: 'UFCG • Campus Sede',
+    }]);
+    listarAvaliacoesPendentes.mockResolvedValue([{
+      id: 9,
+      nome: 'Marina Souza',
+      tipo: 'MOTORISTA',
+      fotoUrl: '',
+    }]);
+
+    renderPagina();
+
+    expect(await screen.findByText('Marina Souza')).toBeInTheDocument();
+    expect(screen.getByText('Centenário')).toBeInTheDocument();
+    expect(screen.getByText('UFCG • Campus Sede')).toBeInTheDocument();
+
+    const grupo = screen.getByRole('group', { name: 'Avaliar Marina Souza' });
+    await userEvent.click(within(grupo).getByRole('button', { name: '5 estrelas' }));
+
+    await waitFor(() => expect(criarAvaliacao).toHaveBeenCalledWith({
+      caronaId: 44,
+      avaliadoId: 9,
+      nota: 5,
+    }));
+    expect(await screen.findByText('Avaliação de Marina Souza enviada com sucesso.')).toBeInTheDocument();
+    expect(screen.queryByText('Marina Souza')).not.toBeInTheDocument();
   });
 });

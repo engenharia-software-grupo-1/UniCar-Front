@@ -53,6 +53,47 @@
   font-size: .78rem;
 }
 
+.interesses-feedback {
+  min-height: 48px;
+  margin: -8px 0 18px;
+  padding: 11px 14px;
+  border: 1px solid;
+  border-radius: 13px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: .82rem;
+  font-weight: 700;
+}
+
+.interesses-feedback--sucesso {
+  border-color: #86efac;
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.interesses-feedback--erro {
+  border-color: #fda4af;
+  background: #fff1f2;
+  color: #be123c;
+}
+
+.interesses-feedback span { flex: 1; }
+
+.interesses-feedback button {
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: inherit;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.interesses-feedback button:hover { background: rgba(15, 23, 42, .07); }
+
 /* LISTA */
 
 .interesses-lista {

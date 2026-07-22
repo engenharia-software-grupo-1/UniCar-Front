@@ -130,11 +130,16 @@ export async function listarAvaliacoesPendentes(caronaId) {
     throw new Error('Resposta de avaliaÃ§Ãµes pendentes invÃ¡lida.');
   }
 
-  return participantes.map((participante) => ({
-    id: participante.usuarioId,
-    nome: participante.nome,
-    tipo: participante.tipo,
-  }));
+  return participantes.map((participante) => {
+    const fotoUrl = participante.linkFoto || participante.fotoUrl;
+
+    return {
+      id: participante.usuarioId,
+      nome: participante.nome,
+      tipo: participante.tipo,
+      ...(fotoUrl ? { fotoUrl } : {}),
+    };
+  });
 }
 
 function normalizarAvaliacao(avaliacao = {}) {

@@ -7,7 +7,7 @@
 .caronas-shell {
   width: min(var(--app-content-width), calc(100% - var(--app-content-gutter)));
   margin: 0 auto;
-  padding-top: 26px;
+  padding: 26px 0 calc(120px + env(safe-area-inset-bottom));
 }
 
 .caronas-title {
@@ -61,12 +61,38 @@
   box-shadow: 0 8px 22px rgba(42, 71, 112, 0.05);
 }
 
+.carona-card--com-solicitacao {
+  border-color: #f6c63d;
+  box-shadow: 0 0 0 2px rgba(246, 198, 61, .16), 0 8px 22px rgba(42, 71, 112, .05);
+}
+
 .carona-card__topo {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 14px;
+}
+
+.carona-card__status-grupo {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+}
+
+.carona-card__novas-solicitacoes {
+  min-height: 28px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: #fff4d6;
+  color: #ad5700;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 800;
 }
 
 .carona-status {
@@ -146,6 +172,63 @@
   color: #5a7398;
   font-size: 15px;
   font-weight: 600;
+}
+
+.carona-card__solicitacao {
+  min-height: 76px;
+  margin: 2px 0 16px;
+  padding: 14px 16px;
+  border: 1px solid #f6c63d;
+  border-radius: 18px;
+  background: #fff9e9;
+  color: #9a4700;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  text-decoration: none;
+  transition: background .18s ease, transform .18s ease;
+}
+
+.carona-card__solicitacao:hover {
+  background: #fff4d6;
+  transform: translateY(-1px);
+}
+
+.carona-card__solicitacao-icone {
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  border-radius: 50%;
+  background: #ff9700;
+  color: #fff;
+  display: grid;
+  place-items: center;
+}
+
+.carona-card__solicitacao-texto {
+  min-width: 0;
+  flex: 1;
+  display: grid;
+  gap: 2px;
+}
+
+.carona-card__solicitacao-texto strong {
+  color: #934200;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.carona-card__solicitacao-texto small {
+  overflow: hidden;
+  color: #b15b0b;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.carona-card__solicitacao > svg {
+  flex: 0 0 auto;
+  color: #d56800;
 }
 
 .carona-card__acoes {
@@ -321,12 +404,18 @@
 .reservas-grupo > h2 { margin:0 0 14px; color:#587097; font-size:13px; font-weight:900; text-transform:uppercase; }
 .reservas-lista { list-style:none; margin:0; padding:0; display:grid; gap:14px; }
 .reserva-card { position:relative; border:1px solid #dce7f3; border-radius:20px; background:#fff; padding:20px; box-shadow:0 8px 22px rgba(42,71,112,.05); }
+.reserva-card--pendente { border-color:#f4c84b; }
+.reserva-card--recusada { border-color:#ff8a9a; background:#fff4f5; }
+.reserva-card__aguardando { width:max-content; min-height:26px; padding:5px 10px; border-radius:999px; background:#fff3c4; color:#c05a00; display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:900; line-height:1; white-space:nowrap; }
+.reserva-card__aguardando > span { width:7px; height:7px; border-radius:50%; background:#ffad32; flex:0 0 auto; }
 .reserva-card__abrir { position:absolute; inset:0; z-index:1; border-radius:20px; }
 .reserva-card__topo { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px; }
 .reserva-card__data { color:#5a7398; font-size:13px; font-weight:700; }
 .reserva-card__motorista { position:relative; z-index:0; display:block; margin-bottom:3px; color:#07132b; font-size:16px; }
 .reserva-card__rota { margin:0; color:#587097; display:flex; align-items:center; gap:6px; font-size:13px; }
 .reserva-card__quantidade { margin-top:9px; color:#587097; display:inline-flex; align-items:center; gap:5px; font-size:12px; font-weight:700; }
+.reserva-card__buscar { position:relative; z-index:2; width:100%; min-height:42px; margin-top:14px; border-radius:13px; background:#232c41; color:#fff; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:900; text-decoration:none; }
+.reserva-card__buscar:hover { background:#111a30; }
 .reserva-card__cancelar { position:relative; z-index:2; width:100%; min-height:42px; margin-top:14px; border:1px solid #be123c; border-radius:13px; background:#be123c; color:#fff; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:900; text-decoration:none; }
 .reserva-card__cancelar:hover { background:#9f1239; border-color:#9f1239; }
 
@@ -334,6 +423,7 @@
   .caronas-shell {
     width: min(var(--app-content-width), calc(100% - var(--app-content-gutter-mobile)));
     padding-top: 22px;
+    padding-bottom: calc(130px + env(safe-area-inset-bottom));
   }
 
   .reserva-card__topo { align-items:flex-start; }

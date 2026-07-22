@@ -11,6 +11,8 @@ import {
 import { obterFotoPerfil } from '../../utils/fotoPerfil.js';
 import './style.css';
 
+const INTERVALO_ATUALIZACAO_MS = 5000;
+
 export default function ChatPassageiro() {
   const { caronaId, reservaId, usuarioId } = useParams();
   const location = useLocation();
@@ -62,6 +64,49 @@ export default function ChatPassageiro() {
       ativo = false;
     };
   }, [passageiro.nome, reservaAlvo]);
+
+  useEffect(() => {
+    if (!chatId) return undefined;
+
+    let ativo = true;
+    let buscando = false;
+
+    async function atualizarMensagens() {
+      if (!ativo || buscando || document.visibilityState === 'hidden') return;
+
+      buscando = true;
+      try {
+        const lista = await listarMensagensChat(chatId);
+        if (!ativo) return;
+
+        setMensagens((atuais) => mesclarMensagens(atuais, lista));
+
+        const possuiNovaRecebidaNaoLida = lista.some((mensagem) =>
+          !mensagem.lida && String(mensagem.remetenteId) !== String(usuarioAutenticadoId),
+        );
+        if (possuiNovaRecebidaNaoLida) {
+          marcarMensagensComoLidas(chatId).catch(() => undefined);
+        }
+      } catch {
+        // Uma falha temporária de atualização não apaga mensagens nem bloqueia
+        // o envio. A próxima consulta periódica tenta novamente.
+      } finally {
+        buscando = false;
+      }
+    }
+
+    const intervalo = window.setInterval(atualizarMensagens, INTERVALO_ATUALIZACAO_MS);
+    const atualizarAoRetornar = () => {
+      if (document.visibilityState === 'visible') atualizarMensagens();
+    };
+    document.addEventListener('visibilitychange', atualizarAoRetornar);
+
+    return () => {
+      ativo = false;
+      window.clearInterval(intervalo);
+      document.removeEventListener('visibilitychange', atualizarAoRetornar);
+    };
+  }, [chatId, usuarioAutenticadoId]);
 
   async function enviarMensagem(event) {
     event?.preventDefault();
@@ -138,4 +183,19 @@ function formatarHorario(valor) {
   const data = new Date(valor);
   if (Number.isNaN(data.getTime())) return valor;
   return data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+}
+
+function mesclarMensagens(atuais, recebidas) {
+  const porId = new Map();
+
+  [...atuais, ...recebidas].forEach((mensagem) => {
+    const chave = mensagem.id ?? `${mensagem.remetenteId}-${mensagem.dataEnvio}-${mensagem.texto}`;
+    porId.set(String(chave), mensagem);
+  });
+
+  return [...porId.values()].sort((a, b) => {
+    const dataA = new Date(a.dataEnvio || 0).getTime();
+    const dataB = new Date(b.dataEnvio || 0).getTime();
+    return dataA - dataB;
+  });
 }

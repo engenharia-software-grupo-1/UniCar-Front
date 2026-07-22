@@ -1,7 +1,7 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   enviarMensagemChat,
   listarMensagensChat,
@@ -47,6 +47,10 @@ beforeEach(() => {
   marcarMensagensComoLidas.mockResolvedValue(undefined);
 });
 
+afterEach(() => {
+  vi.useRealTimers();
+});
+
 describe('ChatPassageiro', () => {
   it('exibe o passageiro e envia uma nova mensagem', async () => {
     renderPagina();
@@ -77,5 +81,28 @@ describe('ChatPassageiro', () => {
     expect(screen.getByPlaceholderText('Conversa disponível somente para leitura')).toHaveAttribute('readonly');
     expect(screen.getByRole('button', { name: 'Enviar mensagem' })).toBeDisabled();
     await waitFor(() => expect(listarMensagensChat).toHaveBeenCalledWith(9));
+  });
+
+  it('busca e exibe novas mensagens automaticamente sem recarregar', async () => {
+    vi.useFakeTimers();
+    listarMensagensChat
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([{
+        id: 22,
+        remetenteId: 5,
+        texto: 'Já estou no ponto de encontro.',
+        lida: false,
+        dataEnvio: '2026-07-19T16:05:00',
+      }]);
+
+    renderPagina();
+    await act(async () => Promise.resolve());
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(5000);
+    });
+
+    expect(screen.getByText('Já estou no ponto de encontro.')).toBeInTheDocument();
+    expect(listarMensagensChat).toHaveBeenCalledTimes(2);
+    expect(marcarMensagensComoLidas).toHaveBeenCalledWith(9);
   });
 });

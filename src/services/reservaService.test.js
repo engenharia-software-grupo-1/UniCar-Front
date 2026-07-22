@@ -79,10 +79,17 @@ describe('listarReservasEnviadas', () => {
       quantidadePassageiros: 2,
       valorContribuicao: 8,
       dataViagem: '',
+      motorista: {
+        id: '',
+        nome: '',
+        fotoPerfil: '',
+        avaliacao: null,
+      },
       carona: {
         id: 10,
         origem: 'Bodocongó',
         destino: 'UFCG',
+        pontoEncontro: '',
         origemCoordenadas: null,
         destinoCoordenadas: null,
       },

@@ -92,6 +92,13 @@ function EditarCarona() {
   const maximoVagas = form.tipoVeiculo === 'moto' ? 1 : 4;
   const minimoVagas = Math.max(1, passageirosConfirmados);
   const bloqueada = STATUS_BLOQUEADOS.includes(carona?.status);
+  const vagasSelecionadas = Math.min(
+    maximoVagas,
+    Math.max(minimoVagas, Number(form.quantidadeVagas) || minimoVagas),
+  );
+  const preenchimentoVagas = maximoVagas > minimoVagas
+    ? `${((vagasSelecionadas - minimoVagas) / (maximoVagas - minimoVagas)) * 100}%`
+    : '100%';
 
   // Teto de contribuição pelo trajeto. Origem/destino são read-only, então as
   // coordenadas vêm prontas do backend — sem geocodificar. Carona legada sem
@@ -350,9 +357,11 @@ function EditarCarona() {
                 type="range"
                 min={minimoVagas}
                 max={maximoVagas}
-                value={Math.min(maximoVagas, Math.max(minimoVagas, form.quantidadeVagas))}
+                value={vagasSelecionadas}
+                style={{ '--preenchido': preenchimentoVagas }}
                 onChange={(event) => atualizar('quantidadeVagas', Number(event.target.value))}
                 disabled={form.tipoVeiculo === 'moto'}
+                aria-label="Número de vagas"
               />
               <p>
                 {passageirosConfirmados} vaga(s) já ocupada(s). Não é possível reduzir abaixo desse valor.

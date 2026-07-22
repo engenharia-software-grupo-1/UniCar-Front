@@ -1,10 +1,42 @@
-import { describe, it, expect } from 'vitest';
+import { afterEach, describe, it, expect, vi } from 'vitest';
 import {
+  buscarSugestoesEndereco,
   round2HalfUp,
   calcularDistanciaKm,
   calcularTetoContribuicao,
   contribuicaoMaxima,
 } from './geocodingService.js';
+
+afterEach(() => {
+  vi.restoreAllMocks();
+  window.sessionStorage.clear();
+});
+
+describe('buscarSugestoesEndereco — abrangência nacional', () => {
+  it('pesquisa em todo o Brasil sem fixar Campina Grande', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      ok: true,
+      json: async () => [{
+        display_name: 'Avenida Paulista, São Paulo, São Paulo, Brasil',
+        lat: '-23.5614',
+        lon: '-46.6559',
+      }],
+    });
+
+    const resultados = await buscarSugestoesEndereco('Avenida Paulista');
+    const url = new URL(fetchMock.mock.calls[0][0]);
+
+    expect(url.searchParams.get('q')).toBe('Avenida Paulista, Brasil');
+    expect(url.searchParams.get('countrycodes')).toBe('br');
+    expect(url.searchParams.get('addressdetails')).toBe('1');
+    expect(url.searchParams.get('q')).not.toContain('Campina Grande');
+    expect(resultados[0]).toEqual({
+      descricao: 'Avenida Paulista, São Paulo, São Paulo, Brasil',
+      latitude: -23.5614,
+      longitude: -46.6559,
+    });
+  });
+});
 
 // Coordenadas reais de Campina Grande usadas para conferir contra o backend.
 const BODOCONGO = { latitude: -7.2166, longitude: -35.9095 };

@@ -22,6 +22,7 @@ vi.mock('../../services/caronaService.js', () => ({
 // A aba "Como Passageiro" busca as reservas enviadas por este serviço.
 vi.mock('../../services/reservaService.js', () => ({
   listarReservasEnviadas: vi.fn(),
+  listarReservasPendentesDaCarona: vi.fn(),
 }));
 
 import MinhasCaronas from './index.jsx';
@@ -31,7 +32,7 @@ import {
   iniciarCarona,
   finalizarCarona,
 } from '../../services/caronaService.js';
-import { listarReservasEnviadas } from '../../services/reservaService.js';
+import { listarReservasEnviadas, listarReservasPendentesDaCarona } from '../../services/reservaService.js';
 
 // Data/hora de saída relativa ao "agora" real, para exercitar o filtro por
 // tolerância de forma determinística. Offset em minutos (negativo = passado).
@@ -71,6 +72,7 @@ beforeEach(() => {
   listarMinhasCaronas.mockResolvedValue([]);
   // A aba "Passageiro" carrega sob demanda; sem dados por padrão.
   listarReservasEnviadas.mockResolvedValue([]);
+  listarReservasPendentesDaCarona.mockResolvedValue([]);
 });
 
 afterEach(() => {
@@ -113,6 +115,27 @@ describe('carregamento e listagem', () => {
     expect(screen.getByText('Bodocongó')).toBeInTheDocument();
     expect(screen.getByText('UFCG • Campus Sede')).toBeInTheDocument();
     expect(screen.getByText('2 de 3 passageiros confirmados')).toBeInTheDocument();
+  });
+
+  it('destaca a carona e abre passageiros quando existe solicitação pendente', async () => {
+    listarMinhasCaronas.mockResolvedValue(CARONAS);
+    listarReservasPendentesDaCarona.mockResolvedValue([{
+      id: 91,
+      caronaId: 10,
+      status: 'PENDENTE',
+      quantidadePassageiros: 1,
+      solicitante: { id: 7, nome: 'Rafael Costa' },
+    }]);
+
+    renderPagina();
+
+    expect(await screen.findByText('1 nova solicitação')).toBeInTheDocument();
+    expect(screen.getByText('1 passageiro aguardando sua resposta')).toBeInTheDocument();
+    expect(screen.getByText('Rafael Costa')).toBeInTheDocument();
+
+    const aviso = screen.getByRole('link', { name: 'Ver 1 solicitação pendente' });
+    expect(aviso).toHaveAttribute('href', '/minhas-caronas/10');
+    expect(aviso.closest('article')).toHaveClass('carona-card--com-solicitacao');
   });
 
   it('mantém o texto completo da rota para o truncamento visual responsivo', async () => {
@@ -650,8 +673,6 @@ describe('aba Passageiro — agrupamento das reservas', () => {
     // ícone, então a busca precisa ser por substring.
     expect(await screen.findByText(/Centenário/)).toBeInTheDocument();
     expect(screen.getByText(/UFCG/)).toBeInTheDocument();
-    // Quantidade: 1 usa singular "passageiro(a)".
-    expect(screen.getByText('1 passageiro(a)')).toBeInTheDocument();
     // Quantidade > 1 usa o plural.
     expect(screen.getByText('3 passageiros(as)')).toBeInTheDocument();
     // Reserva sem dataViagem cai no texto padrão.

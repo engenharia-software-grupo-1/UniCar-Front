@@ -302,6 +302,7 @@ function normalizarResumoReserva(reserva = {}) {
       id: carona.id ?? reserva.caronaId,
       origem: descricao(carona.origem ?? reserva.origem),
       destino: descricao(carona.destino ?? reserva.destino),
+      pontoEncontro: carona.pontoEncontro || reserva.pontoEncontro || '',
       origemCoordenadas: coordenadas(carona.origem ?? reserva.origem),
       destinoCoordenadas: coordenadas(carona.destino ?? reserva.destino),
     },

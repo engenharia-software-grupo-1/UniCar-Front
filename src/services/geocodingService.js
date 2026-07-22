@@ -1,7 +1,8 @@
 const NOMINATIM_SEARCH_URL = 'https://nominatim.openstreetmap.org/search';
 const NOMINATIM_REVERSE_URL = 'https://nominatim.openstreetmap.org/reverse';
 const CACHE_KEY = 'unicar.geocoding.cache';
-const SUGGESTIONS_CACHE_KEY = 'unicar.geocoding.suggestions';
+// v2 invalida sugestões antigas que eram direcionadas apenas a Campina Grande.
+const SUGGESTIONS_CACHE_KEY = 'unicar.geocoding.suggestions.v2';
 const CACHE_TTL_MS = 60 * 60 * 1000;
 
 // Nominatim permite no máximo ~1 requisição por segundo por IP.
@@ -98,8 +99,9 @@ export async function descreverEnderecoPorCoordenadas(coordenadas) {
   return descricao;
 }
 
-// Sugestões para os campos de origem e destino. A consulta é restrita à cidade
-// de atuação do app para evitar opções ambíguas de outras regiões do país.
+// Sugestões para os campos de origem e destino em todo o território brasileiro.
+// A descrição completa devolvida pelo Nominatim diferencia cidades e estados
+// quando bairros, ruas ou pontos de interesse possuem o mesmo nome.
 export async function buscarSugestoesEndereco(consulta) {
   const texto = String(consulta || '').trim();
   if (texto.length < 3) return [];
@@ -116,10 +118,12 @@ export async function buscarSugestoesEndereco(consulta) {
 
 async function pesquisarEnderecos(texto, limite) {
   const params = new URLSearchParams({
-    q: `${texto}, Campina Grande, Paraíba, Brasil`,
+    q: `${texto}, Brasil`,
     format: 'jsonv2',
     limit: String(limite),
     countrycodes: 'br',
+    addressdetails: '1',
+    dedupe: '1',
     'accept-language': 'pt-BR',
   });
 

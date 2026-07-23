@@ -55,6 +55,22 @@ afterEach(() => {
 });
 
 describe('Login — validação de credenciais', () => {
+  it('permite mostrar e ocultar a senha digitada', async () => {
+    const user = userEvent.setup();
+    renderLogin();
+    const campoSenha = screen.getByLabelText('Senha');
+
+    await user.type(campoSenha, 'segredo');
+    expect(campoSenha).toHaveAttribute('type', 'password');
+
+    await user.click(screen.getByRole('button', { name: 'Mostrar senha' }));
+    expect(campoSenha).toHaveAttribute('type', 'text');
+    expect(campoSenha).toHaveValue('segredo');
+
+    await user.click(screen.getByRole('button', { name: 'Ocultar senha' }));
+    expect(campoSenha).toHaveAttribute('type', 'password');
+  });
+
   it('exige usuário e senha quando ambos estão vazios', async () => {
     renderLogin();
 

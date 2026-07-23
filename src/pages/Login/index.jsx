@@ -1,6 +1,6 @@
 import { useId, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Lock, User, Loader2 } from 'lucide-react';
+import { Eye, EyeOff, Lock, User, Loader2 } from 'lucide-react';
 import { login } from '../../services/authService.js';
 import { hasAcceptedTerms } from '../../services/termsService.js';
 import Logo from '../../components/common/Logo.jsx';
@@ -11,6 +11,7 @@ function Login() {
 
   const [usuario, setUsuario] = useState('');
   const [senha, setSenha] = useState('');
+  const [senhaVisivel, setSenhaVisivel] = useState(false);
   const [loading, setLoading] = useState(false);
   const [erro, setErro] = useState('');
 
@@ -94,12 +95,26 @@ function Login() {
               icon={Lock}
               id="senha"
               label="Senha"
-              type="password"
+              type={senhaVisivel ? 'text' : 'password'}
               value={senha}
               onChange={setSenha}
               placeholder="••••••••"
               autoComplete="current-password"
               disabled={loading}
+              endAdornment={(
+                <button
+                  type="button"
+                  className="field-input-action"
+                  onClick={() => setSenhaVisivel((visivel) => !visivel)}
+                  disabled={loading}
+                  aria-label={senhaVisivel ? 'Ocultar senha' : 'Mostrar senha'}
+                  aria-pressed={senhaVisivel}
+                >
+                  {senhaVisivel
+                    ? <EyeOff size={20} aria-hidden="true" />
+                    : <Eye size={20} aria-hidden="true" />}
+                </button>
+              )}
             />
 
             {erro && (
@@ -145,6 +160,7 @@ function Field({
   autoComplete,
   inputMode,
   disabled = false,
+  endAdornment,
 }) {
   const generatedId = useId();
   const inputId = id || generatedId;
@@ -166,6 +182,8 @@ function Field({
           disabled={disabled}
           onChange={(event) => onChange(event.target.value)}
         />
+
+        {endAdornment}
       </div>
     </div>
   );

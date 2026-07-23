@@ -5,7 +5,6 @@ import {
   CalendarDays,
   CheckCircle2,
   CircleAlert,
-  Clock,
   Loader2,
   MapPinOff,
   Trash2,
@@ -20,6 +19,30 @@ import {
 } from '../../services/interesseService.js';
 
 import './style.css';
+
+function formatarDataCriacao(interesse) {
+  const dataRecebida =
+    interesse?.dataRegistro ??
+    interesse?.dataCriacao ??
+    interesse?.criadoEm ??
+    interesse?.createdAt;
+
+  if (!dataRecebida) return 'Data não informada';
+
+  const data = new Date(dataRecebida);
+
+  if (Number.isNaN(data.getTime())) {
+    return String(dataRecebida);
+  }
+
+  return new Intl.DateTimeFormat('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(data);
+}
 
 function Interesses() {
   const [interesses, setInteresses] = useState([]);
@@ -181,13 +204,8 @@ function Interesses() {
 
                     <div className="interesse-meta">
                         <span>
-                            <Clock size={12} />
-                            {interesse.horario}
-                        </span>
-
-                        <span>
                             <CalendarDays size={12} />
-                            Criado em {interesse.criadoEm}
+                            Criado em: {formatarDataCriacao(interesse)}
                         </span>
                         </div>
                   </div>

@@ -406,14 +406,24 @@
 .reserva-card { position:relative; border:1px solid #dce7f3; border-radius:20px; background:#fff; padding:20px; box-shadow:0 8px 22px rgba(42,71,112,.05); }
 .reserva-card--pendente { border-color:#f4c84b; }
 .reserva-card--recusada { border-color:#ff8a9a; background:#fff4f5; }
+.reserva-card--aceita { border-color:#55e6aa; background:#f0fff8; }
 .reserva-card__aguardando { width:max-content; min-height:26px; padding:5px 10px; border-radius:999px; background:#fff3c4; color:#c05a00; display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:900; line-height:1; white-space:nowrap; }
 .reserva-card__aguardando > span { width:7px; height:7px; border-radius:50%; background:#ffad32; flex:0 0 auto; }
+.reserva-card__aceita { width:max-content; min-height:26px; padding:5px 10px; border-radius:999px; background:#d4fae7; color:#007a56; display:inline-flex; align-items:center; font-size:11px; font-weight:900; line-height:1; white-space:nowrap; }
 .reserva-card__abrir { position:absolute; inset:0; z-index:1; border-radius:20px; }
 .reserva-card__topo { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px; }
 .reserva-card__data { color:#5a7398; font-size:13px; font-weight:700; }
 .reserva-card__motorista { position:relative; z-index:0; display:block; margin-bottom:3px; color:#07132b; font-size:16px; }
 .reserva-card__rota { margin:0; color:#587097; display:flex; align-items:center; gap:6px; font-size:13px; }
 .reserva-card__quantidade { margin-top:9px; color:#587097; display:inline-flex; align-items:center; gap:5px; font-size:12px; font-weight:700; }
+.reserva-card__confirmacao { position:relative; z-index:2; margin-top:14px; padding:11px 13px; border:1px solid #84eabf; border-radius:14px; background:rgba(255,255,255,.48); color:#00684b; display:grid; gap:3px; font-size:12px; }
+.reserva-card__confirmacao strong { font-size:13px; }
+.reserva-card__acoes { position:relative; z-index:2; margin-top:12px; display:flex; gap:10px; }
+.reserva-card__detalhes, .reserva-card__chat { min-height:42px; border-radius:13px; display:flex; align-items:center; justify-content:center; text-decoration:none; font-size:13px; font-weight:900; }
+.reserva-card__detalhes { flex:1; background:#07132b; color:#fff; }
+.reserva-card__detalhes:hover { background:#102244; }
+.reserva-card__chat { min-width:90px; padding:0 16px; border:1px solid #9bb5ad; background:#f4fff9; color:#07132b; gap:6px; }
+.reserva-card__chat:hover { background:#e6fff3; }
 .reserva-card__buscar { position:relative; z-index:2; width:100%; min-height:42px; margin-top:14px; border-radius:13px; background:#232c41; color:#fff; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:900; text-decoration:none; }
 .reserva-card__buscar:hover { background:#111a30; }
 .reserva-card__cancelar { position:relative; z-index:2; width:100%; min-height:42px; margin-top:14px; border:1px solid #be123c; border-radius:13px; background:#be123c; color:#fff; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:900; text-decoration:none; }

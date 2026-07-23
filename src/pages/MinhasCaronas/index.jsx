@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { ArrowRight, Bell, ChevronRight, Eye, Pencil, Play, Square, Users, X } from 'lucide-react';
+import { ArrowRight, Bell, ChevronRight, Eye, MessageCircle, Pencil, Play, Square, Users, X } from 'lucide-react';
 import Confirmacao from '../../components/common/Confirmacao.jsx';
 import StatusReservaBadge from '../../components/common/StatusReservaBadge.jsx';
 import { cancelarCarona, iniciarCarona, finalizarCarona, listarMinhasCaronas } from '../../services/caronaService.js';
@@ -21,6 +21,7 @@ const STATUS_VISIVEIS = ['CRIADA', 'EM_ANDAMENTO'];
 // Tolerância aplicada a caronas CRIADA: elas permanecem na lista por até 30 min
 // após o horário agendado, para o motorista ainda conseguir iniciá-las.
 const TOLERANCIA_CRIADA_MS = 30 * 60 * 1000;
+const INTERVALO_ATUALIZACAO_RESERVAS_MS = 5000;
 
 function tempoSaida(carona) {
   const saida = new Date(carona.dataHoraSaida).getTime();
@@ -61,10 +62,7 @@ function MinhasCaronas() {
   const [reservas, setReservas] = useState([]);
   const [carregandoReservas, setCarregandoReservas] = useState(false);
   const [erroReservas, setErroReservas] = useState('');
-  const [reservasCarregadas, setReservasCarregadas] = useState(false);
-  // Gatilho de re-tentativa da aba passageiro. Sem ele, "Tentar novamente" após
-  // erro não teria efeito: reservasCarregadas continua false no catch, e o botão
-  // faria setReservasCarregadas(false) — mesmo valor, sem re-disparar o efeito.
+  // Gatilho de nova tentativa manual quando a consulta das reservas falha.
   const [tentativaReservas, setTentativaReservas] = useState(0);
   const [caronaParaCancelar, setCaronaParaCancelar] = useState(null);
   const [cancelando, setCancelando] = useState(false);
@@ -133,29 +131,49 @@ function MinhasCaronas() {
   }, []);
 
   useEffect(() => {
-    if (aba !== 'passageiro' || reservasCarregadas) return undefined;
+    if (aba !== 'passageiro') return undefined;
 
     let ativo = true;
+    let buscando = false;
 
-    async function carregarReservas() {
+    async function carregarReservas(exibirCarregamento = false) {
+      if (buscando) return;
+      buscando = true;
+
       try {
-        setCarregandoReservas(true);
-        setErroReservas('');
+        if (exibirCarregamento) setCarregandoReservas(true);
         const dados = await listarReservasEnviadas();
         if (ativo) {
           setReservas(dados);
-          setReservasCarregadas(true);
+          setErroReservas('');
         }
       } catch (error) {
         if (ativo) setErroReservas(error.message || 'Não foi possível carregar suas reservas.');
       } finally {
-        if (ativo) setCarregandoReservas(false);
+        buscando = false;
+        if (ativo && exibirCarregamento) setCarregandoReservas(false);
       }
     }
 
-    carregarReservas();
-    return () => { ativo = false; };
-  }, [aba, reservasCarregadas, tentativaReservas]);
+    function atualizarAoRetornar() {
+      if (document.visibilityState === 'visible') carregarReservas(false);
+    }
+
+    carregarReservas(true);
+    const intervalo = window.setInterval(
+      () => atualizarAoRetornar(),
+      INTERVALO_ATUALIZACAO_RESERVAS_MS,
+    );
+    window.addEventListener('focus', atualizarAoRetornar);
+    document.addEventListener('visibilitychange', atualizarAoRetornar);
+
+    return () => {
+      ativo = false;
+      window.clearInterval(intervalo);
+      window.removeEventListener('focus', atualizarAoRetornar);
+      document.removeEventListener('visibilitychange', atualizarAoRetornar);
+    };
+  }, [aba, tentativaReservas]);
 
   // A mensagem de sucesso é temporária: some sozinha após alguns segundos.
   useEffect(() => {
@@ -394,14 +412,20 @@ function ConteudoPassageiro({ carregando, erro, reservas, onTentarNovamente }) {
     return <div className="caronas-vazio"><p>Nenhuma carona como passageiro por aqui ainda.</p><span>As caronas que você reservar aparecerão aqui.</span></div>;
   }
 
-  const confirmadas = reservas.filter((reserva) => ['ACEITA', 'ATIVA', 'CONFIRMADA'].includes(reserva.status));
+  const confirmadas = reservas.filter((reserva) =>
+    ['ATIVA', 'CONFIRMADA'].includes(reserva.status),
+  );
+  const aceitas = reservas.filter((reserva) =>
+    reserva.status === 'ACEITA',
+  );
   const pendentes = reservas.filter((reserva) => reserva.status === 'PENDENTE');
   const recusadas = reservas.filter((reserva) => reserva.status === 'RECUSADA');
   const outras = reservas.filter((reserva) => !['ACEITA', 'ATIVA', 'CONFIRMADA', 'PENDENTE', 'RECUSADA'].includes(reserva.status));
 
   return (
     <div className="reservas-grupos">
-      <GrupoReservas titulo="Confirmadas" reservas={confirmadas} />
+      <GrupoReservas titulo="Solicitações confirmadas" reservas={confirmadas} />
+      <GrupoReservas titulo="Solicitações aceitas" reservas={aceitas} aceita />
       <GrupoReservas titulo="Solicitações pendentes" reservas={pendentes} pendente />
       <GrupoReservas titulo="Solicitações recusadas" reservas={recusadas} recusada />
       <GrupoReservas titulo="Outras reservas" reservas={outras} />
@@ -409,26 +433,42 @@ function ConteudoPassageiro({ carregando, erro, reservas, onTentarNovamente }) {
   );
 }
 
-function GrupoReservas({ titulo, reservas, pendente = false, recusada = false }) {
+function GrupoReservas({ titulo, reservas, pendente = false, recusada = false, aceita = false }) {
   if (reservas.length === 0) return null;
-  return <section className="reservas-grupo"><h2>{titulo}</h2><ul className="reservas-lista">{reservas.map((reserva) => <li key={reserva.id}><ReservaCard reserva={reserva} pendente={pendente} recusada={recusada} /></li>)}</ul></section>;
+  return <section className="reservas-grupo"><h2>{titulo}</h2><ul className="reservas-lista">{reservas.map((reserva) => <li key={reserva.id}><ReservaCard reserva={reserva} pendente={pendente} recusada={recusada} aceita={aceita} /></li>)}</ul></section>;
 }
 
-function ReservaCard({ reserva, pendente = false, recusada = false }) {
+function ReservaCard({ reserva, pendente = false, recusada = false, aceita = false }) {
   const confirmada = ['ACEITA', 'ATIVA', 'CONFIRMADA'].includes(reserva.status);
+  const pontoEncontro = reserva.carona.pontoEncontro || reserva.pontoEncontro || 'ponto de encontro combinado';
 
   return (
-    <article className={`reserva-card${pendente ? ' reserva-card--pendente' : ''}${recusada ? ' reserva-card--recusada' : ''}`}>
+    <article className={`reserva-card${pendente ? ' reserva-card--pendente' : ''}${recusada ? ' reserva-card--recusada' : ''}${aceita ? ' reserva-card--aceita' : ''}`}>
       <Link className="reserva-card__abrir" to={`/reservas/${reserva.id}`} state={{ reserva }} aria-label={`Ver detalhes da reserva com ${reserva.motorista?.nome || 'motorista'}`} />
       <div className="reserva-card__topo">
         {pendente
           ? <span className="reserva-card__aguardando"><span aria-hidden="true" />Aguardando motorista</span>
+          : aceita
+            ? <span className="reserva-card__aceita">✓ Aceita pelo motorista</span>
           : <StatusReservaBadge status={reserva.status} compacto />}
         <span className="reserva-card__data">{formatarDataReserva(reserva.dataViagem)}</span>
       </div>
       <strong className="reserva-card__motorista">{reserva.motorista?.nome || 'Motorista'}</strong>
       <p className="reserva-card__rota">{reserva.carona.origem || 'Origem'} <ArrowRight size={14} /> {reserva.carona.destino || 'Destino'}</p>
-      {recusada ? (
+      {aceita ? (
+        <>
+          <div className="reserva-card__confirmacao">
+            <strong>✓ Vaga confirmada</strong>
+            <span>Encontre o motorista em {pontoEncontro} às {formatarHorarioReserva(reserva.dataViagem)}.</span>
+          </div>
+          <div className="reserva-card__acoes">
+            <Link to={`/reservas/${reserva.id}`} state={{ reserva }} className="reserva-card__detalhes">Ver detalhes</Link>
+            <Link to={`/reservas/${reserva.id}/chat/${reserva.motorista?.id || 'motorista'}`} state={{ passageiro: reserva.motorista, status: reserva.status }} className="reserva-card__chat">
+              <MessageCircle size={17} aria-hidden="true" /> Chat
+            </Link>
+          </div>
+        </>
+      ) : recusada ? (
         <Link to="/buscar-carona" className="reserva-card__buscar">Buscar outras caronas</Link>
       ) : !confirmada ? (
         <span className="reserva-card__quantidade"><Users size={14} /> {formatarQuantidadeReserva(reserva.quantidadePassageiros)}</span>
@@ -689,6 +729,13 @@ function formatarDataReserva(valor) {
 function formatarQuantidadeReserva(valor) {
   const quantidade = Number(valor) || 1;
   return `${quantidade} ${quantidade === 1 ? 'passageiro(a)' : 'passageiros(as)'}`;
+}
+
+function formatarHorarioReserva(valor) {
+  if (!valor) return 'horário combinado';
+  const data = new Date(valor);
+  if (Number.isNaN(data.getTime())) return 'horário combinado';
+  return data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 }
 
 export default MinhasCaronas;

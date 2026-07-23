@@ -622,17 +622,22 @@ describe('aba Passageiro — agrupamento das reservas', () => {
     await userEvent.click(screen.getByRole('tab', { name: 'Como Passageiro' }));
   }
 
-  it('agrupa em Confirmadas, Solicitações pendentes e Outras reservas', async () => {
+  it('separa reservas aceitas das confirmadas', async () => {
     listarReservasEnviadas.mockResolvedValue(RESERVAS);
 
     renderPagina();
     await irParaPassageiro();
 
-    const confirmadas = (await screen.findByRole('heading', { name: 'Confirmadas' }))
+    const confirmadas = (await screen.findByRole('heading', { name: 'Solicitações confirmadas' }))
       .closest('.reservas-grupo');
-    // ACEITA e CONFIRMADA caem em Confirmadas.
-    expect(within(confirmadas).getByText('Marina Souza')).toBeInTheDocument();
     expect(within(confirmadas).getByText('João Mendes')).toBeInTheDocument();
+
+    const aceitas = screen.getByRole('heading', { name: 'Solicitações aceitas' })
+      .closest('.reservas-grupo');
+    expect(within(aceitas).getByText('Marina Souza')).toBeInTheDocument();
+    expect(within(aceitas).getByText('Aceita pelo motorista', { exact: false })).toBeInTheDocument();
+    expect(within(aceitas).getByRole('link', { name: 'Ver detalhes' })).toBeInTheDocument();
+    expect(within(aceitas).getByRole('link', { name: 'Chat' })).toBeInTheDocument();
 
     const pendentes = screen.getByRole('heading', { name: 'Solicitações pendentes' })
       .closest('.reservas-grupo');
@@ -648,19 +653,38 @@ describe('aba Passageiro — agrupamento das reservas', () => {
   });
 
   it('não renderiza grupos vazios', async () => {
-    // Só reservas confirmadas: pendentes e outras não devem aparecer.
+    // Uma reserva aceita aparece no grupo próprio mesmo no carregamento inicial.
     listarReservasEnviadas.mockResolvedValue([RESERVAS[0]]);
 
     renderPagina();
     await irParaPassageiro();
 
-    expect(await screen.findByRole('heading', { name: 'Confirmadas' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Solicitações aceitas' })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Solicitações confirmadas' })).not.toBeInTheDocument();
     expect(
       screen.queryByRole('heading', { name: 'Solicitações pendentes' }),
     ).not.toBeInTheDocument();
     expect(
       screen.queryByRole('heading', { name: 'Outras reservas' }),
     ).not.toBeInTheDocument();
+  });
+
+  it('atualiza uma solicitação pendente para aceita sem recarregar a página', async () => {
+    const pendente = { ...RESERVAS[0], status: 'PENDENTE' };
+    const aceita = { ...RESERVAS[0], status: 'ACEITA' };
+    listarReservasEnviadas.mockResolvedValueOnce([pendente]).mockResolvedValue([aceita]);
+
+    renderPagina();
+    await irParaPassageiro();
+    await screen.findByRole('heading', { name: 'Solicitações pendentes' });
+
+    window.dispatchEvent(new Event('focus'));
+
+    const aceitas = (await screen.findByRole('heading', { name: 'Solicitações aceitas' }))
+      .closest('.reservas-grupo');
+    expect(within(aceitas).getByText('Aceita pelo motorista', { exact: false })).toBeInTheDocument();
+    expect(within(aceitas).getByRole('link', { name: 'Ver detalhes' })).toBeInTheDocument();
+    expect(within(aceitas).getByRole('link', { name: 'Chat' })).toBeInTheDocument();
   });
 
   it('renderiza os dados da reserva no card (rota, quantidade e data)', async () => {
@@ -705,7 +729,7 @@ describe('aba Passageiro — carregamento, erro e lazy load', () => {
     );
   });
 
-  it('busca as reservas apenas uma vez ao alternar de aba repetidamente', async () => {
+  it('atualiza as reservas novamente ao retornar para a aba passageiro', async () => {
     listarReservasEnviadas.mockResolvedValue([]);
 
     renderPagina();
@@ -718,7 +742,7 @@ describe('aba Passageiro — carregamento, erro e lazy load', () => {
     await userEvent.click(screen.getByRole('tab', { name: 'Como Passageiro' }));
     await screen.findByText('Nenhuma carona como passageiro por aqui ainda.');
 
-    expect(listarReservasEnviadas).toHaveBeenCalledTimes(1);
+    expect(listarReservasEnviadas).toHaveBeenCalledTimes(2);
   });
 
   it('mostra o erro ao carregar as reservas', async () => {

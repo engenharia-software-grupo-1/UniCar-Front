@@ -180,18 +180,26 @@ function OfertarCarona() {
 
   const dropdownRef = useRef(null);
 
-  // Alterar o número de vagas muda o rateio e, portanto, o teto permitido.
-  // Mantém o valor selecionado sempre dentro da nova faixa sem exigir que o
-  // usuário volte ao passo anterior.
+  // Alterar o número de vagas muda o rateio, o valor sugerido e o teto.
+  // Sincroniza o valor selecionado com o novo resultado da fórmula; depois o
+  // motorista ainda pode ajustá-lo livremente entre zero e o teto permitido.
   useEffect(() => {
     if (!origemCoord || !destinoCoord) return;
 
-    setContribuicao((atual) =>
-      contribuicaoMax >= CONTRIBUICAO_MINIMA
-        ? Math.max(CONTRIBUICAO_MINIMA, Math.min(atual, contribuicaoMax))
+    setContribuicao(
+      contribuicaoMax > 0
+        ? Math.max(
+            CONTRIBUICAO_MINIMA,
+            Math.min(valorSugeridoContribuicao, contribuicaoMax),
+          )
         : 0,
     );
-  }, [contribuicaoMax, origemCoord, destinoCoord]);
+  }, [
+    contribuicaoMax,
+    destinoCoord,
+    origemCoord,
+    valorSugeridoContribuicao,
+  ]);
 
   useEffect(() => {
     let ativo = true;

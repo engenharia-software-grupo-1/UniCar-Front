@@ -3,6 +3,62 @@ import { shouldUseDevelopmentFallbacks, shouldUseLocalDataMocks } from './apiCon
 import { listarReservasAceitas } from './reservaService.js';
 import { expandirDatasDaRecorrencia } from '../utils/recorrencia.js';
 
+export async function listarCursosAtivos() {
+  const resposta = await apiRequest('/caronas/cursos');
+  const cursos = Array.isArray(resposta)
+    ? resposta
+    : resposta?.content || resposta?.items || resposta?.cursos || [];
+
+  const cursosUnicos = new Map();
+
+  cursos.forEach((curso) => {
+    const nome = formatarNomeCurso(curso);
+    if (!cursoValido(nome)) return;
+
+    const chave = chaveCurso(nome);
+
+    if (!cursosUnicos.has(chave)) {
+      cursosUnicos.set(chave, nome);
+    }
+  });
+
+  return [...cursosUnicos.values()]
+    .sort((primeiro, segundo) => primeiro.localeCompare(segundo, 'pt-BR'));
+}
+
+const CONECTIVOS_CURSO = new Set([
+  'a', 'as', 'com', 'da', 'das', 'de', 'do', 'dos', 'e', 'em', 'na', 'nas',
+  'no', 'nos', 'para', 'por',
+]);
+
+function formatarNomeCurso(valor) {
+  const palavras = String(valor || '').trim().toLocaleLowerCase('pt-BR').split(/\s+/);
+
+  return palavras.map((palavra, indice) => {
+    if (palavra === '-') return palavra;
+    if (/^[dn]$/.test(palavra)) return palavra.toUpperCase();
+    if (indice > 0 && CONECTIVOS_CURSO.has(palavra)) return palavra;
+
+    return palavra.replace(/^(\p{L})/u, (letra) => letra.toLocaleUpperCase('pt-BR'));
+  }).join(' ');
+}
+
+function chaveCurso(nome) {
+  return nome
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+    .toLocaleLowerCase('pt-BR')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function cursoValido(nome) {
+  if (nome.length < 3 || !/\p{L}/u.test(nome)) return false;
+
+  const nomeComparavel = chaveCurso(nome);
+  return !/(^|[^\p{L}])(excluir|teste)([^\p{L}]|$)/u.test(nomeComparavel);
+}
+
 // Próxima carona do usuário — o card da tela Início.
 //
 // Não existe GET /caronas/proxima: nenhum contrato define esse endpoint. A

@@ -14,6 +14,7 @@ vi.mock('react-router-dom', async (importOriginal) => {
 // MSW erra em request não tratada).
 vi.mock('../../services/caronaService.js', () => ({
   buscarCaronas: vi.fn(),
+  listarCursosAtivos: vi.fn(),
 }));
 
 // A busca agora resolve as coordenadas do passageiro antes de chamar o serviço,
@@ -24,7 +25,7 @@ vi.mock('../../services/geocodingService.js', () => ({
 }));
 
 import BuscarCarona from './index.jsx';
-import { buscarCaronas } from '../../services/caronaService.js';
+import { buscarCaronas, listarCursosAtivos } from '../../services/caronaService.js';
 import { geocodificarEndereco, buscarSugestoesEndereco } from '../../services/geocodingService.js';
 
 // Monta uma carona de busca com os campos mínimos que a página lê.
@@ -61,6 +62,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   localStorage.clear();
   buscarCaronas.mockResolvedValue([]);
+  listarCursosAtivos.mockResolvedValue([]);
   buscarSugestoesEndereco.mockResolvedValue([]);
   // Coordenadas determinísticas por texto: UFCG difere das demais para dá para
   // distinguir origem de destino nas asserções.
@@ -222,6 +224,21 @@ describe('caronasFiltradas — filtros padrão e aliases', () => {
 });
 
 describe('realizarBusca', () => {
+  it('carrega no filtro os cursos ativos retornados pelo backend', async () => {
+    listarCursosAtivos.mockResolvedValue([
+      'Arquitetura e Urbanismo',
+      'Ciência da Computação',
+    ]);
+
+    renderPagina('/buscar-carona');
+    await userEvent.click(screen.getByRole('button', { name: 'Filtros' }));
+
+    expect(await screen.findByRole('option', { name: 'Arquitetura e Urbanismo' }))
+      .toBeInTheDocument();
+    expect(screen.getAllByRole('option', { name: 'Qualquer' })).toHaveLength(2);
+    expect(listarCursosAtivos).toHaveBeenCalledTimes(1);
+  });
+
   it('exige a origem: bloqueia a busca e mostra erro quando ela está vazia', async () => {
     renderPagina('/buscar-carona');
 

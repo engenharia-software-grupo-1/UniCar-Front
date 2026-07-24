@@ -3,6 +3,7 @@ import {
   buscarSugestoesEndereco,
   round2HalfUp,
   calcularDistanciaKm,
+  calcularValorSugeridoContribuicao,
   calcularTetoContribuicao,
   contribuicaoMaxima,
 } from './geocodingService.js';
@@ -74,27 +75,38 @@ describe('calcularDistanciaKm — Haversine idêntico ao backend', () => {
   });
 });
 
-describe('calcularTetoContribuicao — distância × fator (1,00)', () => {
-  it('teto igual à distância com o fator padrão', () => {
-    expect(calcularTetoContribuicao(BODOCONGO, CATOLE)).toBe(5.73);
-    expect(calcularTetoContribuicao(BODOCONGO, UFCG)).toBe(0.31);
+describe('calcularValorSugeridoContribuicao — custo total do trajeto', () => {
+  it('divide o custo pela ocupação estimada das vagas mais o motorista', () => {
+    expect(calcularValorSugeridoContribuicao(BODOCONGO, CATOLE, 3)).toBe(0.96);
+    expect(calcularValorSugeridoContribuicao(BODOCONGO, UFCG, 3)).toBe(0.05);
+  });
+
+  it('soma os pedágios ao custo de combustível', () => {
+    expect(calcularValorSugeridoContribuicao(BODOCONGO, CATOLE, 3, 10)).toBe(4.29);
   });
 });
 
-describe('contribuicaoMaxima — maior múltiplo de 0,50 <= teto', () => {
-  it('fica abaixo do teto quando ele é quebrado', () => {
-    expect(contribuicaoMaxima(5.73)).toBe(5.5);
-    expect(contribuicaoMaxima(15.01)).toBe(15);
+describe('calcularTetoContribuicao — valor sugerido com margem de 15%', () => {
+  it('aplica a margem máxima sobre o custo total estimado', () => {
+    expect(calcularTetoContribuicao(BODOCONGO, CATOLE, 3)).toBe(1.1);
+    expect(calcularTetoContribuicao(BODOCONGO, UFCG, 3)).toBe(0.06);
+  });
+});
+
+describe('contribuicaoMaxima — permite alcançar o teto em centavos', () => {
+  it('preserva tetos com duas casas decimais', () => {
+    expect(contribuicaoMaxima(5.73)).toBe(5.73);
+    expect(contribuicaoMaxima(15.01)).toBe(15.01);
   });
 
-  it('bate exatamente em múltiplos de 0,50', () => {
+  it('preserva valores inteiros', () => {
     expect(contribuicaoMaxima(15)).toBe(15);
     expect(contribuicaoMaxima(1)).toBe(1);
   });
 
-  it('zera em trajetos curtos demais', () => {
-    expect(contribuicaoMaxima(0.31)).toBe(0);
-    expect(contribuicaoMaxima(0.49)).toBe(0);
+  it('aceita valores positivos menores que cinquenta centavos', () => {
+    expect(contribuicaoMaxima(0.31)).toBe(0.31);
+    expect(contribuicaoMaxima(0.49)).toBe(0.49);
     expect(contribuicaoMaxima(0)).toBe(0);
   });
 });

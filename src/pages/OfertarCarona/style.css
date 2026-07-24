@@ -87,10 +87,16 @@
   text-transform: uppercase;
 }
 
-.ofertar-campo-titulo {
+.ofertar-campo > .ofertar-campo-titulo {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+}
+
+.ofertar-campo > .ofertar-campo-titulo svg {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
 }
 
 .ofertar-input {

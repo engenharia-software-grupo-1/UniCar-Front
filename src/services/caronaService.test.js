@@ -54,6 +54,31 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
+describe('listarCursosAtivos', () => {
+  it('busca /caronas/cursos e devolve opções únicas em ordem alfabética', async () => {
+    fetch.mockResolvedValue(respostaJson([
+      'MEDICINA',
+      'CIÊNCIA DA COMPUTAÇÃO - D',
+      'Medicina',
+      'Ciência da Computação - d',
+      'Excluir 1',
+      'CURSO TESTE - D',
+      '12',
+      '--',
+      ' a ',
+      '',
+    ]));
+
+    const { listarCursosAtivos } = await importarService();
+
+    await expect(listarCursosAtivos()).resolves.toEqual([
+      'Ciência da Computação - D',
+      'Medicina',
+    ]);
+    expect(fetch.mock.calls[0][0]).toBe(`${BASE_URL}/caronas/cursos`);
+  });
+});
+
 describe('listarPassageirosCarona', () => {
   it('busca os passageiros confirmados da carona e normaliza a resposta', async () => {
     fetch.mockResolvedValue(respostaJson([

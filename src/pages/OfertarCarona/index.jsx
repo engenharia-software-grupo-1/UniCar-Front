@@ -18,8 +18,10 @@ import {
   geocodificarEndereco,
   buscarSugestoesEndereco,
   calcularDistanciaKm,
+  calcularValorSugeridoContribuicao,
   calcularTetoContribuicao,
   contribuicaoMaxima,
+  PASSO_CONTRIBUICAO,
 } from '../../services/geocodingService.js';
 import {
   buscarUltimaCaronaDoTrajeto,
@@ -37,6 +39,7 @@ import './style.css';
 
 const TOTAL_PASSOS = 3;
 const VAGAS_CARRO = [1, 2, 3, 4];
+const CONTRIBUICAO_MINIMA = 0;
 
 // Veículo pode ter um atributo `tipo` ('carro' ou 'moto'). Quando ausente,
 // tratamos como carro (regra da issue #31).
@@ -158,12 +161,37 @@ function OfertarCarona() {
     [origemCoord, destinoCoord],
   );
   const tetoContribuicao = useMemo(
-    () => (origemCoord && destinoCoord ? calcularTetoContribuicao(origemCoord, destinoCoord) : 0),
-    [origemCoord, destinoCoord],
+    () => (
+      origemCoord && destinoCoord
+        ? calcularTetoContribuicao(origemCoord, destinoCoord, vagas)
+        : 0
+    ),
+    [origemCoord, destinoCoord, vagas],
+  );
+  const valorSugeridoContribuicao = useMemo(
+    () => (
+      origemCoord && destinoCoord
+        ? calcularValorSugeridoContribuicao(origemCoord, destinoCoord, vagas)
+        : 0
+    ),
+    [origemCoord, destinoCoord, vagas],
   );
   const contribuicaoMax = useMemo(() => contribuicaoMaxima(tetoContribuicao), [tetoContribuicao]);
 
   const dropdownRef = useRef(null);
+
+  // Alterar o número de vagas muda o rateio e, portanto, o teto permitido.
+  // Mantém o valor selecionado sempre dentro da nova faixa sem exigir que o
+  // usuário volte ao passo anterior.
+  useEffect(() => {
+    if (!origemCoord || !destinoCoord) return;
+
+    setContribuicao((atual) =>
+      contribuicaoMax >= CONTRIBUICAO_MINIMA
+        ? Math.max(CONTRIBUICAO_MINIMA, Math.min(atual, contribuicaoMax))
+        : 0,
+    );
+  }, [contribuicaoMax, origemCoord, destinoCoord]);
 
   useEffect(() => {
     let ativo = true;
@@ -513,8 +541,14 @@ function OfertarCarona() {
         setOrigemCoord(origemGeo);
         setDestinoCoord(destinoGeo);
 
-        const maximo = contribuicaoMaxima(calcularTetoContribuicao(origemGeo, destinoGeo));
-        setContribuicao((atual) => Math.min(atual, maximo));
+        const maximo = contribuicaoMaxima(
+          calcularTetoContribuicao(origemGeo, destinoGeo, vagas),
+        );
+        setContribuicao((atual) =>
+          maximo >= CONTRIBUICAO_MINIMA
+            ? Math.max(CONTRIBUICAO_MINIMA, Math.min(atual, maximo))
+            : 0,
+        );
       } catch (error) {
         setErrosCampos({
           origem: error.message || 'Não foi possível localizar o endereço.',
@@ -1005,9 +1039,9 @@ function OfertarCarona() {
                     <input
                       type="range"
                       className="ofertar-range"
-                      min={0}
+                      min={CONTRIBUICAO_MINIMA}
                       max={contribuicaoMax}
-                      step={0.5}
+                      step={PASSO_CONTRIBUICAO}
                       value={contribuicao}
                       onChange={(evento) => setContribuicao(Number(evento.target.value))}
                       aria-label="Contribuição por passageiro"
@@ -1021,13 +1055,13 @@ function OfertarCarona() {
                   </div>
 
                   <span className="ofertar-slider-dica">
-                    Máximo de R$ {formatarReais(tetoContribuicao)} para{' '}
-                    {formatarKm(distanciaKm)} km (R$ 1,00/km).
+                    Sugerido: R$ {formatarReais(valorSugeridoContribuicao)} • máximo de{' '}
+                    R$ {formatarReais(tetoContribuicao)} para {formatarKm(distanciaKm)} km.
                   </span>
                 </>
               ) : (
                 <span className="ofertar-slider-dica">
-                  Trajeto muito curto para cobrar contribuição — será publicada como gratuita (R$ 0).
+                  Este trajeto será publicado sem contribuição por passageiro (R$ 0).
                 </span>
               )}
             </div>

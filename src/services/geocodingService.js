@@ -30,12 +30,16 @@ function aguardarVezNaFila() {
   return vez;
 }
 
-// Espelha a validação de contribuição do backend (CaronaService.validarValorContribuicao):
-// o teto de um trajeto é a distância Haversine em km multiplicada por um fator R$/km.
-// Reproduzimos o cálculo aqui para a barra ir só até o permitido, sem depender do 400.
+// Espelha a validação de contribuição do backend (CaronaService.validarValorContribuicao).
+// A versão atual estima o custo TOTAL do trajeto, sem dividi-lo pela ocupação:
+// distância × (preço do combustível / consumo médio) + pedágios. Sobre esse
+// valor é aplicada a margem máxima permitida.
 export const RAIO_TERRA_KM = 6371;
-export const FATOR_VALOR_POR_KM = 1.0; // default do back (unicar.carona.fator-valor-por-km)
-export const PASSO_CONTRIBUICAO = 0.5;
+export const PRECO_COMBUSTIVEL_POR_LITRO = 6;
+export const CONSUMO_MEDIO_KM_POR_LITRO = 12;
+export const TAXA_OCUPACAO_ESTIMADA = 0.7;
+export const MARGEM_MAXIMA_CONTRIBUICAO = 0.15;
+export const PASSO_CONTRIBUICAO = 0.01;
 
 export async function geocodificarEndereco(descricao) {
   const texto = String(descricao || '').trim();
@@ -215,16 +219,46 @@ export function calcularDistanciaKm(coordA, coordB) {
   return round2HalfUp(RAIO_TERRA_KM * c);
 }
 
-// Teto de contribuição do trajeto: distância (km) × fator R$/km, como o backend.
-export function calcularTetoContribuicao(coordA, coordB) {
-  return round2HalfUp(calcularDistanciaKm(coordA, coordB) * FATOR_VALOR_POR_KM);
+// Valor sugerido POR PASSAGEIRO: o custo total é rateado entre a ocupação
+// estimada das vagas (70%, arredondada e com piso de 1) e o motorista.
+// Hoje as operações de criar/editar carona enviam pedágios como zero.
+export function calcularValorSugeridoContribuicao(
+  coordA,
+  coordB,
+  quantidadeVagas = 1,
+  pedagios = 0,
+) {
+  const custoPorKm = PRECO_COMBUSTIVEL_POR_LITRO / CONSUMO_MEDIO_KM_POR_LITRO;
+  const custoTotal =
+    calcularDistanciaKm(coordA, coordB) * custoPorKm + Math.max(0, Number(pedagios) || 0);
+  const vagas = Math.max(1, Number(quantidadeVagas) || 1);
+  const passageirosEstimados = Math.max(1, Math.round(vagas * TAXA_OCUPACAO_ESTIMADA));
+  const pessoasNoRateio = passageirosEstimados + 1;
+
+  return round2HalfUp(round2HalfUp(custoTotal) / pessoasNoRateio);
 }
 
-// Maior valor alcançável na barra: o maior múltiplo de PASSO_CONTRIBUICAO <= teto.
-// Fica sempre abaixo (ou igual) do teto, o que dá margem contra divergência de centavo.
+// Teto permitido: custo total sugerido acrescido da margem máxima de 15%.
+export function calcularTetoContribuicao(
+  coordA,
+  coordB,
+  quantidadeVagas = 1,
+  pedagios = 0,
+) {
+  const valorSugerido = calcularValorSugeridoContribuicao(
+    coordA,
+    coordB,
+    quantidadeVagas,
+    pedagios,
+  );
+  return round2HalfUp(valorSugerido * (1 + MARGEM_MAXIMA_CONTRIBUICAO));
+}
+
+// O backend trabalha com centavos; como o teto já é arredondado para duas casas,
+// ele próprio pode ser alcançado exatamente pela barra.
 export function contribuicaoMaxima(teto) {
   const valor = Number(teto);
   if (!Number.isFinite(valor) || valor <= 0) return 0;
 
-  return Math.floor(valor / PASSO_CONTRIBUICAO) * PASSO_CONTRIBUICAO;
+  return round2HalfUp(valor);
 }

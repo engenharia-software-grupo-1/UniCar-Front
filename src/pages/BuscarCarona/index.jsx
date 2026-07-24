@@ -12,13 +12,13 @@ import {
   SlidersHorizontal,
   Star,
 } from 'lucide-react';
-import { buscarCaronas } from '../../services/caronaService.js';
+import { buscarCaronas, listarCursosAtivos } from '../../services/caronaService.js';
 import { getSession } from '../../services/authService.js';
 import { buscarSugestoesEndereco, geocodificarEndereco } from '../../services/geocodingService.js';
 import { obterFotoPerfil } from '../../utils/fotoPerfil.js';
 import './style.css';
 
-const CURSOS = [
+const CURSOS_FALLBACK = [
   'Qualquer',
   'Ciência da Computação',
   'Eng. Elétrica',
@@ -29,9 +29,9 @@ const CURSOS = [
 ];
 const GENEROS = ['Qualquer', 'Feminino', 'Masculino', 'Outro'];
 const CARONAS_POR_PAGINA = 5;
-// Raio de busca padrão (km). Espelha o default do backend (BuscaCaronaService,
-// RAIO_PADRAO_KM = 5) e é o teto de proximidade origem-passageiro ↔ origem-carona.
-const RAIO_PADRAO_KM = 5;
+// Raio inicial escolhido pela interface para localizar caronas próximas.
+// É enviado explicitamente, sem depender do valor padrão configurado no backend.
+const RAIO_PADRAO_KM = 1;
 const RAIO_MAXIMO_KM = 50;
 
 function useSugestoesEndereco(consulta, ativa) {
@@ -79,6 +79,7 @@ function BuscarCarona() {
   const [origemCoordenadas, setOrigemCoordenadas] = useState(null);
   const [destinoCoordenadas, setDestinoCoordenadas] = useState(null);
   const [curso, setCurso] = useState('Qualquer');
+  const [cursos, setCursos] = useState(CURSOS_FALLBACK);
   const [genero, setGenero] = useState('Qualquer');
   const [erroOrigem, setErroOrigem] = useState('');
   const [erroDestino, setErroDestino] = useState('');
@@ -99,6 +100,25 @@ function BuscarCarona() {
   const sugestoesOrigem = useSugestoesEndereco(origem, campoEnderecoAtivo === 'origem');
   const sugestoesDestino = useSugestoesEndereco(destino, campoEnderecoAtivo === 'destino');
   const usuarioAtualId = identificarUsuario(getSession()?.usuario);
+
+  useEffect(() => {
+    let ativo = true;
+
+    listarCursosAtivos()
+      .then((cursosAtivos) => {
+        if (ativo && cursosAtivos.length > 0) {
+          setCursos(['Qualquer', ...cursosAtivos.filter((item) => item !== 'Qualquer')]);
+        }
+      })
+      .catch(() => {
+        // Mantém a lista local para o filtro continuar disponível se a integração
+        // de cursos da UFCG estiver temporariamente indisponível.
+      });
+
+    return () => {
+      ativo = false;
+    };
+  }, []);
 
 
 
@@ -137,6 +157,7 @@ function BuscarCarona() {
         const resultado = await buscarCaronas({
           origemCoordenadas: coordsOrigem,
           destinoCoordenadas: coordsDestino,
+          raioKm: RAIO_PADRAO_KM,
         });
         if (ativo) {
           setCaronas(resultado);
@@ -326,7 +347,7 @@ function BuscarCarona() {
               <RangeField label={`Vagas mínimas: ${vagasMinimas}`} min="1" max="4" value={vagasMinimas} onChange={setVagasMinimas} />
               <RangeField label={`Preço máximo: R$ ${precoMaximo}`} min="0" max="30" value={precoMaximo} onChange={setPrecoMaximo} />
               <div className="buscar-grid">
-                <SelectField label="Curso" value={curso} options={CURSOS} onChange={setCurso} />
+                <SelectField label="Curso" value={curso} options={cursos} onChange={setCurso} />
                 <SelectField label="Gênero" value={genero} options={GENEROS} onChange={setGenero} />
               </div>
             </div>

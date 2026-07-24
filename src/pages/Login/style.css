@@ -121,6 +121,16 @@
   color: #8a97a8;
 }
 
+.field-input input:-webkit-autofill,
+.field-input input:-webkit-autofill:hover,
+.field-input input:-webkit-autofill:focus,
+.field-input input:-webkit-autofill:active {
+  -webkit-text-fill-color: #0f172a;
+  caret-color: #0f172a;
+  box-shadow: 0 0 0 1000px #f7fbff inset;
+  -webkit-box-shadow: 0 0 0 1000px #f7fbff inset;
+}
+
 .field-input input:disabled {
   cursor: not-allowed;
 }
